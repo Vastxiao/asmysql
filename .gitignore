@@ -1,0 +1,9 @@
+*.swp
+*.idea/
+*.vscode/
+*.ropeproject/
+*__pycache__/
+*.pyc
+*.spec
+dist/
+poetry.lock
