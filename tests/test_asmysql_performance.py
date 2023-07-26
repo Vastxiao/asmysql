@@ -7,6 +7,7 @@ class TestAsMysql(AsMysql):
     port = 3306
     user = 'root'
     password = 'xiao'
+    db = 'db_sms'
 
     async def get_users(self):
         result = await self.client.execute('select user,host from mysql.user')

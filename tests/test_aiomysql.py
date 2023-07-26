@@ -8,6 +8,7 @@ async def create_pool():
         port=3306,
         user='root',
         password='xiao',
+        db='db_sms',
         minsize=3,
         maxsize=10
     )

@@ -5,5 +5,5 @@
 *__pycache__/
 *.pyc
 *.spec
-dist/
 poetry.lock
+dist/

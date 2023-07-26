@@ -1,7 +1,7 @@
 from typing import Final, final, Optional
 from aiomysql import Pool, create_pool
 
-from ._cursor_client import CursorClient
+from .__cursor_client import CursorClient
 
 
 class AsMysql:

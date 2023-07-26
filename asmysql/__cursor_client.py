@@ -7,7 +7,10 @@ from ._result import Result
 
 
 class CursorClient:
-    """这个是封装aiomysql的cursor客户端"""
+    """这个是封装aiomysql的cursor客户端
+
+    这个是 asmysql 内部使用的类，并不会暴露给客户端
+    """
     def __init__(self, pool: Pool):
         """执行语句参考：
         https://pymysql.readthedocs.io/en/latest/modules/cursors.html

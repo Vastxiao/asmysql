@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.1.1] - 2023.07.25
+
+### Features
+
+> 新增 Result.err_msg 返回exception错误的详情字符串。
+
 ## [0.1.0] - 2023.07.16
 
 ### Breaking Changes

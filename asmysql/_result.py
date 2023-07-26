@@ -1,5 +1,6 @@
 from typing import Final, Optional
 from typing import AsyncIterator
+from functools import lru_cache
 from aiomysql import Cursor
 
 
@@ -15,6 +16,15 @@ class Result:
 
     def __repr__(self):
         return f'<{self.__class__.__name__}: {self.query}>'
+
+    @property
+    @lru_cache
+    def err_msg(self):
+        if self.err:
+            err_str = self.err.__str__() or self.err.__doc__.replace('\n', '')
+            return f"{self.err.__class__.__name__} {err_str}"
+        else:
+            return ""
 
     async def fetch_one(self) -> Optional[tuple]:
         """获取一条记录"""
