@@ -5,12 +5,16 @@ description = "封装aiomysql的异步mysql客户端引擎。"
 license = "MIT"
 authors = ["vastxiao <vastxiao@gmail.com>"]
 homepage = "https://github.com/Vastxiao/asmysql"
+repository = "https://github.com/Vastxiao/asmysql"
+documentation = "https://github.com/Vastxiao/asmysql/blob/main/README.md"
 keywords = ["async", "asyncio", "mysql", "aiomysql"]
 readme = "README.md"
 include = ["CHANGELOG.md", "README_zh.md"]
 
 [tool.poetry.urls]
-"vastxiao" = "https://vastxiao.github.io/"
+"asmysql readme-zh" = "https://github.com/Vastxiao/asmysql/blob/main/README_zh.md"
+"asmysql changelog" = "https://github.com/Vastxiao/asmysql/blob/main/CHANGELOG.md"
+"vastxiao blog" = "https://vastxiao.github.io/"
 
 [tool.poetry.dependencies]
 python = "^3.11"
