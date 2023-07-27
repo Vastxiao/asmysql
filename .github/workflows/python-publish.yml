@@ -1,0 +1,41 @@
+
+name: Publish to PyPI
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish package to PyPI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.11  # 请替换为你需要使用的 Python 版本
+
+      - name: Install Poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
+
+      - name: Build and Publish
+        env:
+          POETRY_TOKEN: ${{ secrets.POETRY_TOKEN }}
+        run: |
+          # 安装项目依赖
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+          poetry config pypi-token.pypi $POETRY_TOKEN
+          poetry install
+
+          # 编译并发布到 PyPI
+          poetry build
+          poetry publish --build
