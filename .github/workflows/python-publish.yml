@@ -16,12 +16,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: 3.11  # 请替换为你需要使用的 Python 版本
+          python-version: 3.11
 
       - name: Install Poetry
         run: curl -sSL https://install.python-poetry.org | python3 -
