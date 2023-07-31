@@ -14,6 +14,7 @@ class Result:
         else:
             raise AttributeError("require arg: cursor or err")
 
+    @lru_cache
     def __repr__(self):
         return f'<{self.__class__.__name__}: {self.query}>'
 

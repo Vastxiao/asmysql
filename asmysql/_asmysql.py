@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Final, final, Optional
 from aiomysql import Pool, create_pool
 
@@ -38,6 +39,7 @@ class AsMysql:
         self.__pool: Optional[Pool] = None
         self.__cursor_client: Optional[CursorClient] = None
 
+    @lru_cache
     def __repr__(self):
         return f'<{self.__class__.__name__} {self.url}>'
 
