@@ -46,6 +46,7 @@ class TestAsMysql(AsMysql):
 async def main():
     mysql = await TestAsMysql()
     await mysql.get_users()
+    await mysql.disconnect()
 
 
 asyncio.run(main())
@@ -70,6 +71,7 @@ mysql = TestAsMysql(host='192.168.1.192', port=3306)
 async def main():
     await mysql.connect()  # or: await mysql
     print(await mysql.get_users())
+    await mysql.disconnect()
 
 asyncio.run(main())
 ```
