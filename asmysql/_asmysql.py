@@ -65,7 +65,7 @@ class AsMysql:
     @final
     async def disconnect(self):
         """等待所有连接释放，并正常关闭mysql连接"""
-        if not self.__pool.closed:
+        if self.__pool and not self.__pool.closed:
             self.__pool.close()
             await self.__pool.wait_closed()
             self.__pool = None
