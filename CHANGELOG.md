@@ -1,5 +1,32 @@
 # Change Log
 
+## [0.1.4] - 2024.08.15
+
+### Features
+
+1. AsMysql支持异步上下文管理器。
+
+```python
+import asyncio
+from asmysql import AsMysql
+
+class TestAsMysql(AsMysql):
+    async def get_users(self):
+        result = await self.client.execute('select user,authentication_string,host from mysql.user')
+        if result.err:
+            print(result.err)
+        else:
+            async for item in result.iterate():
+                print(item)
+
+async def main():
+    async with TestAsMysql() as mysql:
+        await mysql.get_users()
+
+if __name__ == '__main__':
+    asyncio.run(main())
+```
+
 ## [0.1.1] - 2023.07.25
 
 ### Features

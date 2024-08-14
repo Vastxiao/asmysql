@@ -2,7 +2,8 @@ from functools import lru_cache
 from typing import Final, final, Optional
 from aiomysql import Pool, create_pool
 
-from .__cursor_client import CursorClient
+from ._cursor_client import CursorClient
+from ._context import ExceptionHandlerContextRunner
 
 
 class AsMysql:
@@ -43,23 +44,30 @@ class AsMysql:
     def __repr__(self):
         return f'<{self.__class__.__name__} {self.url}>'
 
+    def __aenter__(self):
+        return self.connect()
+
+    def __aexit__(self, exc_type, exc_value, exc_tb):
+        return self.disconnect()
+
     @final
     async def connect(self):
         """连接到mysql,建立TCP链接，初始化连接池。"""
         if not self.__pool:
-            self.__pool = await create_pool(
-                host=self.host,
-                port=self.port,
-                user=self.user,
-                password=self.password,
-                db=self.database,
-                minsize=self.min_pool_size,
-                maxsize=self.max_pool_size,
-                echo=f'{self.url}',
-                pool_recycle=self.pool_recycle,
-                connect_timeout=self.connect_timeout,
-            )
-            self.__cursor_client = CursorClient(self.__pool)
+            async with ExceptionHandlerContextRunner():
+                self.__pool = await create_pool(
+                    host=self.host,
+                    port=self.port,
+                    user=self.user,
+                    password=self.password,
+                    db=self.database,
+                    minsize=self.min_pool_size,
+                    maxsize=self.max_pool_size,
+                    echo=f'{self.url}',
+                    pool_recycle=self.pool_recycle,
+                    connect_timeout=self.connect_timeout,
+                )
+                self.__cursor_client = CursorClient(self.__pool)
         return self
 
     @final
@@ -88,6 +96,9 @@ class AsMysql:
     @final
     @property
     def pool(self):
+        if not self.__pool:
+            raise ConnectionError(f"Please connect to mysql first, function use in instance: "
+                                  f" await {self.__class__.__name__}.connect()")
         return self.__pool
 
     @final

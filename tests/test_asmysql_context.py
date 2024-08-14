@@ -19,8 +19,7 @@ class TestAsMysql(AsMysql):
 
 
 async def main():
-    mysql = await TestAsMysql()
-    await mysql.get_users()
-    await mysql.disconnect()
+    async with TestAsMysql() as mysql:
+        await mysql.get_users()
 
 asyncio.run(main())
