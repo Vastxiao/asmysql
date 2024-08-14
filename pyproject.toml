@@ -30,10 +30,10 @@ aiosqlite = "^0.19.0"
 [[tool.poetry.source]]
 name = "tx"
 url = "https://mirrors.cloud.tencent.com/pypi/simple"
-priority = "primary"
+priority = "supplemental"
 [[tool.poetry.source]]
 name = "PyPI"
-priority = "primary"
+priority = "supplemental"
 [[tool.poetry.source]]
 name = "ali"
 url = "https://mirrors.aliyun.com/pypi/simple/"
@@ -43,4 +43,3 @@ priority = "primary"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
