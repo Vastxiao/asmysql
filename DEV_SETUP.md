@@ -29,8 +29,10 @@ poetry build
 
 ```bash
 # test:
+# poetry config pypi-token.testpypi <my-token>
 poetry publish -r testpypi --build
 
 # pypi:
+# poetry config pypi-token.pypi <my-token>
 poetry publish --build
 ```
