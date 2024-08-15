@@ -4,7 +4,7 @@
 
 ### Features
 
-1. AsMysql支持异步上下文管理器。
+#### 1.AsMysql支持异步上下文管理器。
 
 ```python
 import asyncio
@@ -26,6 +26,8 @@ async def main():
 if __name__ == '__main__':
     asyncio.run(main())
 ```
+
+#### 2.在connection中的异常抛出时，使用ConnectionError替代。
 
 ## [0.1.1] - 2023.07.25
 

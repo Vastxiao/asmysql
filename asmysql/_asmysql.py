@@ -1,9 +1,9 @@
 from functools import lru_cache
 from typing import Final, final, Optional
 from aiomysql import Pool, create_pool
-
+from pymysql.err import MySQLError
 from ._cursor_client import CursorClient
-from ._context import ExceptionHandlerContextRunner
+from ._error import err_msg
 
 
 class AsMysql:
@@ -54,7 +54,7 @@ class AsMysql:
     async def connect(self):
         """连接到mysql,建立TCP链接，初始化连接池。"""
         if not self.__pool:
-            async with ExceptionHandlerContextRunner():
+            try:
                 self.__pool = await create_pool(
                     host=self.host,
                     port=self.port,
@@ -68,6 +68,8 @@ class AsMysql:
                     connect_timeout=self.connect_timeout,
                 )
                 self.__cursor_client = CursorClient(self.__pool)
+            except MySQLError as err:
+                raise ConnectionError(err_msg(err)) from None
         return self
 
     @final

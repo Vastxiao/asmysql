@@ -3,7 +3,7 @@ from asmysql import AsMysql
 
 
 class TestAsMysql(AsMysql):
-    host = '192.168.62.195'
+    host = '192.168.62.194'
     port = 3306
     user = 'root'
     password = 'xiao'
