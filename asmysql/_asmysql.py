@@ -1,8 +1,9 @@
 from functools import lru_cache
 from typing import Final, final, Optional
 from aiomysql import Pool, create_pool
-
-from .__cursor_client import CursorClient
+from pymysql.err import MySQLError
+from ._cursor_client import CursorClient
+from ._error import err_msg
 
 
 class AsMysql:
@@ -43,29 +44,38 @@ class AsMysql:
     def __repr__(self):
         return f'<{self.__class__.__name__} {self.url}>'
 
+    def __aenter__(self):
+        return self.connect()
+
+    def __aexit__(self, exc_type, exc_value, exc_tb):
+        return self.disconnect()
+
     @final
     async def connect(self):
         """连接到mysql,建立TCP链接，初始化连接池。"""
         if not self.__pool:
-            self.__pool = await create_pool(
-                host=self.host,
-                port=self.port,
-                user=self.user,
-                password=self.password,
-                db=self.database,
-                minsize=self.min_pool_size,
-                maxsize=self.max_pool_size,
-                echo=f'{self.url}',
-                pool_recycle=self.pool_recycle,
-                connect_timeout=self.connect_timeout,
-            )
-            self.__cursor_client = CursorClient(self.__pool)
+            try:
+                self.__pool = await create_pool(
+                    host=self.host,
+                    port=self.port,
+                    user=self.user,
+                    password=self.password,
+                    db=self.database,
+                    minsize=self.min_pool_size,
+                    maxsize=self.max_pool_size,
+                    echo=f'{self.url}',
+                    pool_recycle=self.pool_recycle,
+                    connect_timeout=self.connect_timeout,
+                )
+                self.__cursor_client = CursorClient(self.__pool)
+            except MySQLError as err:
+                raise ConnectionError(err_msg(err)) from None
         return self
 
     @final
     async def disconnect(self):
         """等待所有连接释放，并正常关闭mysql连接"""
-        if not self.__pool.closed:
+        if self.__pool and not self.__pool.closed:
             self.__pool.close()
             await self.__pool.wait_closed()
             self.__pool = None
@@ -88,6 +98,9 @@ class AsMysql:
     @final
     @property
     def pool(self):
+        if not self.__pool:
+            raise ConnectionError(f"Please connect to mysql first, function use in instance: "
+                                  f" await {self.__class__.__name__}.connect()")
         return self.__pool
 
     @final

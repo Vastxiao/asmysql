@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "asmysql"
-version = "0.1.2"
+version = "0.1.4"
 description = "封装aiomysql的异步mysql客户端引擎。"
 license = "MIT"
 authors = ["vastxiao <vastxiao@gmail.com>"]
@@ -22,15 +22,18 @@ aiomysql = "^0.2.0"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.14.0"
+sqlmodel = "^0.0.14"
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.25"}
+aiosqlite = "^0.19.0"
 
 
 [[tool.poetry.source]]
 name = "tx"
 url = "https://mirrors.cloud.tencent.com/pypi/simple"
-priority = "primary"
+priority = "supplemental"
 [[tool.poetry.source]]
 name = "PyPI"
-priority = "primary"
+priority = "supplemental"
 [[tool.poetry.source]]
 name = "ali"
 url = "https://mirrors.aliyun.com/pypi/simple/"
@@ -40,4 +43,3 @@ priority = "primary"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-

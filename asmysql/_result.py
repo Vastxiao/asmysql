@@ -3,6 +3,8 @@ from typing import AsyncIterator
 from functools import lru_cache
 from aiomysql import Cursor
 
+from ._error import err_msg
+
 
 class Result:
     def __init__(self, query: str, *, rows: int = None, cursor: Cursor = None, err: Exception = None):
@@ -22,8 +24,7 @@ class Result:
     @lru_cache
     def err_msg(self):
         if self.err:
-            err_str = self.err.__str__() or self.err.__doc__.replace('\n', '')
-            return f"{self.err.__class__.__name__} {err_str}"
+            return err_msg(self.err)
         else:
             return ""
 
