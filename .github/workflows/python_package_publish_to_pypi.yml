@@ -7,7 +7,7 @@ name: Publish Python 🐍 Package 📦 To PyPI
 
 on:
   # 手动触发
-  #workflow_dispatch:
+  workflow_dispatch:
 
   # 在仓库push时触发
   push:
