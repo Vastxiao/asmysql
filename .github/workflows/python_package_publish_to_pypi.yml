@@ -10,17 +10,16 @@ on:
   workflow_dispatch:
 
   # 在仓库push时触发
-  push:
-    #branches:
-    #  - main
-
-    # 推送 tag 是 v*.*.*时触发
-    tags:
-      - "v*.*.*"
+  #push:
+  #  #branches:
+  #  #  - main
+  #  # 推送 tag 是 v*.*.*时触发
+  #  tags:
+  #    - "v*.*.*"
 
   # 在release时触发
-  #release:
-  #  types: [published]
+  release:
+    types: [published]
 
 
 # 设置工作流访问仓库的权限：只读。
