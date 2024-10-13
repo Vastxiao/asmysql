@@ -1,5 +1,9 @@
 # asmysql
 
+* PyPI: https://pypi.org/project/asmysql/
+* GitHub: https://github.com/vastxiao/asmysql
+* Gitee: https://gitee.com/vastxiao/asmysql
+
 ## 【简介】
 
 asmysql是封装aiomysql的mysql异步客户端使用库。
