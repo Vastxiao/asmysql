@@ -1,5 +1,9 @@
 # asmysql
 
+* PyPI: https://pypi.org/project/asmysql/
+* GitHub: https://github.com/vastxiao/asmysql
+* Gitee: https://gitee.com/vastxiao/asmysql
+
 ## Introduction
 
 asmysql is a library for using the MySQL asynchronous client, which is a wrapper for aiomysql.
