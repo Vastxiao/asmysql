@@ -1,5 +1,32 @@
 # Change Log
 
+## [0.2.0] - 2024.10.14
+
+### Features
+
+1. 修复aiomysql对echo参数的处理。
+2. 对AsMysql类新增echo_sql_log参数，用于控制aiomysql是否输出执行的sql语句(默认False)。
+
+```python
+import asyncio
+from asmysql import AsMysql
+
+class TestAsMysql(AsMysql):
+    # 这样就可以控制aiomysql库是否在Logging.logger输出执行的sql语句。
+    echo_sql_log = True
+
+
+# 当然，echo_sql_log参数也可以在实例化AsMysql时传入。
+async def main():
+    async with TestAsMysql(echo_sql_log=True) as mysql:
+        result = await mysql.client.execute('select user,authentication_string,host from mysql.user')
+        if result.err:
+            print(result.err)
+        else:
+            async for item in result.iterate():
+                print(item)
+```
+
 ## [0.1.4] - 2024.08.15
 
 ### Features

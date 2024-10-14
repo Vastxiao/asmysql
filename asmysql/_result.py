@@ -47,7 +47,7 @@ class Result:
         """异步生成器遍历所有记录"""
         if not self.err:
             while True:
-                data = await self.fetch_one()
+                data = await self.__cursor.fetchone()
                 if data:
                     yield data
                 else:
