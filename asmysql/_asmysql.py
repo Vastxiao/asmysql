@@ -18,13 +18,15 @@ class AsMysql:
     max_pool_size: int = 10
     pool_recycle: float = -1  # 空闲TCP连接回收等待时间（秒）
     connect_timeout: int = 5  # 连接超时时间（秒）
+    echo_sql_log: bool = False  # 是否打印sql语句日志
 
     @final
     def __init__(self, host: str = None, port: int = None,
                  user: str = None, password: str = None,
                  database: str = None, charset: str = None,
                  min_pool_size: int = None, max_pool_size: int = None,
-                 pool_recycle: float = None, connect_timeout: int = None):
+                 pool_recycle: float = None, connect_timeout: int = None,
+                 echo_sql_log: bool = None):
         self.host: Final[str] = host or self.host
         self.port: Final[int] = port or self.port
         self.user: Final[str] = user or self.user
@@ -35,6 +37,7 @@ class AsMysql:
         self.max_pool_size: Final[int] = max_pool_size if max_pool_size is not None else self.max_pool_size
         self.pool_recycle: Final[float] = pool_recycle or self.pool_recycle
         self.connect_timeout: Final[int] = connect_timeout or self.connect_timeout
+        self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
 
         self.url: Final[str] = f'mysql://{self.host}:{self.port}{"/" + self.database if self.database else ""}'
         self.__pool: Optional[Pool] = None
@@ -63,9 +66,9 @@ class AsMysql:
                     db=self.database,
                     minsize=self.min_pool_size,
                     maxsize=self.max_pool_size,
-                    echo=f'{self.url}',
                     pool_recycle=self.pool_recycle,
                     connect_timeout=self.connect_timeout,
+                    echo=self.echo_sql_log,
                 )
                 self.__cursor_client = CursorClient(self.__pool)
             except MySQLError as err:
@@ -90,10 +93,7 @@ class AsMysql:
     @property
     def is_connected(self):
         """数据库是否已连接"""
-        if self.__pool:
-            return True
-        else:
-            return False
+        return True if self.__pool else False
 
     @final
     @property

@@ -1,10 +1,37 @@
 # Change Log
 
+## [0.2.0] - 2024.10.14
+
+### Features
+
+1. Fixed the handling of the `echo` parameter in `aiomysql`.
+2. Added the `echo_sql_log` parameter to the `AsMysql` class, used to control whether `aiomysql` outputs the executed SQL statements (default is False).
+
+```python
+from asmysql import AsMysql
+
+class TestAsMysql(AsMysql):
+    # This allows controlling whether the executed SQL statements in aiomysql
+    # are output to Logging.logger.
+    echo_sql_log = True
+
+
+# Of course, the `echo_sql_log` parameter can also be passed when instantiating AsMysql.
+async def main():
+    async with TestAsMysql(echo_sql_log=True) as mysql:
+        result = await mysql.client.execute('select user, authentication_string, host from mysql.user')
+        if result.err:
+            print(result.err)
+        else:
+            async for item in result.iterate():
+                print(item)
+```
+
 ## [0.1.4] - 2024.08.15
 
 ### Features
 
-#### 1.AsMysql支持异步上下文管理器。
+#### 1. `AsMysql` supports asynchronous context manager.
 
 ```python
 import asyncio
@@ -12,7 +39,7 @@ from asmysql import AsMysql
 
 class TestAsMysql(AsMysql):
     async def get_users(self):
-        result = await self.client.execute('select user,authentication_string,host from mysql.user')
+        result = await self.client.execute('select user, authentication_string, host from mysql.user')
         if result.err:
             print(result.err)
         else:
@@ -27,13 +54,13 @@ if __name__ == '__main__':
     asyncio.run(main())
 ```
 
-#### 2.在connection中的异常抛出时，使用ConnectionError替代。
+#### 2. Replaced exceptions in `connection` with `ConnectionError`.
 
 ## [0.1.1] - 2023.07.25
 
 ### Features
 
-> 新增 Result.err_msg 返回exception错误的详情字符串。
+> Added `Result.err_msg` to return a detailed string of the exception error.
 
 ## [0.1.0] - 2023.07.16
 
@@ -41,12 +68,12 @@ if __name__ == '__main__':
 
 ### Features
 
-> 1. asmysql是对aiomysql封装的简易使用库。
-> 2. 支持自动管理mysql连接池，和重连机制。
-> 3. 全局自动捕获处理MysqlError错误。
-> 4. 分离执行语句和数据获取。
-> 5. 直接集成AsMysql类进行逻辑开发。
+> 1. `asmysql` is a simplified wrapper library around `aiomysql`.
+> 2. Supports automatic management of MySQL connection pools and reconnection mechanism.
+> 3. Automatically captures and handles `MysqlError` globally.
+> 4. Separates statement execution and data retrieval.
+> 5. Directly integrates the `AsMysql` class for logical development.
 
 ### Internal
 
-> 初始化项目，开发环境使用poetry进行管理。
+> Initialized the project, with the development environment managed using `poetry`.

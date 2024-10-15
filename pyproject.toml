@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "asmysql"
-version = "0.1.4"
+version = "0.2.0"
 description = "封装aiomysql的异步mysql客户端引擎。"
 license = "MIT"
 authors = ["vastxiao <vastxiao@gmail.com>"]
@@ -9,13 +9,15 @@ repository = "https://github.com/Vastxiao/asmysql"
 documentation = "https://github.com/Vastxiao/asmysql/blob/main/README.md"
 keywords = ["async", "asyncio", "mysql", "aiomysql"]
 readme = "README.md"
-include = ["CHANGELOG.md", "README_zh.md"]
+include = ["CHANGELOG.md", "CHANGELOG_zh.md", "README_zh.md"]
 
 [tool.poetry.urls]
+"Readme-zh" = "https://github.com/Vastxiao/asmysql/blob/main/README_zh.md"
+"Changelog-zh" = "https://github.com/Vastxiao/asmysql/blob/main/CHANGELOG_zh.md"
+"Changelog" = "https://github.com/Vastxiao/asmysql/blob/main/CHANGELOG.md"
+"Vastxiao Blog" = "https://vastxiao.github.io/"
 "Gitee Repo" = "https://gitee.com/vastxiao/asmysql"
-"readme-zh" = "https://github.com/Vastxiao/asmysql/blob/main/README_zh.md"
-"changelog" = "https://github.com/Vastxiao/asmysql/blob/main/CHANGELOG.md"
-"vastxiao blog" = "https://vastxiao.github.io/"
+
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -40,8 +42,6 @@ name = "ali"
 url = "https://mirrors.aliyun.com/pypi/simple/"
 priority = "primary"
 
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
