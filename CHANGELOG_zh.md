@@ -8,7 +8,6 @@
 2. 对AsMysql类新增echo_sql_log参数，用于控制aiomysql是否输出执行的sql语句(默认False)。
 
 ```python
-import asyncio
 from asmysql import AsMysql
 
 class TestAsMysql(AsMysql):

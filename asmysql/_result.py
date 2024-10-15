@@ -7,7 +7,8 @@ from ._error import err_msg
 
 
 class Result:
-    def __init__(self, query: str, *, rows: int = None, cursor: Cursor = None, err: Exception = None):
+    def __init__(self, query: str, *, rows: int = None,
+                 cursor: Cursor = None, err: Exception = None):
         if bool(cursor) ^ bool(err):
             self.query: Final[str] = query
             self.rows: Final[int] = rows
@@ -23,10 +24,7 @@ class Result:
     @property
     @lru_cache
     def err_msg(self):
-        if self.err:
-            return err_msg(self.err)
-        else:
-            return ""
+        return err_msg(self.err) if self.err else ""
 
     async def fetch_one(self) -> Optional[tuple]:
         """获取一条记录"""

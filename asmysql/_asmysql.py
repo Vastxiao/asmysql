@@ -93,10 +93,7 @@ class AsMysql:
     @property
     def is_connected(self):
         """数据库是否已连接"""
-        if self.__pool:
-            return True
-        else:
-            return False
+        return True if self.__pool else False
 
     @final
     @property
