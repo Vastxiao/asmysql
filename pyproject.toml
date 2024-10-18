@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "asmysql"
 version = "0.2.0"
-description = "封装aiomysql的异步mysql客户端引擎。"
+description = "An Asynchronous MySQL Client Engine Using Aiomysql."
 license = "MIT"
 authors = ["vastxiao <vastxiao@gmail.com>"]
 homepage = "https://pypi.org/project/asmysql/"
