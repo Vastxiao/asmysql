@@ -56,7 +56,7 @@ class TestAsMysql(AsMysql):
         if result.err:
             print(result.err_msg)
         else:
-            # result.iterate()是一个异步迭代器，可以获取执行结果的每一行数据
+            # result.iterate() is an asynchronous iterator that can fetch each row of the execution result.
             async for item in result.iterate():
                 print(item)
 
