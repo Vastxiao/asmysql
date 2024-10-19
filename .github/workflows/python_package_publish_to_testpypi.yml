@@ -1,12 +1,27 @@
-# 通过 Github actions：
+# Github actions：
 #   自动Python打包推送到PyPI
-# Actions secrets配置:
-# Repo -> Settings -> Actions secrets and variables -> Repository secrets
-name: Publish Python 🐍 Package 📦 To PyPI
+# (1)通过pypi的api-token发布的方式:
+#     - name: Publish Distribution 📦 To PyPI
+#       uses: pypa/gh-action-pypi-publish@release/v1
+#       with:
+#         password: ${{ secrets.PYPI_TOKEN }}
+#   Actions secrets配置:
+#   Repo -> Settings -> Actions secrets and variables -> Repository secrets
+# (2)通过PyPI with a Trusted Publisher的发布方式:
+#   详细参见教程：https://docs.pypi.org/trusted-publishers/
+#   只要在pypi里对包授权publish就行了。
+#   # Specifying a GitHub environment is optional, but strongly encouraged
+#   environment: release
+#   permissions:
+#     # IMPORTANT: this permission is mandatory for trusted publishing
+#     id-token: write
+#
+# 下面方式使用 Trusted Publisher 发布:
+name: Publish Package📦 To TestPyPI
 
 
 on:
-  # 手动触发
+  # 允许手动触发
   workflow_dispatch:
 
   # 在仓库push时触发
@@ -17,7 +32,7 @@ on:
   #  tags:
   #    - "v*.*.*"
 
-  ## 在release时触发
+  # 在release时触发
   #release:
   #  types: [published]
 
