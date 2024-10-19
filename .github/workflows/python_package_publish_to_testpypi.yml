@@ -1,4 +1,4 @@
-# Github actions：
+# GitHub Actions：
 #   自动Python打包推送到PyPI
 # (1)通过pypi的api-token发布的方式:
 #     - name: Publish Distribution 📦 To PyPI
