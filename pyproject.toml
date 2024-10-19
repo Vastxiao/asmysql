@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "asmysql"
-version = "0.2.0"
+version = "1.0.0"
 description = "An Asynchronous MySQL Client Engine Using Aiomysql."
 license = "MIT"
 authors = ["vastxiao <vastxiao@gmail.com>"]
@@ -20,11 +20,11 @@ include = ["CHANGELOG.md", "CHANGELOG_zh.md", "README_zh.md"]
 
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9"
 aiomysql = "^0.2.0"
 
 [tool.poetry.group.dev.dependencies]
-ipython = "^8.14.0"
+ipython = "*"
 sqlmodel = "^0.0.14"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.25"}
 aiosqlite = "^0.19.0"
