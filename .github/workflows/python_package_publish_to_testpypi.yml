@@ -1,0 +1,67 @@
+# 通过 Github actions：
+#   自动Python打包推送到PyPI
+# Actions secrets配置:
+# Repo -> Settings -> Actions secrets and variables -> Repository secrets
+name: Publish Python 🐍 Package 📦 To PyPI
+
+
+on:
+  # 手动触发
+  workflow_dispatch:
+
+  # 在仓库push时触发
+  #push:
+  #  #branches:
+  #  #  - main
+  #  # 推送 tag 是 v*.*.*时触发
+  #  tags:
+  #    - "v*.*.*"
+
+  ## 在release时触发
+  #release:
+  #  types: [published]
+
+
+# 设置工作流访问仓库的权限：只读。
+permissions:
+  contents: read
+
+
+jobs:
+  publish_python_package_to_pypi:
+    name: Publish Package To PyPI
+    environment: testpypi
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
+    # 只在推送tag时，才发布到 PyPI
+    #if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      # clone 仓库
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 设置 Python环境和版本
+      - name: Setup Python 🐍 
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+
+      - name: Build
+        run: |
+          #poetry self add "poetry-dynamic-versioning[plugin]"
+          [ -f dist ] && rm -rvf dist
+          poetry build
+
+      - name: Publish Distribution 📦 To PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+        #  password: ${{ secrets.PYPI_TOKEN }}
+
