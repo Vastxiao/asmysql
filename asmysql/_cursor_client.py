@@ -22,7 +22,7 @@ class CursorClient:
                f'pool({self.__pool.minsize}, {self.__pool.maxsize})>'
 
     async def execute(self, query: str,
-                      values: tuple | list | dict = None,
+                      values: typing.Union[typing.Sequence, dict] = None,
                       ) -> Result:
         try:
             async with self.__pool.acquire() as conn:
@@ -33,7 +33,7 @@ class CursorClient:
             return Result(query, err=err)
 
     async def execute_many(self, query: str,
-                           values: typing.Sequence[tuple | list | dict]
+                           values: typing.Sequence[typing.Union[typing.Sequence, dict]]
                            ) -> Result:
         try:
             async with self.__pool.acquire() as conn:

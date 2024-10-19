@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.0.0] - 2024.10.19
+
+### Features
+
+1. Update the supported Python version range, with a minimum support of 3.9.
+2. Update the documentation content.
+
 ## [0.2.0] - 2024.10.14
 
 ### Features
