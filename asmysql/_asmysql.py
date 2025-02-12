@@ -114,3 +114,7 @@ class AsMysql:
     @final
     def __await__(self):
         return self.connect().__await__()
+
+    @final
+    async def __call__(self):
+        return await self.connect()
