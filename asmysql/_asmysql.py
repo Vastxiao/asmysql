@@ -47,6 +47,10 @@ class AsMysql:
     def __repr__(self):
         return f'<{self.__class__.__name__} {self.url}>'
 
+    @lru_cache
+    def __str__(self):
+        return f'{self.__class__.__name__}={self.url}'
+
     def __aenter__(self):
         return self.connect()
 
