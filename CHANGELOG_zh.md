@@ -1,5 +1,27 @@
 # Change Log
 
+## [1.1.0] - 2025.02.12
+
+### Features
+
+```python
+import asyncio
+from asmysql import AsMysql
+
+mysql = AsMysql()
+
+async def main():
+    # AsMysql新增方法: async def __call__()
+    await mysql()
+
+    print(await mysql.client.execute('select user,host from mysql.user'))
+
+    # 断开mysql连接：
+    await mysql.disconnect()
+
+asyncio.run(main())
+```
+
 ## [1.0.0] - 2024.10.19
 
 ### Features
