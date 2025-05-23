@@ -28,6 +28,7 @@ class CursorClient:
             async with self.__pool.acquire() as conn:
                 async with conn.cursor() as cur:
                     rows = await cur.execute(query, values)
+                    await conn.commit()
                     return Result(query, rows=rows, cursor=cur)
         except MySQLError as err:
             return Result(query, err=err)
