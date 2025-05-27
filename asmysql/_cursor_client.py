@@ -23,23 +23,46 @@ class CursorClient:
 
     async def execute(self, query: str,
                       values: typing.Union[typing.Sequence, dict] = None,
+                      *,
+                      commit: bool = None,
                       ) -> Result:
+        """
+        Execute a SQL statement and return a Result object
+        :param query: SQL statement
+        :param values: parameters, can be a tuple or dictionary
+        :param commit: whether to commit the transaction, default is auto
+        """
+        if commit is None:
+            commit = query.lstrip().upper().startswith(('INSERT', 'UPDATE', 'DELETE', 'REPLACE'))
         try:
             async with self.__pool.acquire() as conn:
                 async with conn.cursor() as cur:
                     rows = await cur.execute(query, values)
-                    await conn.commit()
+                    if commit:
+                        await conn.commit()
                     return Result(query, rows=rows, cursor=cur)
         except MySQLError as err:
             return Result(query, err=err)
 
     async def execute_many(self, query: str,
-                           values: typing.Sequence[typing.Union[typing.Sequence, dict]]
+                           values: typing.Sequence[typing.Union[typing.Sequence, dict]],
+                           *,
+                           commit: bool = None,
                            ) -> Result:
+        """
+        Execute a SQL statement and return a Result object
+        :param query: SQL statement
+        :param values: parameters, can be a tuple or dictionary
+        :param commit: whether to commit the transaction, default is auto
+        """
+        if commit is None:
+            commit = query.lstrip().upper().startswith(('INSERT', 'UPDATE', 'DELETE', 'REPLACE'))
         try:
             async with self.__pool.acquire() as conn:
                 async with conn.cursor() as cur:
                     rows = await cur.executemany(query, values)
+                    if commit:
+                        await conn.commit()
                     return Result(query, rows=rows, cursor=cur)
         except MySQLError as err:
             return Result(query, err=err)
