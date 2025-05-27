@@ -1,5 +1,21 @@
 # Change Log
 
+## [1.1.3] - 2025.05.27
+
+### Features
+
+```python
+import asyncio
+from asmysql import AsMysql
+
+async def main():
+    async with AsMysql() as mysql:
+        # execute方法支持commit参数，用于控制是否提交事务，默认自动判断。
+        await mysql.client.execute('insert into test(name) values("test")', commit=False)
+
+asyncio.run(main())
+```
+
 ## [1.1.0] - 2025.02.12
 
 ### Features

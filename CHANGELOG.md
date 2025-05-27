@@ -1,5 +1,22 @@
 # Change Log
 
+## [1.1.3] - 2025.05.27
+
+### Features
+
+```python
+import asyncio
+from asmysql import AsMysql
+
+async def main():
+    async with AsMysql() as mysql:
+        # execute method supports the commit parameter to control transaction submission, 
+        # automatically determined by default.
+        await mysql.client.execute('insert into test(name) values("test")', commit=False)
+
+asyncio.run(main())
+```
+
 ## [1.1.0] - 2025.02.12
 
 ### Features
