@@ -12,7 +12,7 @@ class Result:
         if bool(cursor) ^ bool(err):
             self.query: Final[str] = query
             self.rows: Final[int] = rows
-            self.__cursor: Final[Cursor] = cursor
+            self.cursor: Final[Cursor] = cursor
             self.err: Final[Exception] = err
         else:
             raise AttributeError("require arg: cursor or err")
@@ -26,26 +26,46 @@ class Result:
     def err_msg(self):
         return err_msg(self.err) if self.err else ""
 
+    @property
+    def rowcount(self):
+        """获取受影响的行数"""
+        return self.cursor.rowcount if not self.err else None
+
+    @property
+    def lastrowid(self):
+        """获取最近插入的记录的ID"""
+        return self.cursor.lastrowid if not self.err else None
+
+    @property
+    def rownumber(self):
+        """获取当前游标的位置:
+        用于返回当前游标在结果集中的行索引（从0开始），若无法确定索引则返回 None
+        """
+        return self.cursor.rownumber if not self.err else None
+
     async def fetch_one(self) -> Optional[tuple]:
         """获取一条记录"""
         if not self.err:
-            return await self.__cursor.fetchone()
+            return await self.cursor.fetchone()
+        return None
 
     async def fetch_many(self, size: int = None) -> list[tuple]:
         """获取多条记录"""
         if not self.err:
-            return await self.__cursor.fetchmany(size)
+            return await self.cursor.fetchmany(size)
+        return []
 
     async def fetch_all(self) -> list[tuple]:
         """获取所有记录"""
         if not self.err:
-            return await self.__cursor.fetchall()
+            return await self.cursor.fetchall()
+        return []
 
     async def iterate(self) -> AsyncIterator[tuple]:
         """异步生成器遍历所有记录"""
         if not self.err:
             while True:
-                data = await self.__cursor.fetchone()
+                data = await self.cursor.fetchone()
                 if data:
                     yield data
                 else:

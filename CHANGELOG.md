@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.2.0] - 2025.06.20
+
+### Features
+
+* Expose `cursor` attribute in `Result`.
+* Add new attributes `rowcount`, `lastrowid`, and `rownumber` to `Result`.
+
 ## [1.1.3] - 2025.05.27
 
 ### Features
