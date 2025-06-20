@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.2.0] - 2025.06.20
+
+### Features
+
+* Result暴露cursor属性
+* Result新增rowcount、lastrowid、rownumber属性
+
 ## [1.1.3] - 2025.05.27
 
 ### Features
