@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.3.0] - 2025.06.21
+
+### Breaking Changes
+
+* 修改Result的rowcount属性为row_count
+* 修改Result的lastrowid属性为last_rowid
+* 修改Result的rownumber属性为row_number
+
 ## [1.2.0] - 2025.06.20
 
 ### Features

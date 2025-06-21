@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.3.0] - 2025.06.21
+
+### Breaking Changes
+
+* Changed Result.rowcount attribute to row_count
+* Changed Result.lastrowid attribute to last_rowid
+* Changed Result.rownumber attribute to row_number
+
 ## [1.2.0] - 2025.06.20
 
 ### Features

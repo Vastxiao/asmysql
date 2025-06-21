@@ -27,17 +27,17 @@ class Result:
         return err_msg(self.err) if self.err else ""
 
     @property
-    def rowcount(self):
+    def row_count(self):
         """获取受影响的行数"""
         return self.cursor.rowcount if not self.err else None
 
     @property
-    def lastrowid(self):
+    def last_rowid(self):
         """获取最近插入的记录的ID"""
         return self.cursor.lastrowid if not self.err else None
 
     @property
-    def rownumber(self):
+    def row_number(self):
         """获取当前游标的位置:
         用于返回当前游标在结果集中的行索引（从0开始），若无法确定索引则返回 None
         """
