@@ -32,8 +32,6 @@ class CursorClient:
         :param values: parameters, can be a tuple or dictionary
         :param commit: whether to commit the transaction, default is auto
         """
-        if commit is None:
-            commit = query.lstrip().upper().startswith(('INSERT', 'UPDATE', 'DELETE', 'REPLACE'))
         try:
             async with self.__pool.acquire() as conn:
                 async with conn.cursor() as cur:
@@ -55,8 +53,6 @@ class CursorClient:
         :param values: parameters, can be a tuple or dictionary
         :param commit: whether to commit the transaction, default is auto
         """
-        if commit is None:
-            commit = query.lstrip().upper().startswith(('INSERT', 'UPDATE', 'DELETE', 'REPLACE'))
         try:
             async with self.__pool.acquire() as conn:
                 async with conn.cursor() as cur:

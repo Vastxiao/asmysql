@@ -18,6 +18,7 @@ class AsMysql:
     max_pool_size: int = 10
     pool_recycle: float = -1  # 空闲TCP连接回收等待时间（秒）
     connect_timeout: int = 5  # 连接超时时间（秒）
+    auto_commit: bool = True
     echo_sql_log: bool = False  # 是否打印sql语句日志
 
     @final
@@ -26,6 +27,7 @@ class AsMysql:
                  database: str = None, charset: str = None,
                  min_pool_size: int = None, max_pool_size: int = None,
                  pool_recycle: float = None, connect_timeout: int = None,
+                 auto_commit: bool = None,
                  echo_sql_log: bool = None):
         self.host: Final[str] = host or self.host
         self.port: Final[int] = port or self.port
@@ -37,6 +39,7 @@ class AsMysql:
         self.max_pool_size: Final[int] = max_pool_size if max_pool_size is not None else self.max_pool_size
         self.pool_recycle: Final[float] = pool_recycle or self.pool_recycle
         self.connect_timeout: Final[int] = connect_timeout or self.connect_timeout
+        self.auto_commit: Final[bool] = auto_commit if auto_commit is not None else self.auto_commit
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
 
         self.url: Final[str] = f'mysql://{self.host}:{self.port}{"/" + self.database if self.database else ""}'
@@ -72,6 +75,7 @@ class AsMysql:
                     maxsize=self.max_pool_size,
                     pool_recycle=self.pool_recycle,
                     connect_timeout=self.connect_timeout,
+                    autocommit=self.auto_commit,
                     echo=self.echo_sql_log,
                 )
                 self.__cursor_client = CursorClient(self.__pool)
