@@ -2,7 +2,7 @@
 
 ## [1.3.1] - 2025.06.24
 
-* Fix: auto_commit 使用aiomysql原生属性处理，支持配置传入。
+* Fix: auto_commit使用aiomysql原生属性处理，支持配置传入。
 
 ## [1.3.0] - 2025.06.21
 
