@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.3.1] - 2025.06.24
+
+* Fix: Handle auto_commit using aiomysql's native attribute, support configuration passing.
+
 ## [1.3.0] - 2025.06.21
 
 ### Breaking Changes
