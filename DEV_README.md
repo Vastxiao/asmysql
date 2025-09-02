@@ -3,25 +3,30 @@
 ## 环境依赖
 
 ```bash
-pip install poetry
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# or
+pip install uv
 ```
 
 ## 开发环境搭建（poetry）
 
 ```bash
 # 初始化开发环境
-poetry install --all-extras
-poetry show -t
+uv sync
 
+# 查看包依赖
+#uv tree
+# 查看已安装的依赖
+#uv pip list
 # 在当前shell激活python环境
-#poetry shell
+#. .venv/bin/activate
 ```
 
 ## 构建软件包
 
 ```bash
 [ -f dist ] && rm -rvf dist
-poetry build
+uv build
 # 打包文件在dist目录下
 ```
 
@@ -29,10 +34,8 @@ poetry build
 
 ```bash
 # test:
-# poetry config pypi-token.testpypi <my-token>
-poetry publish -r testpypi --build
+uv publish --username __token__ 
 
 # pypi:
-# poetry config pypi-token.pypi <my-token>
-poetry publish --build
+uv publish --index testpypi --username __token__ 
 ```

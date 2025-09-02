@@ -1,2 +1,2 @@
-from ._asmysql import AsMysql
-from ._result import Result
+from .v2 import AsMysql
+from .v2 import Result

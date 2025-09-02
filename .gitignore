@@ -1,9 +1,21 @@
 *.swp
 *.idea/
 *.vscode/
-*.ropeproject/
-*__pycache__/
-*.pyc
-*.spec
-poetry.lock
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
 dist/
+wheels/
+*.egg-info
+*.ropeproject/
+*.spec
+# 包工具
+Pipfile.lock
+poetry.lock
+# uv工具忽略文件
+uv.lock
+.python-version
+.venv
+venv/
+release/
