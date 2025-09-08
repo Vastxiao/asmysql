@@ -1,18 +1,20 @@
 from functools import lru_cache
 from typing import Final, final, Optional
+from typing import Union, Sequence
+from urllib import parse
 from aiomysql import Pool, create_pool
 from pymysql.err import MySQLError
 from ._cursor_client import CursorClient
+from ._result import Result
 from ._error import err_msg
 
 
-class AsMysql:
+class Engine:
     """异步的数据库aiomysql封装类"""
     host: str = '127.0.0.1'
     port: int = 3306
     user: str = ''
     password: str = ''
-    database: str = ''
     charset: str = 'utf8mb4'
     min_pool_size: int = 1
     max_pool_size: int = 10
@@ -22,18 +24,37 @@ class AsMysql:
     echo_sql_log: bool = False  # 是否打印sql语句日志
 
     @final
-    def __init__(self, host: str = None, port: int = None,
+    def __init__(self, *,
+                 url: str = None,
+                 host: str = None, port: int = None,
                  user: str = None, password: str = None,
-                 database: str = None, charset: str = None,
+                 charset: str = None,
                  min_pool_size: int = None, max_pool_size: int = None,
                  pool_recycle: float = None, connect_timeout: int = None,
                  auto_commit: bool = None,
                  echo_sql_log: bool = None):
+
+        if url:
+            parsed = parse.urlparse(url)
+            if parsed.scheme != 'mysql':
+                raise ValueError(f"Invalid url scheme: {parsed.scheme}")
+            query_params = parse.parse_qs(parsed.query)
+            host = parsed.hostname or host
+            port = parsed.port or port
+            user = parsed.username or user
+            password = parsed.password or password
+            charset = query_params.get('charset', [charset])[0]
+            min_pool_size = int(query_params.get('min_pool_size', [min_pool_size])[0])
+            max_pool_size = int(query_params.get('max_pool_size', [max_pool_size])[0])
+            pool_recycle = float(query_params.get('pool_recycle', [pool_recycle])[0])
+            connect_timeout = int(query_params.get('connect_timeout', [connect_timeout])[0])
+            auto_commit = True if query_params.get('auto_commit', [None])[0] else auto_commit
+            echo_sql_log = True if query_params.get('echo_sql_log', [None])[0] else echo_sql_log
+
         self.host: Final[str] = host or self.host
         self.port: Final[int] = port or self.port
         self.user: Final[str] = user or self.user
         self.password: Final[str] = password or self.password
-        self.database: Final[str] = database or self.database
         self.charset: Final[str] = charset or self.charset
         self.min_pool_size: Final[int] = min_pool_size or self.min_pool_size
         self.max_pool_size: Final[int] = max_pool_size if max_pool_size is not None else self.max_pool_size
@@ -42,7 +63,7 @@ class AsMysql:
         self.auto_commit: Final[bool] = auto_commit if auto_commit is not None else self.auto_commit
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
 
-        self.url: Final[str] = f'mysql://{self.host}:{self.port}{"/" + self.database if self.database else ""}'
+        self.url: Final[str] = f'mysql://{self.host}:{self.port}/'
         self.__pool: Optional[Pool] = None
         self.__cursor_client: Optional[CursorClient] = None
 
@@ -85,6 +106,14 @@ class AsMysql:
         return self
 
     @final
+    def __await__(self):
+        return self.connect().__await__()
+
+    @final
+    async def __call__(self):
+        return await self.connect()
+
+    @final
     async def disconnect(self):
         """等待所有连接释放，并正常关闭mysql连接"""
         if self.__pool and not self.__pool.closed:
@@ -121,9 +150,18 @@ class AsMysql:
         return self.__cursor_client
 
     @final
-    def __await__(self):
-        return self.connect().__await__()
+    async def execute(self, query: str,
+                      values: Union[Sequence, dict] = None,
+                      *,
+                      commit: bool = None,
+                      ) -> Result:
+        """执行sql语句，返回Result对象"""
+        return await self.client.execute(query, values, commit=commit)
 
     @final
-    async def __call__(self):
-        return await self.connect()
+    async def execute_many(self, query: str,
+                           values: Sequence[Union[Sequence, dict]],
+                           *,
+                           commit: bool = None,
+                           ) -> Result:
+        return await self.client.execute_many(query, values, commit=commit)
