@@ -24,16 +24,25 @@ class Engine:
     echo_sql_log: bool = False  # 是否打印sql语句日志
 
     @final
-    def __init__(self, *,
-                 url: str = None,
-                 host: str = None, port: int = None,
-                 user: str = None, password: str = None,
-                 charset: str = None,
-                 min_pool_size: int = None, max_pool_size: int = None,
-                 pool_recycle: float = None, connect_timeout: int = None,
-                 auto_commit: bool = None,
-                 echo_sql_log: bool = None):
-
+    def __init__(
+        self,
+        url: str = None,
+        *,
+        host: str = None,
+        port: int = None,
+        user: str = None,
+        password: str = None,
+        charset: str = None,
+        min_pool_size: int = None,
+        max_pool_size: int = None,
+        pool_recycle: float = None,
+        connect_timeout: int = None,
+        auto_commit: bool = None,
+        echo_sql_log: bool = None,
+    ):
+        """
+        url: mysql://user:password@host:port/?charset=utf8mb4
+        """
         if url:
             parsed = parse.urlparse(url)
             if parsed.scheme != 'mysql':

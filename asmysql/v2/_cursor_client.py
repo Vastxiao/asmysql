@@ -40,7 +40,7 @@ class CursorClient:
                         await conn.commit()
                     return Result(query, rows=rows, cursor=cur)
         except MySQLError as err:
-            return Result(query, err=err)
+            return Result(query, error=err)
 
     async def execute_many(self, query: str,
                            values: typing.Sequence[typing.Union[typing.Sequence, dict]],
@@ -61,4 +61,4 @@ class CursorClient:
                         await conn.commit()
                     return Result(query, rows=rows, cursor=cur)
         except MySQLError as err:
-            return Result(query, err=err)
+            return Result(query, error=err)

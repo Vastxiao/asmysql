@@ -1,9 +1,5 @@
 # Change Log
 
-## v2.0.0(dev)
-
-> (Update) Use uv as the package management tool.
-
 ## [1.3.1] - 2025.06.24
 
 * Fix: Handle auto_commit using aiomysql's native attribute, support configuration passing.

@@ -1,9 +1,5 @@
 # Change Log
 
-## v2.0.0(dev)
-
-> (Update)使用uv作为包管理工具。
-
 ## [1.3.1] - 2025.06.24
 
 * Fix: auto_commit使用aiomysql原生属性处理，支持配置传入。
