@@ -23,12 +23,14 @@ class Result:
     @property
     @lru_cache
     def error_no(self):
-        return self.error.args[0] if self.error else 0
+        __err_no: int = self.error.args[0] if self.error else 0
+        return __err_no
 
     @property
     @lru_cache
     def error_msg(self):
-        return self.error_msg[1] if self.error_msg else ""
+        __err_msg: str = self.error_msg[1] if self.error_msg else ""
+        return __err_msg
 
     @property
     def row_count(self):

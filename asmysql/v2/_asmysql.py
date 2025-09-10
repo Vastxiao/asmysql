@@ -4,6 +4,7 @@ from aiomysql import Pool, create_pool
 from pymysql.err import MySQLError
 from ._cursor_client import CursorClient
 from ._error import err_msg
+from ._engine import Engine
 
 
 class AsMysql:

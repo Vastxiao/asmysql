@@ -4,12 +4,12 @@ from typing import Union, Sequence
 from urllib import parse
 from aiomysql import Pool, create_pool
 from pymysql.err import MySQLError
-from ._cursor_client import CursorClient
 from ._result import Result
 from ._error import err_msg
 
 
 class Engine:
+    # noinspection SpellCheckingInspection
     """异步的数据库aiomysql封装类"""
     host: str = '127.0.0.1'
     port: int = 3306
@@ -46,7 +46,7 @@ class Engine:
         if url:
             parsed = parse.urlparse(url)
             if parsed.scheme != 'mysql':
-                raise ValueError(f"Invalid url scheme: {parsed.scheme}")
+                raise ValueError(f"Invalid url scheme: {parsed.scheme}") from None
             query_params = parse.parse_qs(parsed.query)
             host = parsed.hostname or host
             port = parsed.port or port
@@ -74,7 +74,6 @@ class Engine:
 
         self.url: Final[str] = f'mysql://{self.host}:{self.port}/'
         self.__pool: Optional[Pool] = None
-        self.__cursor_client: Optional[CursorClient] = None
 
     @lru_cache
     def __repr__(self):
@@ -109,7 +108,6 @@ class Engine:
                     autocommit=self.auto_commit,
                     echo=self.echo_sql_log,
                 )
-                self.__cursor_client = CursorClient(self.__pool)
             except MySQLError as err:
                 raise ConnectionError(err_msg(err)) from None
         return self
@@ -129,7 +127,6 @@ class Engine:
             self.__pool.close()
             await self.__pool.wait_closed()
             self.__pool = None
-            self.__cursor_client = None
 
     @final
     async def release_connections(self):
@@ -147,30 +144,47 @@ class Engine:
     def pool(self):
         if not self.__pool:
             raise ConnectionError(f"Please connect to mysql first, function use in instance: "
-                                  f" await {self.__class__.__name__}.connect()")
+                                  f" await {self.__class__.__name__}.connect()") from None
         return self.__pool
 
-    @final
-    @property
-    def client(self):
-        if not self.__cursor_client:
-            raise ConnectionError(f"Please connect to mysql first, function use in instance: "
-                                  f" await {self.__class__.__name__}.connect()")
-        return self.__cursor_client
-
-    @final
     async def execute(self, query: str,
                       values: Union[Sequence, dict] = None,
                       *,
                       commit: bool = None,
                       ) -> Result:
-        """执行sql语句，返回Result对象"""
-        return await self.client.execute(query, values, commit=commit)
+        """
+        Execute a SQL statement and return a Result object
+        :param query: SQL statement
+        :param values: parameters, can be a tuple or dictionary
+        :param commit: whether to commit the transaction, default is auto
+        """
+        try:
+            async with self.__pool.acquire() as conn:
+                async with conn.cursor() as cur:
+                    rows = await cur.execute(query, values)
+                    if commit:
+                        await conn.commit()
+                    return Result(query, rows=rows, cursor=cur)
+        except MySQLError as err:
+            return Result(query, error=err)
 
-    @final
     async def execute_many(self, query: str,
                            values: Sequence[Union[Sequence, dict]],
                            *,
                            commit: bool = None,
                            ) -> Result:
-        return await self.client.execute_many(query, values, commit=commit)
+        """
+        Execute a SQL statement and return a Result object
+        :param query: SQL statement
+        :param values: parameters, can be a tuple or dictionary
+        :param commit: whether to commit the transaction, default is auto
+        """
+        try:
+            async with self.__pool.acquire() as conn:
+                async with conn.cursor() as cur:
+                    rows = await cur.executemany(query, values)
+                    if commit:
+                        await conn.commit()
+                    return Result(query, rows=rows, cursor=cur)
+        except MySQLError as err:
+            return Result(query, error=err)

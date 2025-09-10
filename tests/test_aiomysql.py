@@ -3,6 +3,7 @@ import asyncio
 
 
 async def create_pool():
+    # noinspection PyUnresolvedReferences
     pool = await aiomysql.create_pool(
         host='192.168.62.195',
         port=3306,
@@ -28,6 +29,7 @@ async def execute_query(pool, query):
 async def run_concurrent_queries(pool, num_queries):
     query = "select * from tbl_sms_record"
 
+    # noinspection PyUnresolvedReferences
     async with asyncio.TaskGroup() as tg:
         for tid in range(num_queries):
             # tg.create_task(exec_sql(database.fetch_all, 'show tables', tid))
