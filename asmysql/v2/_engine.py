@@ -53,10 +53,15 @@ class Engine:
             user = parsed.username or user
             password = parsed.password or password
             charset = query_params.get('charset', [charset])[0]
-            min_pool_size = int(query_params.get('min_pool_size', [min_pool_size])[0])
-            max_pool_size = int(query_params.get('max_pool_size', [max_pool_size])[0])
-            pool_recycle = float(query_params.get('pool_recycle', [pool_recycle])[0])
-            connect_timeout = int(query_params.get('connect_timeout', [connect_timeout])[0])
+            # 修复参数解析逻辑，避免None值传递给int()函数
+            min_pool_size_val = query_params.get('min_pool_size', [min_pool_size])[0]
+            min_pool_size = int(min_pool_size_val) if min_pool_size_val is not None else min_pool_size
+            max_pool_size_val = query_params.get('max_pool_size', [max_pool_size])[0]
+            max_pool_size = int(max_pool_size_val) if max_pool_size_val is not None else max_pool_size
+            pool_recycle_val = query_params.get('pool_recycle', [pool_recycle])[0]
+            pool_recycle = float(pool_recycle_val) if pool_recycle_val is not None else pool_recycle
+            connect_timeout_val = query_params.get('connect_timeout', [connect_timeout])[0]
+            connect_timeout = int(connect_timeout_val) if connect_timeout_val is not None else connect_timeout
             auto_commit = True if query_params.get('auto_commit', [None])[0] else auto_commit
             echo_sql_log = True if query_params.get('echo_sql_log', [None])[0] else echo_sql_log
 
@@ -100,7 +105,6 @@ class Engine:
                     port=self.port,
                     user=self.user,
                     password=self.password,
-                    db=self.database,
                     minsize=self.min_pool_size,
                     maxsize=self.max_pool_size,
                     pool_recycle=self.pool_recycle,

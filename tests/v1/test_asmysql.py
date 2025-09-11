@@ -1,5 +1,5 @@
 import asyncio
-from asmysql import AsMysql
+from asmysql.v1 import AsMysql
 
 
 class TestAsMysql(AsMysql):
