@@ -5,13 +5,15 @@ from asmysql import AsMysql
 
 class TestAsMysql(AsMysql):
     async def print_users(self):
-        result = await self.client.execute('select user,host from mysql.user')
+        result = await self.client.execute('select user,host from mysql.user', result_dict=True, stream=True)
         if result.error:
             print(f"error_no: {result.error_no}, error_msg:{result.error_msg}")
         else:
             # result.iterate()是一个异步迭代器，可以获取执行结果的每一行数据
-            async for item in result.iterate():
-                print(item)
+            # async for item in result.iterate():
+            #     print(item)
+            r = await result.fetch_one()
+            print(r)
 
 
 async def main():

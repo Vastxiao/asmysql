@@ -3,9 +3,20 @@ from typing import Final, final, Optional
 from typing import Union, Sequence
 from urllib import parse
 from aiomysql import Pool, create_pool
+from aiomysql import Cursor, DictCursor, SSCursor, SSDictCursor
 from pymysql.err import MySQLError
 from ._result import Result
 from ._error import err_msg
+
+
+def _get_cursor_class(*, result_dict: bool, stream: bool):
+    if result_dict:
+        if stream:
+            return SSDictCursor
+        return DictCursor
+    if stream:
+        return SSCursor
+    return Cursor
 
 
 class Engine:
@@ -22,6 +33,8 @@ class Engine:
     connect_timeout: int = 5  # 连接超时时间（秒）
     auto_commit: bool = True
     echo_sql_log: bool = False  # 是否打印sql语句日志
+    result_dict: bool = False
+    stream: bool = False
 
     @final
     def __init__(
@@ -39,6 +52,8 @@ class Engine:
         connect_timeout: int = None,
         auto_commit: bool = None,
         echo_sql_log: bool = None,
+        result_dict: bool = None,
+        stream: bool = None,
     ):
         """
         url: mysql://user:password@host:port/?charset=utf8mb4
@@ -76,6 +91,8 @@ class Engine:
         self.connect_timeout: Final[int] = connect_timeout or self.connect_timeout
         self.auto_commit: Final[bool] = auto_commit if auto_commit is not None else self.auto_commit
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
+        self.result_dict: Final[bool] = result_dict if result_dict is not None else self.result_dict
+        self.stream: Final[bool] = stream if stream is not None else self.stream
 
         self.url: Final[str] = f'mysql://{self.host}:{self.port}/'
         self.__pool: Optional[Pool] = None
@@ -154,41 +171,57 @@ class Engine:
     async def execute(self, query: str,
                       values: Union[Sequence, dict] = None,
                       *,
+                      result_dict: bool = None,
+                      stream: bool = None,
                       commit: bool = None,
                       ) -> Result:
         """
         Execute a SQL statement and return a Result object
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
+        :param result_dict: whether to return the result as a dictionary
+        :param stream: whether to stream the result
         :param commit: whether to commit the transaction, default is auto
         """
+        result_dict = result_dict if result_dict is not None else self.result_dict
+        stream = stream if stream is not None else self.stream
+        cursor_class = _get_cursor_class(result_dict=result_dict, stream=stream)
         try:
             async with self.__pool.acquire() as conn:
-                async with conn.cursor() as cur:
-                    rows = await cur.execute(query, values)
+                async with conn.cursor(cursor_class) as cur:
+                    await cur.execute(query, values)
                     if commit:
                         await conn.commit()
-                    return Result(query, rows=rows, cursor=cur)
+                    return Result(query, cursor=cur, result_dict=result_dict, stream=stream)
         except MySQLError as err:
             return Result(query, error=err)
 
-    async def execute_many(self, query: str,
-                           values: Sequence[Union[Sequence, dict]],
-                           *,
-                           commit: bool = None,
-                           ) -> Result:
+    async def execute_many(
+        self,
+        query: str,
+        values: Sequence[Union[Sequence, dict]],
+        *,
+        result_dict: bool = None,
+        stream: bool = None,
+        commit: bool = None,
+    ) -> Result:
         """
         Execute a SQL statement and return a Result object
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
+        :param result_dict: whether to return the result as a dictionary
+        :param stream: whether to stream the result
         :param commit: whether to commit the transaction, default is auto
         """
+        result_dict = result_dict if result_dict is not None else self.result_dict
+        stream = stream if stream is not None else self.stream
+        cursor_class = _get_cursor_class(result_dict=result_dict, stream=stream)
         try:
             async with self.__pool.acquire() as conn:
-                async with conn.cursor() as cur:
-                    rows = await cur.executemany(query, values)
+                async with conn.cursor(cursor_class) as cur:
+                    await cur.executemany(query, values)
                     if commit:
                         await conn.commit()
-                    return Result(query, rows=rows, cursor=cur)
+                    return Result(query, cursor=cur, result_dict=result_dict, stream=stream)
         except MySQLError as err:
             return Result(query, error=err)
