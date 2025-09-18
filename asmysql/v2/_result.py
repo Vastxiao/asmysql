@@ -3,6 +3,7 @@ from typing import AsyncIterator
 from typing import TypeVar
 from functools import lru_cache
 from aiomysql import Cursor
+from aiomysql import Pool
 from pymysql.err import MySQLError
 
 
@@ -14,25 +15,58 @@ class Result:
                  *,
                  # rows: int = None,
                  cursor: Cursor = None,
+                 pool: Pool = None,
                  result_dict: bool = False,
                  result_model: Optional[T] = None,
                  stream: bool = False,
                  error: MySQLError = None):
-        if bool(cursor) ^ bool(error):
-            self.query: Final[str] = query
-            # self.rows: Final[int] = rows  # rows实际就是row_count，所以这个属性没有用
-            self.result_dict: Final[bool] = result_dict
-            self.result_model: Final[Optional[T]] = result_model
-            self.stream: Final[bool] = stream
-            self.cursor: Final[Cursor] = cursor
-
-            self.error: Final[MySQLError] = error
-        else:
+        if not (bool(cursor) ^ bool(error)):
             raise AttributeError("require arg: cursor or err") from None
+            
+        # cursor和pool必须同时提供或同时不提供（除了error情况）
+        if bool(cursor) != bool(pool):
+            raise AttributeError("require arg: cursor and pool") from None
+            
+        self.query: Final[str] = query
+        # self.rows: Final[int] = rows  # rows实际就是row_count，所以这个属性没有用
+        self.result_dict: Final[bool] = result_dict
+        self.result_model: Final[Optional[T]] = result_model
+        self.stream: Final[bool] = stream
+        self.cursor: Final[Cursor] = cursor
+        self.pool: Final[Pool] = pool
+
+        self.error: Final[MySQLError] = error
 
     @lru_cache
     def __repr__(self):
         return f'<{self.__class__.__name__}: {self.query}>'
+
+    def __del__(self):
+        if self.error:
+            return
+        conn = self.cursor.connection
+        if conn:
+            self.pool.release(conn)
+
+    async def close(self):
+        conn = self.cursor.connection
+        await self.cursor.close()
+        if conn:
+            self.pool.release(conn)
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, exc_tb):
+        if self.error:
+            return
+        await self.close()
+
+    # async def __call__(self):
+    #     return self
+    #
+    # def __await__(self):
+    #     return self
 
     @property
     @lru_cache
@@ -87,14 +121,24 @@ class Result:
         """
         return self.cursor.rownumber if not self.error else None
 
-    async def fetch_one(self) -> Optional[Union[tuple,  dict,  T]]:
-        """获取一条记录"""
+    async def fetch_one(self, close: bool = True) -> Optional[Union[tuple,  dict,  T]]:
+        """获取一条记录
+
+        :param close: 是否自动关闭游标连接
+                      注意：如果设置不关闭游标连接，必须自己调用 Result.close() 释放连接(否则连接池可能有问题)。
+        :return: 返回一条记录，如果没有数据则返回None
+        """
         if self.error:
             return None
         # noinspection PyUnresolvedReferences
         data = await self.cursor.fetchone()
-        if data and self.result_dict and self.result_model:
+        if data is None:
+            await self.close()
+            return None
+        if self.result_dict and self.result_model:
             return self.result_model(**data)
+        if close:
+            await self.close()
         return data
 
     async def fetch_many(self, size: int = None) -> list[Union[tuple,  dict,  T]]:
@@ -102,11 +146,12 @@ class Result:
         if self.error:
             return []
         # noinspection PyUnresolvedReferences
-        data = await self.cursor.fetchmany(size)
-        if not data:
-            return []
-        if self.result_dict and self.result_model:
-            return [self.result_model(**item) for item in data]
+        data: list = await self.cursor.fetchmany(size)
+        if data:
+            if self.result_dict and self.result_model:
+                data = [self.result_model(**item) for item in data]
+        else:
+            await self.close()
         return data
 
     async def fetch_all(self) -> list[Union[tuple,  dict,  T]]:
@@ -114,22 +159,29 @@ class Result:
         if self.error:
             return []
         # noinspection PyUnresolvedReferences
-        data = await self.cursor.fetchall()
-        if not data:
-            return []
+        data: list = await self.cursor.fetchall()
         if self.result_dict and self.result_model:
             return [self.result_model(**item) for item in data]
+        await self.close()
         return data
 
     async def iterate(self) -> AsyncIterator[Union[tuple,  dict,  T]]:
         """异步生成器遍历所有记录"""
-        if not self.error:
-            while True:
-                # noinspection PyUnresolvedReferences
-                data = await self.cursor.fetchone()
-                if data:
-                    if self.result_dict and self.result_model:
-                        data = self.result_model(**data)
-                    yield data
-                else:
-                    break
+        if self.error:
+            # 有错误则不迭代
+            return
+            # 直接return等价于以下代码:
+            # raise StopAsyncIteration
+        else:
+            try:
+                while True:
+                    # noinspection PyUnresolvedReferences
+                    data = await self.cursor.fetchone()
+                    if data:
+                        if self.result_dict and self.result_model:
+                            data = self.result_model(**data)
+                        yield data
+                    else:
+                        break
+            finally:
+                await self.close()

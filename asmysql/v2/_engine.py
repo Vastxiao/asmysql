@@ -33,8 +33,8 @@ class Engine:
     connect_timeout: int = 5  # 连接超时时间（秒）
     auto_commit: bool = True
     echo_sql_log: bool = False  # 是否打印sql语句日志
-    result_dict: bool = False
-    stream: bool = False
+    result_dict: bool = False  # 返回结果是否为字典
+    stream: bool = False  # 是否使用流式返回结果
 
     @final
     def __init__(
@@ -134,6 +134,20 @@ class Engine:
         return self
 
     @final
+    @property
+    def status(self):
+        """返回数据库连接池状态"""
+        return {
+            "address": self.url,
+            "connected": True if self.is_connected else False,
+            "pool_minsize": self.__pool.minsize if self.__pool else None,
+            "pool_maxsize": self.__pool.maxsize if self.__pool else None,
+            "pool_size": self.__pool.size if self.__pool else None,
+            "pool_free": self.__pool.freesize if self.__pool else None,
+            "pool_used": self.__pool.size - self.__pool.freesize if self.__pool else None,
+        }
+
+    @final
     def __await__(self):
         return self.connect().__await__()
 
@@ -168,6 +182,7 @@ class Engine:
                                   f" await {self.__class__.__name__}.connect()") from None
         return self.__pool
 
+    @final
     async def execute(self, query: str,
                       values: Union[Sequence, dict] = None,
                       *,
@@ -186,16 +201,23 @@ class Engine:
         result_dict = result_dict if result_dict is not None else self.result_dict
         stream = stream if stream is not None else self.stream
         cursor_class = _get_cursor_class(result_dict=result_dict, stream=stream)
+
+        # noinspection PyUnresolvedReferences
+        conn = await self.__pool.acquire()
+        cur = await conn.cursor(cursor_class)
         try:
-            async with self.__pool.acquire() as conn:
-                async with conn.cursor(cursor_class) as cur:
-                    await cur.execute(query, values)
-                    if commit:
-                        await conn.commit()
-                    return Result(query, cursor=cur, result_dict=result_dict, stream=stream)
+            await cur.execute(query, values)
+            if commit:
+                await conn.commit()
+            return Result(query, cursor=cur, pool=self.__pool, result_dict=result_dict, stream=stream)
+            # await cur.close()
+            # pool.release(conn)
         except MySQLError as err:
+            await cur.close()
+            self.__pool.release(conn)
             return Result(query, error=err)
 
+    @final
     async def execute_many(
         self,
         query: str,
@@ -216,12 +238,18 @@ class Engine:
         result_dict = result_dict if result_dict is not None else self.result_dict
         stream = stream if stream is not None else self.stream
         cursor_class = _get_cursor_class(result_dict=result_dict, stream=stream)
+
+        # noinspection PyUnresolvedReferences
+        conn = await self.__pool.acquire()
+        cur = await conn.cursor(cursor_class)
         try:
-            async with self.__pool.acquire() as conn:
-                async with conn.cursor(cursor_class) as cur:
-                    await cur.executemany(query, values)
-                    if commit:
-                        await conn.commit()
-                    return Result(query, cursor=cur, result_dict=result_dict, stream=stream)
+            await cur.executemany(query, values)
+            if commit:
+                await conn.commit()
+            return Result(query, cursor=cur, pool=self.__pool, result_dict=result_dict, stream=stream)
+            # await cur.close()
+            # pool.release(conn)
         except MySQLError as err:
+            await cur.close()
+            self.__pool.release(conn)
             return Result(query, error=err)
