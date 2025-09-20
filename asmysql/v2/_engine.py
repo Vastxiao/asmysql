@@ -1,6 +1,7 @@
 from functools import lru_cache
 from typing import Final, final, Optional
 from typing import Union, Sequence
+from typing import TypedDict
 from urllib import parse
 from aiomysql import Pool, create_pool
 from aiomysql import Cursor, DictCursor, SSCursor, SSDictCursor
@@ -17,6 +18,16 @@ def _get_cursor_class(*, result_dict: bool, stream: bool):
     if stream:
         return SSCursor
     return Cursor
+
+
+class EngineStatus(TypedDict):
+    address: str
+    connected: bool
+    pool_minsize: Optional[int]
+    pool_maxsize: Optional[int]
+    pool_size: Optional[int]
+    pool_free: Optional[int]
+    pool_used: Optional[int]
 
 
 class Engine:
@@ -137,7 +148,7 @@ class Engine:
     @property
     def status(self):
         """返回数据库连接池状态"""
-        return {
+        _status: EngineStatus = {
             "address": self.url,
             "connected": True if self.is_connected else False,
             "pool_minsize": self.__pool.minsize if self.__pool else None,
@@ -146,6 +157,7 @@ class Engine:
             "pool_free": self.__pool.freesize if self.__pool else None,
             "pool_used": self.__pool.size - self.__pool.freesize if self.__pool else None,
         }
+        return _status
 
     @final
     def __await__(self):

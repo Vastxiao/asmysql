@@ -38,6 +38,13 @@ class TestAsMysql(AsMysql):
                     print_engine_status()
                 print_engine_status()
 
+    async def print_async_for_result(self):
+        result = await self.client.execute('select user,host from mysql.user', result_dict=True, stream=True)
+
+        async for item in result:
+            print_engine_status()
+            print(item)
+        print_engine_status()
 
 async def main():
     print_engine_status()
@@ -47,7 +54,8 @@ async def main():
     test_mysql = TestAsMysql(engine)
 
     # await test_mysql.print_users()
-    await test_mysql.print_async_with_users()
+    # await test_mysql.print_async_with_users()
+    await test_mysql.print_async_for_result()
 
     await engine.disconnect()
     print_engine_status()

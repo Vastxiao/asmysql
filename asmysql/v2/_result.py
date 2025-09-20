@@ -62,6 +62,26 @@ class Result:
             return
         await self.close()
 
+    def __aiter__(self):
+        """支持 async for item in result 语法"""
+        return self
+
+    async def __anext__(self):
+        """支持 async for item in result 语法"""
+        if self.error:
+            # 有错误则不迭代
+            raise StopAsyncIteration
+        else:
+            # noinspection PyUnresolvedReferences
+            data = await self.cursor.fetchone()
+            if data:
+                if self.result_dict and self.result_model:
+                    data = self.result_model(**data)
+                return data
+            else:
+                await self.close()
+                raise StopAsyncIteration
+
     # async def __call__(self):
     #     return self
     #
@@ -141,16 +161,18 @@ class Result:
             await self.close()
         return data
 
-    async def fetch_many(self, size: int = None) -> list[Union[tuple,  dict,  T]]:
+    async def fetch_many(self, size: int = None, close: bool = True) -> list[Union[tuple,  dict,  T]]:
         """获取多条记录"""
         if self.error:
             return []
         # noinspection PyUnresolvedReferences
         data: list = await self.cursor.fetchmany(size)
-        if data:
-            if self.result_dict and self.result_model:
-                data = [self.result_model(**item) for item in data]
-        else:
+        if not data:
+            await self.close()
+            return []
+        if self.result_dict and self.result_model:
+            data = [self.result_model(**item) for item in data]
+        if close:
             await self.close()
         return data
 

@@ -16,6 +16,6 @@ poetry.lock
 # uv工具忽略文件
 uv.lock
 .python-version
-.venv
+.venv/
 venv/
 release/

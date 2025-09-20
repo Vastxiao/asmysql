@@ -8,6 +8,8 @@
 > (New Features)
 > 执行结果Result支持MysqlError的错误码error_no和错误信息error_msg属性。
 > Mysql初始化连接支持ｕrl参数: mysql://user:password@host:port/?charset=utf8mb4。
+> 支持获取mysql连接的状态，使用status属性(Engine.status)。
+> Result支持上下文和迭代器模式。
 >
 > (Update)使用uv作为包管理工具。
 > 
