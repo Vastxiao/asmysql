@@ -20,8 +20,14 @@ class TestAsMysql(AsMysql):
             # result.iterate()是一个异步迭代器，可以获取执行结果的每一行数据
             # async for item in result.iterate():
             #     print(item)
-            r = await result.fetch_one()
-            print(r)
+
+            # r = await result.fetch_one()
+            # print(r)
+
+            print(await result.fetch_one())
+            print_engine_status()
+            print(await result.fetch_one())
+
             print_engine_status()
 
     async def print_async_with_users(self):
@@ -33,9 +39,13 @@ class TestAsMysql(AsMysql):
                 print(f"error_no: {result.error_no}, error_msg:{result.error_msg}")
             else:
                 # result.iterate()是一个异步迭代器，可以获取执行结果的每一行数据
-                async for item in result.iterate():
-                    print(item)
-                    print_engine_status()
+                # async for item in result.iterate():
+                #     print(item)
+                #     print_engine_status()
+
+                print(await result.fetch_one())
+                print(await result.fetch_one())
+
                 print_engine_status()
 
     async def print_async_for_result(self):
@@ -54,8 +64,8 @@ async def main():
     test_mysql = TestAsMysql(engine)
 
     # await test_mysql.print_users()
-    # await test_mysql.print_async_with_users()
-    await test_mysql.print_async_for_result()
+    await test_mysql.print_async_with_users()
+    # await test_mysql.print_async_for_result()
 
     await engine.disconnect()
     print_engine_status()

@@ -1,8 +1,8 @@
-from typing import Final, Optional, Union
+from typing import Final, Optional, Union, Sequence
 from typing import AsyncIterator
 from typing import TypeVar
 from functools import lru_cache
-from aiomysql import Cursor
+from aiomysql import Cursor, DictCursor, SSCursor, SSDictCursor
 from aiomysql import Pool
 from pymysql.err import MySQLError
 
@@ -10,32 +10,47 @@ from pymysql.err import MySQLError
 T = TypeVar('T')
 
 
+def _get_cursor_class(*, result_dict: bool, stream: bool):
+    if result_dict:
+        if stream:
+            return SSDictCursor
+        return DictCursor
+    if stream:
+        return SSCursor
+    return Cursor
+
+
 class Result:
-    def __init__(self, query: str,
+    def __init__(self,
                  *,
-                 # rows: int = None,
-                 cursor: Cursor = None,
-                 pool: Pool = None,
+                 pool: Pool,
+                 query: str,
+                 values: Union[Sequence, dict] = None,
+                 execute_many: bool = False,
                  result_dict: bool = False,
                  result_model: Optional[T] = None,
                  stream: bool = False,
-                 error: MySQLError = None):
-        if not (bool(cursor) ^ bool(error)):
-            raise AttributeError("require arg: cursor or err") from None
-            
-        # cursor和pool必须同时提供或同时不提供（除了error情况）
-        if bool(cursor) != bool(pool):
-            raise AttributeError("require arg: cursor and pool") from None
-            
+                 commit: bool = True):
+        self.pool: Final[Pool] = pool
         self.query: Final[str] = query
-        # self.rows: Final[int] = rows  # rows实际就是row_count，所以这个属性没有用
+        self.values: Final[Union[Sequence, dict]] = values
+        self.__execute_many: Final[bool] = execute_many
         self.result_dict: Final[bool] = result_dict
         self.result_model: Final[Optional[T]] = result_model
         self.stream: Final[bool] = stream
-        self.cursor: Final[Cursor] = cursor
-        self.pool: Final[Pool] = pool
+        self.commit: Final[bool] = commit
+        self.__conn_auto_close: bool = True
+        self.__cursor: Optional[Cursor] = None
+        self.__executed: bool = False
+        self.__error: Optional[MySQLError] = None
 
-        self.error: Final[MySQLError] = error
+    # @property
+    # def cursor(self):
+    #     return self.__cursor
+
+    @property
+    def error(self):
+        return self.__error
 
     @lru_cache
     def __repr__(self):
@@ -44,17 +59,20 @@ class Result:
     def __del__(self):
         if self.error:
             return
-        conn = self.cursor.connection
-        if conn:
-            self.pool.release(conn)
+        if self.__cursor:
+            conn = self.__cursor.connection
+            if conn:
+                self.pool.release(conn)
 
     async def close(self):
-        conn = self.cursor.connection
-        await self.cursor.close()
+        conn = self.__cursor.connection
+        await self.__cursor.close()
         if conn:
             self.pool.release(conn)
 
     async def __aenter__(self):
+        self.__conn_auto_close = False
+        await self.__call__()
         return self
 
     async def __aexit__(self, exc_type, exc_value, exc_tb):
@@ -64,16 +82,18 @@ class Result:
 
     def __aiter__(self):
         """支持 async for item in result 语法"""
+        self.__conn_auto_close = False
         return self
 
     async def __anext__(self):
+        await self.__call__()
         """支持 async for item in result 语法"""
         if self.error:
             # 有错误则不迭代
             raise StopAsyncIteration
         else:
             # noinspection PyUnresolvedReferences
-            data = await self.cursor.fetchone()
+            data = await self.__cursor.fetchone()
             if data:
                 if self.result_dict and self.result_model:
                     data = self.result_model(**data)
@@ -82,11 +102,37 @@ class Result:
                 await self.close()
                 raise StopAsyncIteration
 
-    # async def __call__(self):
-    #     return self
-    #
-    # def __await__(self):
-    #     return self
+    async def __call__(self):
+        """
+        实际执行sql查询的内部方法
+        """
+        # 重用 Engine 中的 execute 逻辑
+        if self.__executed:
+            return self
+        cursor_class = _get_cursor_class(result_dict=self.result_dict, stream=self.stream)
+        try:
+            # noinspection PyUnresolvedReferences
+            conn = await self.pool.acquire()
+            self.__cursor = await conn.cursor(cursor_class)
+            if self.__execute_many:
+                await self.__cursor.executemany(self.query, self.values)
+            else:
+                await self.__cursor.execute(self.query, self.values)
+            if self.commit:
+                await self.__cursor.connection.commit()
+        except MySQLError as err:
+            await self.__cursor.close()
+            self.pool.release(self.__cursor.connection)
+            self.__error = err
+        finally:
+            self.__executed = True
+        return self
+
+    def __await__(self):
+        """
+        支持 result = await execute(...) 用法
+        """
+        return self.__call__().__await__()
 
     @property
     @lru_cache
@@ -120,7 +166,7 @@ class Result:
             return None
         if self.stream:
             return None
-        return self.cursor.rowcount
+        return self.__cursor.rowcount
 
     @property
     def last_rowid(self):
@@ -131,7 +177,7 @@ class Result:
         如果没插入insert数据，则返回None
         如果mysql报错，则返回None
         """
-        return self.cursor.lastrowid if not self.error else None
+        return self.__cursor.lastrowid if not self.error else None
 
     @property
     def row_number(self):
@@ -139,9 +185,9 @@ class Result:
         获取当前游标的位置:
         用于返回当前游标在结果集中的行索引（从0开始），若无法确定索引则返回 None
         """
-        return self.cursor.rownumber if not self.error else None
+        return self.__cursor.rownumber if not self.error else None
 
-    async def fetch_one(self, close: bool = True) -> Optional[Union[tuple,  dict,  T]]:
+    async def fetch_one(self, close: bool = None) -> Optional[Union[tuple,  dict,  T]]:
         """获取一条记录
 
         :param close: 是否自动关闭游标连接
@@ -151,28 +197,30 @@ class Result:
         if self.error:
             return None
         # noinspection PyUnresolvedReferences
-        data = await self.cursor.fetchone()
+        data = await self.__cursor.fetchone()
         if data is None:
             await self.close()
             return None
         if self.result_dict and self.result_model:
             return self.result_model(**data)
-        if close:
+        _auto_close = close if close is not None else self.__conn_auto_close
+        if _auto_close:
             await self.close()
         return data
 
-    async def fetch_many(self, size: int = None, close: bool = True) -> list[Union[tuple,  dict,  T]]:
+    async def fetch_many(self, size: int = None, close: bool = None) -> list[Union[tuple,  dict,  T]]:
         """获取多条记录"""
         if self.error:
             return []
         # noinspection PyUnresolvedReferences
-        data: list = await self.cursor.fetchmany(size)
+        data: list = await self.__cursor.fetchmany(size)
         if not data:
             await self.close()
             return []
         if self.result_dict and self.result_model:
             data = [self.result_model(**item) for item in data]
-        if close:
+        _auto_close = close if close is not None else self.__conn_auto_close
+        if _auto_close:
             await self.close()
         return data
 
@@ -181,7 +229,7 @@ class Result:
         if self.error:
             return []
         # noinspection PyUnresolvedReferences
-        data: list = await self.cursor.fetchall()
+        data: list = await self.__cursor.fetchall()
         if self.result_dict and self.result_model:
             return [self.result_model(**item) for item in data]
         await self.close()
@@ -198,7 +246,7 @@ class Result:
             try:
                 while True:
                     # noinspection PyUnresolvedReferences
-                    data = await self.cursor.fetchone()
+                    data = await self.__cursor.fetchone()
                     if data:
                         if self.result_dict and self.result_model:
                             data = self.result_model(**data)

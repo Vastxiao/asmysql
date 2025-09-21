@@ -10,6 +10,7 @@
 > Mysql初始化连接支持ｕrl参数: mysql://user:password@host:port/?charset=utf8mb4。
 > 支持获取mysql连接的状态，使用status属性(Engine.status)。
 > Result支持上下文和迭代器模式。
+> 新增pytest测试。
 >
 > (Update)使用uv作为包管理工具。
 > 

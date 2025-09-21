@@ -1,23 +1,12 @@
 from functools import lru_cache
 from typing import Final, final, Optional
 from typing import Union, Sequence
-from typing import TypedDict
+from typing import TypedDict, Awaitable
 from urllib import parse
 from aiomysql import Pool, create_pool
-from aiomysql import Cursor, DictCursor, SSCursor, SSDictCursor
 from pymysql.err import MySQLError
-from ._result import Result
 from ._error import err_msg
-
-
-def _get_cursor_class(*, result_dict: bool, stream: bool):
-    if result_dict:
-        if stream:
-            return SSDictCursor
-        return DictCursor
-    if stream:
-        return SSCursor
-    return Cursor
+from ._result import Result
 
 
 class EngineStatus(TypedDict):
@@ -195,15 +184,18 @@ class Engine:
         return self.__pool
 
     @final
-    async def execute(self, query: str,
-                      values: Union[Sequence, dict] = None,
-                      *,
-                      result_dict: bool = None,
-                      stream: bool = None,
-                      commit: bool = None,
-                      ) -> Result:
+    def execute(self, query: str,
+                values: Union[Sequence, dict] = None,
+                *,
+                result_dict: bool = None,
+                stream: bool = None,
+                commit: bool = None) -> Awaitable[Result]:
         """
         Execute a SQL statement and return a Result object
+        支持两种用法:
+        1. result = await execute(...)
+        2. async with execute(...) as result:
+        
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
         :param result_dict: whether to return the result as a dictionary
@@ -212,25 +204,19 @@ class Engine:
         """
         result_dict = result_dict if result_dict is not None else self.result_dict
         stream = stream if stream is not None else self.stream
-        cursor_class = _get_cursor_class(result_dict=result_dict, stream=stream)
+        # cursor_class = _get_cursor_class(result_dict=result_dict, stream=stream)
 
-        # noinspection PyUnresolvedReferences
-        conn = await self.__pool.acquire()
-        cur = await conn.cursor(cursor_class)
-        try:
-            await cur.execute(query, values)
-            if commit:
-                await conn.commit()
-            return Result(query, cursor=cur, pool=self.__pool, result_dict=result_dict, stream=stream)
-            # await cur.close()
-            # pool.release(conn)
-        except MySQLError as err:
-            await cur.close()
-            self.__pool.release(conn)
-            return Result(query, error=err)
+        return Result(
+            pool=self.__pool,
+            query=query, values=values,
+            execute_many=False,
+            result_dict=result_dict,
+            stream=stream,
+            commit=commit
+        )
 
     @final
-    async def execute_many(
+    def execute_many(
         self,
         query: str,
         values: Sequence[Union[Sequence, dict]],
@@ -238,9 +224,13 @@ class Engine:
         result_dict: bool = None,
         stream: bool = None,
         commit: bool = None,
-    ) -> Result:
+    ) -> Awaitable[Result]:
         """
         Execute a SQL statement and return a Result object
+        支持两种用法:
+        1. result = await execute_many(...)
+        2. async with execute_many(...) as result:
+        
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
         :param result_dict: whether to return the result as a dictionary
@@ -249,19 +239,12 @@ class Engine:
         """
         result_dict = result_dict if result_dict is not None else self.result_dict
         stream = stream if stream is not None else self.stream
-        cursor_class = _get_cursor_class(result_dict=result_dict, stream=stream)
 
-        # noinspection PyUnresolvedReferences
-        conn = await self.__pool.acquire()
-        cur = await conn.cursor(cursor_class)
-        try:
-            await cur.executemany(query, values)
-            if commit:
-                await conn.commit()
-            return Result(query, cursor=cur, pool=self.__pool, result_dict=result_dict, stream=stream)
-            # await cur.close()
-            # pool.release(conn)
-        except MySQLError as err:
-            await cur.close()
-            self.__pool.release(conn)
-            return Result(query, error=err)
+        return Result(
+            pool=self.__pool,
+            query=query, values=values,
+            execute_many=True,
+            result_dict=result_dict,
+            stream=stream,
+            commit=commit
+        )
