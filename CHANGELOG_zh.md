@@ -7,9 +7,10 @@
 >
 > (New Features)
 > 执行结果Result支持MysqlError的错误码error_no和错误信息error_msg属性。
-> Mysql初始化连接支持ｕrl参数: mysql://user:password@host:port/?charset=utf8mb4。
+> Mysql初始化连接支持url参数: mysql://user:password@host:port/?charset=utf8mb4。
 > 支持获取mysql连接的状态，使用status属性(Engine.status)。
 > Result支持上下文和迭代器模式。
+> 支持Result返回自定义类型的数据。
 > 新增pytest测试。
 >
 > (Update)使用uv作为包管理工具。
@@ -19,4 +20,6 @@
 > 2. 支持自动管理mysql连接池，和重连机制。
 > 3. 全局自动捕获处理MysqlError错误。
 > 4. 分离执行语句和数据获取。
-> 5. 直接集成AsMysql类进行逻辑开发。
+> 5. 支持IDE编程的Python类型提示。
+> 6. 直接集成AsMysql类进行逻辑开发。
+
