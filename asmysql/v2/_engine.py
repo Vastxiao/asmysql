@@ -2,11 +2,16 @@ from functools import lru_cache
 from typing import Final, final, Optional
 from typing import Union, Sequence
 from typing import TypedDict, Awaitable
+from typing import overload, TypeVar
 from urllib import parse
 from aiomysql import Pool, create_pool
 from pymysql.err import MySQLError
 from ._error import err_msg
 from ._result import Result
+
+
+# 定义类型变量
+T = TypeVar('T')
 
 
 class EngineStatus(TypedDict):
@@ -33,8 +38,9 @@ class Engine:
     connect_timeout: int = 5  # 连接超时时间（秒）
     auto_commit: bool = True
     echo_sql_log: bool = False  # 是否打印sql语句日志
-    result_dict: bool = False  # 返回结果是否为字典
+    # result_dict: bool = False  # 返回结果是否为字典
     stream: bool = False  # 是否使用流式返回结果
+    result_class: type = tuple  # 返回结果类型
 
     @final
     def __init__(
@@ -52,8 +58,9 @@ class Engine:
         connect_timeout: int = None,
         auto_commit: bool = None,
         echo_sql_log: bool = None,
-        result_dict: bool = None,
+        # result_dict: bool = None,
         stream: bool = None,
+        result_class: type = None,
     ):
         """
         url: mysql://user:password@host:port/?charset=utf8mb4
@@ -91,8 +98,9 @@ class Engine:
         self.connect_timeout: Final[int] = connect_timeout or self.connect_timeout
         self.auto_commit: Final[bool] = auto_commit if auto_commit is not None else self.auto_commit
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
-        self.result_dict: Final[bool] = result_dict if result_dict is not None else self.result_dict
+        # self.result_dict: Final[bool] = result_dict if result_dict is not None else self.result_dict
         self.stream: Final[bool] = stream if stream is not None else self.stream
+        self.result_class: Final[type] = result_class if result_class is not None else self.result_class
 
         self.url: Final[str] = f'mysql://{self.host}:{self.port}/'
         self.__pool: Optional[Pool] = None
@@ -183,13 +191,13 @@ class Engine:
                                   f" await {self.__class__.__name__}.connect()") from None
         return self.__pool
 
-    @final
+    @overload
     def execute(self, query: str,
                 values: Union[Sequence, dict] = None,
                 *,
-                result_dict: bool = None,
                 stream: bool = None,
-                commit: bool = None) -> Awaitable[Result]:
+                result_class: type[tuple] = tuple,
+                commit: bool = None) -> Awaitable[Result[tuple]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -198,33 +206,74 @@ class Engine:
         
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
-        :param result_dict: whether to return the result as a dictionary
         :param stream: whether to stream the result
+        :param result_class: the class tuple to use for the result
         :param commit: whether to commit the transaction, default is auto
         """
-        result_dict = result_dict if result_dict is not None else self.result_dict
-        stream = stream if stream is not None else self.stream
-        # cursor_class = _get_cursor_class(result_dict=result_dict, stream=stream)
+        ...
+
+    @overload
+    def execute(self, query: str,
+                values: Union[Sequence, dict] = None,
+                *,
+                stream: bool = None,
+                result_class: type[T],
+                commit: bool = None) -> Awaitable[Result[T]]:
+        """
+        Execute a SQL statement and return a Result object
+        支持两种用法:
+        1. result = await execute(...)
+        2. async with execute(...) as result:
+        
+        :param query: SQL statement
+        :param values: parameters, can be a tuple or dictionary
+        :param stream: whether to stream the result
+        :param result_class: the custom class to use for the result
+        :param commit: whether to commit the transaction, default is auto
+        """
+        ...
+
+    @final
+    def execute(self, query: str,
+                values: Union[Sequence, dict] = None,
+                *,
+                stream: bool = None,
+                result_class: type = None,
+                commit: bool = None):
+        """
+        Execute a SQL statement and return a Result object
+        支持两种用法:
+        1. result = await execute(...)
+        2. async with execute(...) as result:
+        
+        :param query: SQL statement
+        :param values: parameters, can be a tuple or dictionary
+        :param stream: whether to stream the result
+        :param result_class: the class to use for the result
+        :param commit: whether to commit the transaction, default is auto
+        """
+        _stream = stream if stream is not None else self.stream
+        result_class = result_class if result_class is not None else self.result_class
 
         return Result(
             pool=self.__pool,
             query=query, values=values,
             execute_many=False,
-            result_dict=result_dict,
-            stream=stream,
-            commit=commit
+            stream=_stream,
+            commit=commit,
+            result_class=result_class,
         )
 
-    @final
+    @overload
     def execute_many(
         self,
         query: str,
         values: Sequence[Union[Sequence, dict]],
         *,
-        result_dict: bool = None,
         stream: bool = None,
+        result_class: type[tuple] = tuple,
         commit: bool = None,
-    ) -> Awaitable[Result]:
+    ) -> Awaitable[Result[tuple]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -233,18 +282,67 @@ class Engine:
         
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
-        :param result_dict: whether to return the result as a dictionary
         :param stream: whether to stream the result
+        :param result_class: the class tuple to use for the result
         :param commit: whether to commit the transaction, default is auto
         """
-        result_dict = result_dict if result_dict is not None else self.result_dict
-        stream = stream if stream is not None else self.stream
+        ...
+
+    @overload
+    def execute_many(
+        self,
+        query: str,
+        values: Sequence[Union[Sequence, dict]],
+        *,
+        stream: bool = None,
+        result_class: type[T],
+        commit: bool = None,
+    ) -> Awaitable[Result[T]]:
+        """
+        Execute a SQL statement and return a Result object
+        支持两种用法:
+        1. result = await execute_many(...)
+        2. async with execute_many(...) as result:
+        
+        :param query: SQL statement
+        :param values: parameters, can be a tuple or dictionary
+        :param stream: whether to stream the result
+        :param result_class: the custom class to use for the result
+        :param commit: whether to commit the transaction, default is auto
+        """
+        ...
+
+    @final
+    def execute_many(
+        self,
+        query: str,
+        values: Sequence[Union[Sequence, dict]],
+        *,
+        # result_dict: bool = None,
+        stream: bool = None,
+        result_class: type = None,
+        commit: bool = None,
+    ):
+        """
+        Execute a SQL statement and return a Result object
+        支持两种用法:
+        1. result = await execute_many(...)
+        2. async with execute_many(...) as result:
+        
+        :param query: SQL statement
+        :param values: parameters, can be a tuple or dictionary
+        :param stream: whether to stream the result
+        :param result_class: the class to use for the result
+        :param commit: whether to commit the transaction, default is auto
+        """
+        _stream = stream if stream is not None else self.stream
+        result_class = result_class if result_class is not None else self.result_class
 
         return Result(
             pool=self.__pool,
             query=query, values=values,
             execute_many=True,
-            result_dict=result_dict,
-            stream=stream,
-            commit=commit
+            stream=_stream,
+            commit=commit,
+            result_class=result_class,
         )

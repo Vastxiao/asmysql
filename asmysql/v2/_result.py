@@ -1,6 +1,5 @@
 from typing import Final, Optional, Union, Sequence
-from typing import AsyncIterator
-from typing import TypeVar
+from typing import TypeVar, Generic
 from functools import lru_cache
 from aiomysql import Cursor, DictCursor, SSCursor, SSDictCursor
 from aiomysql import Pool
@@ -10,35 +9,38 @@ from pymysql.err import MySQLError
 T = TypeVar('T')
 
 
-def _get_cursor_class(*, result_dict: bool, stream: bool):
-    if result_dict:
+def _get_cursor_class(*, result_class: type, stream: bool):
+    if result_class == tuple:
+        if stream:
+            return SSCursor
+        return Cursor
+    else:
         if stream:
             return SSDictCursor
         return DictCursor
-    if stream:
-        return SSCursor
-    return Cursor
 
 
-class Result:
+class Result(Generic[T]):
     def __init__(self,
                  *,
                  pool: Pool,
                  query: str,
                  values: Union[Sequence, dict] = None,
                  execute_many: bool = False,
-                 result_dict: bool = False,
-                 result_model: Optional[T] = None,
+                 # result_dict: bool = False,
+                 # result_model: Optional[T] = None,
                  stream: bool = False,
-                 commit: bool = True):
+                 commit: bool = True,
+                 result_class: T = tuple):
         self.pool: Final[Pool] = pool
         self.query: Final[str] = query
         self.values: Final[Union[Sequence, dict]] = values
         self.__execute_many: Final[bool] = execute_many
-        self.result_dict: Final[bool] = result_dict
-        self.result_model: Final[Optional[T]] = result_model
+        # self.result_dict: Final[bool] = result_dict
+        # self.result_model: Final[Optional[T]] = result_model
         self.stream: Final[bool] = stream
         self.commit: Final[bool] = commit
+        self._result_class: Final[T] = result_class
         self.__conn_auto_close: bool = True
         self.__cursor: Optional[Cursor] = None
         self.__executed: bool = False
@@ -95,9 +97,11 @@ class Result:
             # noinspection PyUnresolvedReferences
             data = await self.__cursor.fetchone()
             if data:
-                if self.result_dict and self.result_model:
-                    data = self.result_model(**data)
-                return data
+                if self._result_class != tuple and self._result_class != dict:
+                    _data: T = self._result_class(**data)
+                else:
+                    _data: T = data
+                return _data
             else:
                 await self.close()
                 raise StopAsyncIteration
@@ -109,7 +113,7 @@ class Result:
         # 重用 Engine 中的 execute 逻辑
         if self.__executed:
             return self
-        cursor_class = _get_cursor_class(result_dict=self.result_dict, stream=self.stream)
+        cursor_class = _get_cursor_class(result_class=self._result_class, stream=self.stream)
         try:
             # noinspection PyUnresolvedReferences
             conn = await self.pool.acquire()
@@ -187,7 +191,7 @@ class Result:
         """
         return self.__cursor.rownumber if not self.error else None
 
-    async def fetch_one(self, close: bool = None) -> Optional[Union[tuple,  dict,  T]]:
+    async def fetch_one(self, close: bool = None):
         """获取一条记录
 
         :param close: 是否自动关闭游标连接
@@ -201,41 +205,50 @@ class Result:
         if data is None:
             await self.close()
             return None
-        if self.result_dict and self.result_model:
-            return self.result_model(**data)
+        if self._result_class != tuple and self._result_class != dict:
+            _data: T = self._result_class(**data)
+        else:
+            _data: T = data
         _auto_close = close if close is not None else self.__conn_auto_close
         if _auto_close:
             await self.close()
-        return data
+        return _data
 
-    async def fetch_many(self, size: int = None, close: bool = None) -> list[Union[tuple,  dict,  T]]:
+    async def fetch_many(self, size: int = None, close: bool = None):
         """获取多条记录"""
+        _data: list[T] = []
         if self.error:
-            return []
+            return _data
         # noinspection PyUnresolvedReferences
         data: list = await self.__cursor.fetchmany(size)
         if not data:
             await self.close()
-            return []
-        if self.result_dict and self.result_model:
-            data = [self.result_model(**item) for item in data]
+            return _data
+        if self._result_class != tuple and self._result_class != dict:
+            _data = [self._result_class(**item) for item in data]
+        else:
+            _data = data
         _auto_close = close if close is not None else self.__conn_auto_close
         if _auto_close:
             await self.close()
-        return data
+        return _data
 
-    async def fetch_all(self) -> list[Union[tuple,  dict,  T]]:
+    async def fetch_all(self):
         """获取所有记录"""
+        _data: list[T] = []
         if self.error:
-            return []
+            return _data
         # noinspection PyUnresolvedReferences
         data: list = await self.__cursor.fetchall()
-        if self.result_dict and self.result_model:
-            return [self.result_model(**item) for item in data]
+        if self._result_class != tuple and self._result_class != dict:
+            _data: list[T] = [self._result_class(**item) for item in data]
+            return _data
+        else:
+            _data: list[T] = data
         await self.close()
-        return data
+        return _data
 
-    async def iterate(self) -> AsyncIterator[Union[tuple,  dict,  T]]:
+    async def iterate(self):
         """异步生成器遍历所有记录"""
         if self.error:
             # 有错误则不迭代
@@ -248,9 +261,11 @@ class Result:
                     # noinspection PyUnresolvedReferences
                     data = await self.__cursor.fetchone()
                     if data:
-                        if self.result_dict and self.result_model:
-                            data = self.result_model(**data)
-                        yield data
+                        if self._result_class != tuple and self._result_class != dict:
+                            _data: T = self._result_class(**data)
+                        else:
+                            _data: T = data
+                        yield _data
                     else:
                         break
             finally:
