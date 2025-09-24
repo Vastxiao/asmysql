@@ -1,27 +1,18 @@
 from functools import lru_cache
 from typing import Final, final, Optional
 from typing import Union, Sequence
-from typing import TypedDict, Awaitable
+from typing import Awaitable
 from typing import overload, TypeVar
 from urllib import parse
 from aiomysql import Pool, create_pool
 from pymysql.err import MySQLError
 from ._error import err_msg
 from ._async_result import Result
+from ._types import EngineStatus
 
 
 # 定义类型变量
 T = TypeVar('T')
-
-
-class EngineStatus(TypedDict):
-    address: str
-    connected: bool
-    pool_minsize: Optional[int]
-    pool_maxsize: Optional[int]
-    pool_size: Optional[int]
-    pool_free: Optional[int]
-    pool_used: Optional[int]
 
 
 class Engine:
