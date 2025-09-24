@@ -3,7 +3,7 @@ from typing import Final, final, Optional
 from typing import Union, Sequence
 from typing import Awaitable
 from typing import overload, TypeVar
-from typing import AsyncContextManager
+from typing import AsyncContextManager, AsyncIterator
 from urllib import parse
 from aiomysql import Pool, create_pool
 from pymysql.err import MySQLError
@@ -189,7 +189,8 @@ class Engine:
                 *,
                 stream: bool = None,
                 result_class: type[tuple] = tuple,
-                commit: bool = None) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]]]:
+                commit: bool = None,
+                ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncIterator[tuple]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -210,7 +211,8 @@ class Engine:
                 *,
                 stream: bool = None,
                 result_class: type[T],
-                commit: bool = None) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]]]:
+                commit: bool = None,
+                ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncIterator[T]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -230,8 +232,9 @@ class Engine:
                 values: Union[Sequence, dict] = None,
                 *,
                 stream: bool = None,
-                result_class: type = None,
-                commit: bool = None) -> Union[Awaitable[Result], AsyncContextManager[Result]]:
+                result_class: type[T] = None,
+                commit: bool = None,
+                ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncIterator[T]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -265,7 +268,7 @@ class Engine:
         stream: bool = None,
         result_class: type[tuple] = tuple,
         commit: bool = None,
-    ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]]]:
+    ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncIterator[tuple]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -289,7 +292,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T],
         commit: bool = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]]]:
+    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncIterator[T]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -312,9 +315,9 @@ class Engine:
         *,
         # result_dict: bool = None,
         stream: bool = None,
-        result_class: type = None,
+        result_class: type[T] = None,
         commit: bool = None,
-    ) -> Union[Awaitable[Result], AsyncContextManager[Result]]:
+    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncIterator[T]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
