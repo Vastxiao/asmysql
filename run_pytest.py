@@ -11,4 +11,4 @@ import unittest
 
 if __name__ == '__main__':
     # 运行测试
-    unittest.main(module='pytest.v2.test_v2_asmysql_mock', exit=False, verbosity=2)
+    unittest.main(module='pytest.v2.test_asmysql_mock', exit=False, verbosity=2)

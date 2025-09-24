@@ -3,8 +3,8 @@ from unittest import IsolatedAsyncioTestCase
 from asmysql import Engine, AsMysql
 
 
-class TestV2AsMysql(IsolatedAsyncioTestCase):
-    """测试v2版本的AsMysql类"""
+class TestAsMysql(IsolatedAsyncioTestCase):
+    """测试AsMysql类"""
 
     async def asyncSetUp(self):
         """测试前准备"""

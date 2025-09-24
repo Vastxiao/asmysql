@@ -4,8 +4,8 @@ from unittest.mock import Mock
 from asmysql import Engine, AsMysql, Result
 
 
-class TestV2AsMysqlWithMock(IsolatedAsyncioTestCase):
-    """使用mock测试v2版本的AsMysql类，避免需要实际数据库连接"""
+class TestAsMysqlWithMock(IsolatedAsyncioTestCase):
+    """使用mock测试AsMysql类，避免需要实际数据库连接"""
 
     def setUp(self):
         """测试前准备"""
