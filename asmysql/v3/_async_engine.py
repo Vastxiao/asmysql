@@ -3,6 +3,7 @@ from typing import Final, final, Optional
 from typing import Union, Sequence
 from typing import Awaitable
 from typing import overload, TypeVar
+from typing import AsyncContextManager
 from urllib import parse
 from aiomysql import Pool, create_pool
 from pymysql.err import MySQLError
@@ -188,7 +189,7 @@ class Engine:
                 *,
                 stream: bool = None,
                 result_class: type[tuple] = tuple,
-                commit: bool = None) -> Awaitable[Result[tuple]]:
+                commit: bool = None) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -209,7 +210,7 @@ class Engine:
                 *,
                 stream: bool = None,
                 result_class: type[T],
-                commit: bool = None) -> Awaitable[Result[T]]:
+                commit: bool = None) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -230,7 +231,7 @@ class Engine:
                 *,
                 stream: bool = None,
                 result_class: type = None,
-                commit: bool = None):
+                commit: bool = None) -> Union[Awaitable[Result], AsyncContextManager[Result]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -264,7 +265,7 @@ class Engine:
         stream: bool = None,
         result_class: type[tuple] = tuple,
         commit: bool = None,
-    ) -> Awaitable[Result[tuple]]:
+    ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -288,7 +289,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T],
         commit: bool = None,
-    ) -> Awaitable[Result[T]]:
+    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -313,7 +314,7 @@ class Engine:
         stream: bool = None,
         result_class: type = None,
         commit: bool = None,
-    ):
+    ) -> Union[Awaitable[Result], AsyncContextManager[Result]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
