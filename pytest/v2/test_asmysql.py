@@ -1,6 +1,6 @@
 import unittest
 from unittest import IsolatedAsyncioTestCase
-from asmysql import Engine, AsMysql
+from asmysql.v2 import Engine, AsMysql
 
 
 class TestAsMysql(IsolatedAsyncioTestCase):

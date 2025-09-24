@@ -2,7 +2,7 @@
 主要测试类型提示的使用。
 """
 import asyncio
-from asmysql.v2 import AsMysql, Engine
+from asmysql.v3 import AsMysql, Engine
 from pydantic import BaseModel
 
 

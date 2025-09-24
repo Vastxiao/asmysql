@@ -1,7 +1,7 @@
 import unittest
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import Mock
-from asmysql import Engine, AsMysql, Result
+from asmysql.v2 import Engine, AsMysql, Result
 
 
 class TestAsMysqlWithMock(IsolatedAsyncioTestCase):
