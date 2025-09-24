@@ -7,7 +7,7 @@ from urllib import parse
 from aiomysql import Pool, create_pool
 from pymysql.err import MySQLError
 from ._error import err_msg
-from ._result import Result
+from ._async_result import Result
 
 
 # 定义类型变量

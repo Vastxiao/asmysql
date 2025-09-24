@@ -1,6 +1,6 @@
 from functools import lru_cache
 from typing import final
-from ._engine import Engine
+from ._async_engine import Engine
 
 
 class AsMysql:
