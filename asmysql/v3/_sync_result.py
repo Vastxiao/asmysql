@@ -10,7 +10,7 @@ T = TypeVar('T')
 
 
 def _get_cursor_class(*, result_class: type, stream: bool):
-    if result_class == tuple:
+    if result_class is tuple:
         if stream:
             return SSCursor
         return Cursor

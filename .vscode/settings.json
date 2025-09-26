@@ -1,0 +1,21 @@
+{
+    // Python 解释器自动关联 uv 的 .venv
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    // 源码根目录（若项目有 src/ 目录）
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/src"
+    ],
+    // 保存时自动格式化和修复
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit"
+    },
+    "editor.formatOnSave": true,
+    // 调试时自动激活 uv 环境
+    "python.terminal.activateEnvironment": true,
+    // 排除 uv 缓存和虚拟环境文件
+    "files.exclude": {
+        "**/.venv": true,
+        "**/.uv": true, // uv 的缓存目录
+        "**/__pycache__": true
+    }
+}
