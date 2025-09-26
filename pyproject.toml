@@ -31,7 +31,7 @@ requires-python = ">=3.9"
 dependencies = ["aiomysql>=0.2.0", "cryptography>=45.0.7"]
 
 [dependency-groups]
-dev = ["ruff>=0.12.3", "pytest", "ipython"]
+dev = ["ruff>=0.12.3", "pytest", "ipython", "pydantic>=2.4.0"]
 test = ["sqlmodel>=0.0.24"]
 
 
