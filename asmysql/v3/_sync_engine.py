@@ -12,10 +12,10 @@ from typing import (
 )
 from urllib import parse
 
-import pymysql
 from pymysql.err import MySQLError
 
 from ._error import err_msg
+from ._sync_pool import Pool
 from ._sync_result import Result
 from ._types import EngineStatus
 
@@ -58,7 +58,6 @@ class Engine:
         connect_timeout: int = None,
         auto_commit: bool = None,
         echo_sql_log: bool = None,
-        # result_dict: bool = None,
         stream: bool = None,
         result_class: type = None,
     ):
@@ -98,12 +97,11 @@ class Engine:
         self.connect_timeout: Final[int] = connect_timeout or self.connect_timeout
         self.auto_commit: Final[bool] = auto_commit if auto_commit is not None else self.auto_commit
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
-        # self.result_dict: Final[bool] = result_dict if result_dict is not None else self.result_dict
         self.stream: Final[bool] = stream if stream is not None else self.stream
         self.result_class: Final[type] = result_class if result_class is not None else self.result_class
 
         self.url: Final[str] = f"mysql://{self.host}:{self.port}/"
-        self.__connection: Optional[pymysql.Connection] = None
+        self.__pool: Optional[Pool] = None
 
     @lru_cache
     def __repr__(self):
@@ -121,17 +119,21 @@ class Engine:
 
     @final
     def connect(self):
-        """连接到mysql"""
-        if not self.__connection:
+        """连接到mysql,建立TCP链接，初始化连接池。"""
+        if not self.__pool:
             try:
-                self.__connection = pymysql.connect(
+                self.__pool = Pool(
                     host=self.host,
                     port=self.port,
                     user=self.user,
                     password=self.password,
                     charset=self.charset,
+                    min_pool_size=self.min_pool_size,
+                    max_pool_size=self.max_pool_size,
+                    pool_recycle=self.pool_recycle,
                     connect_timeout=self.connect_timeout,
-                    autocommit=self.auto_commit,
+                    auto_commit=self.auto_commit,
+                    echo_sql_log=self.echo_sql_log,
                 )
             except MySQLError as err:
                 raise ConnectionError(err_msg(err)) from None
@@ -140,15 +142,19 @@ class Engine:
     @final
     @property
     def status(self):
-        """返回数据库连接状态"""
+        """返回数据库连接池状态"""
         _status: EngineStatus = {
             "address": self.url,
             "connected": True if self.is_connected else False,
-            "pool_minsize": None,
-            "pool_maxsize": None,
-            "pool_size": None,
-            "pool_free": None,
-            "pool_used": None,
+            "pool_minsize": self.__pool.pool.mincached if self.__pool else None,
+            "pool_maxsize": self.__pool.pool.maxcached if self.__pool else None,
+            "pool_size": self.__pool.pool.size() if self.__pool else None,
+            "pool_free": len(self.__pool.pool._idle_cache)
+            if self.__pool and hasattr(self.__pool.pool, "_idle_cache")
+            else None,
+            "pool_used": (self.__pool.pool.size() - len(self.__pool.pool._idle_cache))
+            if self.__pool and hasattr(self.__pool.pool, "_idle_cache")
+            else None,
         }
         return _status
 
@@ -158,25 +164,24 @@ class Engine:
 
     @final
     def disconnect(self):
-        """关闭mysql连接"""
-        if self.__connection:
-            self.__connection.close()
-            self.__connection = None
+        """等待所有连接释放，并正常关闭mysql连接"""
+        # DBUtils的PooledDB没有显式的关闭方法，连接池会在对象销毁时自动清理
+        self.__pool = None
 
     @final
     @property
     def is_connected(self):
         """数据库是否已连接"""
-        return True if self.__connection else False
+        return True if self.__pool else False
 
     @final
     @property
-    def connection(self):
-        if not self.__connection:
+    def pool(self):
+        if not self.__pool:
             raise ConnectionError(
                 f"Please connect to mysql first, function use in instance:  {self.__class__.__name__}.connect()"
-            )
-        return self.__connection
+            ) from None
+        return self.__pool.pool
 
     @overload
     def execute(
@@ -226,7 +231,7 @@ class Engine:
         result_class = result_class if result_class is not None else self.result_class
 
         return Result(
-            connection=self.__connection,
+            pool=self.__pool,
             query=query,
             values=values,
             execute_many=False,
@@ -284,7 +289,7 @@ class Engine:
         result_class = result_class if result_class is not None else self.result_class
 
         return Result(
-            connection=self.__connection,
+            pool=self.__pool,
             query=query,
             values=values,
             execute_many=True,

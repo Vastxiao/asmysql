@@ -1,7 +1,6 @@
 import asyncio
-from asmysql.v2 import Engine
-from asmysql.v2 import AsMysql
 
+from asmysql.v2 import AsMysql, Engine
 
 engine = Engine("mysql://root:xiao@192.168.62.195:3306/")
 
@@ -12,7 +11,7 @@ def print_engine_status():
 
 class TestAsMysql(AsMysql):
     async def print_users(self):
-        result = await self.client.execute('select user,host from mysql.user', stream=True)
+        result = await self.client.execute("select user,host from mysql.user", stream=True)
         print_engine_status()
         if result.error:
             print(f"error_no: {result.error_no}, error_msg:{result.error_msg}")
@@ -33,7 +32,7 @@ class TestAsMysql(AsMysql):
     async def print_async_with_users(self):
         # _result = await self.client.execute('select user,host from mysql.user', result_dict=True, stream=True)
         # async with _result as result:
-        async with self.client.execute('select user,host from mysql.user', result_class=dict, stream=True) as result:
+        async with self.client.execute("select user,host from mysql.user", result_class=dict, stream=True) as result:
             print_engine_status()
             if result.error:
                 print(f"error_no: {result.error_no}, error_msg:{result.error_msg}")
@@ -49,12 +48,13 @@ class TestAsMysql(AsMysql):
                 print_engine_status()
 
     async def print_async_for_result(self):
-        result = await self.client.execute('select user,host from mysql.user', stream=True)
+        result = await self.client.execute("select user,host from mysql.user", stream=True)
 
         async for item in result:
             print_engine_status()
             print(item)
         print_engine_status()
+
 
 async def main():
     print_engine_status()
@@ -69,5 +69,6 @@ async def main():
 
     await engine.disconnect()
     print_engine_status()
+
 
 asyncio.run(main())

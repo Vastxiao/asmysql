@@ -1,18 +1,27 @@
 from functools import lru_cache
-from typing import Final, final, Optional
-from typing import Union, Sequence
-from typing import TypedDict, Awaitable
-from typing import overload, TypeVar
-from typing import AsyncContextManager, AsyncIterator
+from typing import (
+    AsyncContextManager,
+    AsyncIterator,
+    Awaitable,
+    Final,
+    Optional,
+    Sequence,
+    TypedDict,
+    TypeVar,
+    Union,
+    final,
+    overload,
+)
 from urllib import parse
+
 from aiomysql import Pool, create_pool
 from pymysql.err import MySQLError
+
 from ._error import err_msg
 from ._result import Result
 
-
 # 定义类型变量
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class EngineStatus(TypedDict):
@@ -28,11 +37,12 @@ class EngineStatus(TypedDict):
 class Engine:
     # noinspection SpellCheckingInspection
     """异步的数据库aiomysql封装类"""
-    host: str = '127.0.0.1'
+
+    host: str = "127.0.0.1"
     port: int = 3306
-    user: str = ''
-    password: str = ''
-    charset: str = 'utf8mb4'
+    user: str = ""
+    password: str = ""
+    charset: str = "utf8mb4"
     min_pool_size: int = 1
     max_pool_size: int = 10
     pool_recycle: float = -1  # 空闲TCP连接回收等待时间（秒）
@@ -68,25 +78,25 @@ class Engine:
         """
         if url:
             parsed = parse.urlparse(url)
-            if parsed.scheme != 'mysql':
+            if parsed.scheme != "mysql":
                 raise ValueError(f"Invalid url scheme: {parsed.scheme}") from None
             query_params = parse.parse_qs(parsed.query)
             host = parsed.hostname or host
             port = parsed.port or port
             user = parsed.username or user
             password = parsed.password or password
-            charset = query_params.get('charset', [charset])[0]
+            charset = query_params.get("charset", [charset])[0]
             # 修复参数解析逻辑，避免None值传递给int()函数
-            min_pool_size_val = query_params.get('min_pool_size', [min_pool_size])[0]
+            min_pool_size_val = query_params.get("min_pool_size", [min_pool_size])[0]
             min_pool_size = int(min_pool_size_val) if min_pool_size_val is not None else min_pool_size
-            max_pool_size_val = query_params.get('max_pool_size', [max_pool_size])[0]
+            max_pool_size_val = query_params.get("max_pool_size", [max_pool_size])[0]
             max_pool_size = int(max_pool_size_val) if max_pool_size_val is not None else max_pool_size
-            pool_recycle_val = query_params.get('pool_recycle', [pool_recycle])[0]
+            pool_recycle_val = query_params.get("pool_recycle", [pool_recycle])[0]
             pool_recycle = float(pool_recycle_val) if pool_recycle_val is not None else pool_recycle
-            connect_timeout_val = query_params.get('connect_timeout', [connect_timeout])[0]
+            connect_timeout_val = query_params.get("connect_timeout", [connect_timeout])[0]
             connect_timeout = int(connect_timeout_val) if connect_timeout_val is not None else connect_timeout
-            auto_commit = True if query_params.get('auto_commit', [None])[0] else auto_commit
-            echo_sql_log = True if query_params.get('echo_sql_log', [None])[0] else echo_sql_log
+            auto_commit = True if query_params.get("auto_commit", [None])[0] else auto_commit
+            echo_sql_log = True if query_params.get("echo_sql_log", [None])[0] else echo_sql_log
 
         self.host: Final[str] = host or self.host
         self.port: Final[int] = port or self.port
@@ -103,16 +113,16 @@ class Engine:
         self.stream: Final[bool] = stream if stream is not None else self.stream
         self.result_class: Final[type] = result_class if result_class is not None else self.result_class
 
-        self.url: Final[str] = f'mysql://{self.host}:{self.port}/'
+        self.url: Final[str] = f"mysql://{self.host}:{self.port}/"
         self.__pool: Optional[Pool] = None
 
     @lru_cache
     def __repr__(self):
-        return f'<{self.__class__.__name__} {self.url}>'
+        return f"<{self.__class__.__name__} {self.url}>"
 
     @lru_cache
     def __str__(self):
-        return f'{self.__class__.__name__}={self.url}'
+        return f"{self.__class__.__name__}={self.url}"
 
     def __aenter__(self):
         return self.connect()
@@ -188,24 +198,27 @@ class Engine:
     @property
     def pool(self):
         if not self.__pool:
-            raise ConnectionError(f"Please connect to mysql first, function use in instance: "
-                                  f" await {self.__class__.__name__}.connect()") from None
+            raise ConnectionError(
+                f"Please connect to mysql first, function use in instance:  await {self.__class__.__name__}.connect()"
+            ) from None
         return self.__pool
 
     @overload
-    def execute(self, query: str,
-                values: Union[Sequence, dict] = None,
-                *,
-                stream: bool = None,
-                result_class: type[tuple] = tuple,
-                commit: bool = None,
-                ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncIterator[tuple]]:
+    def execute(
+        self,
+        query: str,
+        values: Union[Sequence, dict] = None,
+        *,
+        stream: bool = None,
+        result_class: type[tuple] = tuple,
+        commit: bool = None,
+    ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncIterator[tuple]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
         1. result = await execute(...)
         2. async with execute(...) as result:
-        
+
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
         :param stream: whether to stream the result
@@ -215,19 +228,21 @@ class Engine:
         ...
 
     @overload
-    def execute(self, query: str,
-                values: Union[Sequence, dict] = None,
-                *,
-                stream: bool = None,
-                result_class: type[T],
-                commit: bool = None,
-                ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncIterator[T]]:
+    def execute(
+        self,
+        query: str,
+        values: Union[Sequence, dict] = None,
+        *,
+        stream: bool = None,
+        result_class: type[T],
+        commit: bool = None,
+    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncIterator[T]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
         1. result = await execute(...)
         2. async with execute(...) as result:
-        
+
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
         :param stream: whether to stream the result
@@ -237,19 +252,21 @@ class Engine:
         ...
 
     @final
-    def execute(self, query: str,
-                values: Union[Sequence, dict] = None,
-                *,
-                stream: bool = None,
-                result_class: type = None,
-                commit: bool = None,
-                ) -> Union[Awaitable[Result], AsyncContextManager[Result], AsyncIterator]:
+    def execute(
+        self,
+        query: str,
+        values: Union[Sequence, dict] = None,
+        *,
+        stream: bool = None,
+        result_class: type = None,
+        commit: bool = None,
+    ) -> Union[Awaitable[Result], AsyncContextManager[Result], AsyncIterator]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
         1. result = await execute(...)
         2. async with execute(...) as result:
-        
+
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
         :param stream: whether to stream the result
@@ -261,7 +278,8 @@ class Engine:
 
         return Result(
             pool=self.__pool,
-            query=query, values=values,
+            query=query,
+            values=values,
             execute_many=False,
             stream=_stream,
             commit=commit,
@@ -283,7 +301,7 @@ class Engine:
         支持两种用法:
         1. result = await execute_many(...)
         2. async with execute_many(...) as result:
-        
+
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
         :param stream: whether to stream the result
@@ -307,7 +325,7 @@ class Engine:
         支持两种用法:
         1. result = await execute_many(...)
         2. async with execute_many(...) as result:
-        
+
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
         :param stream: whether to stream the result
@@ -332,7 +350,7 @@ class Engine:
         支持两种用法:
         1. result = await execute_many(...)
         2. async with execute_many(...) as result:
-        
+
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
         :param stream: whether to stream the result
@@ -344,7 +362,8 @@ class Engine:
 
         return Result(
             pool=self.__pool,
-            query=query, values=values,
+            query=query,
+            values=values,
             execute_many=True,
             stream=_stream,
             commit=commit,

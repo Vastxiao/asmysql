@@ -1,13 +1,17 @@
-import aiomysql
 import asyncio
+
+import aiomysql
 
 
 async def create_pool():
     # noinspection PyUnresolvedReferences,SpellCheckingInspection
     pool = await aiomysql.create_pool(
         # host='192.168.62.195', port=3306, user='root', password='xiao',
-        host='192.168.63.114', port=3306, user='4399smsuser', password='4399it&trainDB$',
-        db='db_sms',
+        host="192.168.63.114",
+        port=3306,
+        user="4399smsuser",
+        password="4399it&trainDB$",
+        db="db_sms",
         minsize=3,
         maxsize=10,
         autocommit=True,
@@ -30,9 +34,11 @@ async def execute_query_one(pool, query):
                 if not row:
                     break
                 num += 1
-                print(f"fetchmany num={num} rows={exec_rows} "
-                      f"row_count={cur.rowcount} last_rowid={cur.lastrowid} "
-                      f"row_number={cur.rownumber} {row}")
+                print(
+                    f"fetchmany num={num} rows={exec_rows} "
+                    f"row_count={cur.rowcount} last_rowid={cur.lastrowid} "
+                    f"row_number={cur.rownumber} {row}"
+                )
 
 
 async def execute_query(pool, query):

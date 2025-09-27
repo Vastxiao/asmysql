@@ -1,16 +1,14 @@
-from typing import Final, Optional, Union, Sequence
-from typing import TypeVar, Generic
 from functools import lru_cache
-from aiomysql import Cursor, DictCursor, SSCursor, SSDictCursor
-from aiomysql import Pool
+from typing import Final, Generic, Optional, Sequence, TypeVar, Union
+
+from aiomysql import Cursor, DictCursor, Pool, SSCursor, SSDictCursor
 from pymysql.err import MySQLError
 
-
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def _get_cursor_class(*, result_class: type, stream: bool):
-    if result_class == tuple:
+    if result_class is tuple:
         if stream:
             return SSCursor
         return Cursor
@@ -21,17 +19,19 @@ def _get_cursor_class(*, result_class: type, stream: bool):
 
 
 class Result(Generic[T]):
-    def __init__(self,
-                 *,
-                 pool: Pool,
-                 query: str,
-                 values: Union[Sequence, dict] = None,
-                 execute_many: bool = False,
-                 # result_dict: bool = False,
-                 # result_model: Optional[T] = None,
-                 stream: bool = False,
-                 commit: bool = True,
-                 result_class: T = tuple):
+    def __init__(
+        self,
+        *,
+        pool: Pool,
+        query: str,
+        values: Union[Sequence, dict] = None,
+        execute_many: bool = False,
+        # result_dict: bool = False,
+        # result_model: Optional[T] = None,
+        stream: bool = False,
+        commit: bool = True,
+        result_class: T = tuple,
+    ):
         self.pool: Final[Pool] = pool
         self.query: Final[str] = query
         self.values: Final[Union[Sequence, dict]] = values
@@ -56,7 +56,7 @@ class Result(Generic[T]):
 
     @lru_cache
     def __repr__(self):
-        return f'<{self.__class__.__name__}: {self.query}>'
+        return f"<{self.__class__.__name__}: {self.query}>"
 
     def __del__(self):
         if self.error:
@@ -97,7 +97,7 @@ class Result(Generic[T]):
             # noinspection PyUnresolvedReferences
             data = await self.__cursor.fetchone()
             if data:
-                if self._result_class != tuple and self._result_class != dict:
+                if self._result_class is not tuple and self._result_class is not dict:
                     _data: T = self._result_class(**data)
                 else:
                     _data: T = data
@@ -205,7 +205,7 @@ class Result(Generic[T]):
         if data is None:
             await self.close()
             return None
-        if self._result_class != tuple and self._result_class != dict:
+        if self._result_class is not tuple and self._result_class is not dict:
             _data: T = self._result_class(**data)
         else:
             _data: T = data
@@ -224,7 +224,7 @@ class Result(Generic[T]):
         if not data:
             await self.close()
             return _data
-        if self._result_class != tuple and self._result_class != dict:
+        if self._result_class is not tuple and self._result_class is not dict:
             _data = [self._result_class(**item) for item in data]
         else:
             _data = data
@@ -240,7 +240,7 @@ class Result(Generic[T]):
             return _data
         # noinspection PyUnresolvedReferences
         data: list = await self.__cursor.fetchall()
-        if self._result_class != tuple and self._result_class != dict:
+        if self._result_class is not tuple and self._result_class is not dict:
             _data: list[T] = [self._result_class(**item) for item in data]
             return _data
         else:
@@ -261,7 +261,7 @@ class Result(Generic[T]):
                     # noinspection PyUnresolvedReferences
                     data = await self.__cursor.fetchone()
                     if data:
-                        if self._result_class != tuple and self._result_class != dict:
+                        if self._result_class is not tuple and self._result_class is not dict:
                             _data: T = self._result_class(**data)
                         else:
                             _data: T = data

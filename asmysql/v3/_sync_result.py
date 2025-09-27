@@ -1,12 +1,13 @@
-from typing import Final, Optional, Union, Sequence
-from typing import TypeVar, Generic, Iterator, ContextManager
 from functools import lru_cache
+from typing import Final, Generic, Optional, Sequence, TypeVar, Union
+
 import pymysql
 from pymysql.cursors import Cursor, DictCursor, SSCursor, SSDictCursor
 from pymysql.err import MySQLError
 
+from ._sync_pool import Pool
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def _get_cursor_class(*, result_class: type, stream: bool):
@@ -21,18 +22,20 @@ def _get_cursor_class(*, result_class: type, stream: bool):
 
 
 class Result(Generic[T]):
-    def __init__(self,
-                 *,
-                 connection: pymysql.Connection,
-                 query: str,
-                 values: Union[Sequence, dict] = None,
-                 execute_many: bool = False,
-                 # result_dict: bool = False,
-                 # result_model: Optional[T] = None,
-                 stream: bool = False,
-                 commit: bool = True,
-                 result_class: type[T] = tuple):
-        self.connection: Final[pymysql.Connection] = connection
+    def __init__(
+        self,
+        *,
+        pool: Pool,
+        query: str,
+        values: Union[Sequence, dict] = None,
+        execute_many: bool = False,
+        # result_dict: bool = False,
+        # result_model: Optional[T] = None,
+        stream: bool = False,
+        commit: bool = True,
+        result_class: type[T] = tuple,
+    ):
+        self.pool: Final[Pool] = pool
         self.query: Final[str] = query
         self.values: Final[Union[Sequence, dict]] = values
         self.__execute_many: Final[bool] = execute_many
@@ -43,6 +46,7 @@ class Result(Generic[T]):
         self._result_class: Final[type[T]] = result_class
         self.__conn_auto_close: bool = True
         self.__cursor: Optional[Cursor] = None
+        self.__connection: Optional[pymysql.Connection] = None
         self.__executed: bool = False
         self.__error: Optional[MySQLError] = None
 
@@ -56,7 +60,7 @@ class Result(Generic[T]):
 
     @lru_cache
     def __repr__(self):
-        return f'<{self.__class__.__name__}: {self.query}>'
+        return f"<{self.__class__.__name__}: {self.query}>"
 
     def __del__(self):
         if self.error:
@@ -66,10 +70,19 @@ class Result(Generic[T]):
                 self.__cursor.close()
             except:
                 pass
+        if self.__connection:
+            # 返回连接到连接池
+            try:
+                self.__connection.close()  # DBUtils会自动将连接返回到池中
+            except:
+                pass
 
     def close(self):
         if self.__cursor:
             self.__cursor.close()
+        if self.__connection:
+            # 返回连接到连接池
+            self.__connection.close()  # DBUtils会自动将连接返回到池中
 
     def __enter__(self):
         self.__conn_auto_close = False
@@ -96,7 +109,7 @@ class Result(Generic[T]):
             # noinspection PyUnresolvedReferences
             data = self.__cursor.fetchone()
             if data:
-                if self._result_class != tuple and self._result_class != dict:
+                if self._result_class is not tuple and self._result_class is not dict:
                     _data: T = self._result_class(**data)
                 else:
                     _data: T = data
@@ -114,16 +127,20 @@ class Result(Generic[T]):
             return self
         cursor_class = _get_cursor_class(result_class=self._result_class, stream=self.stream)
         try:
-            self.__cursor = self.connection.cursor(cursor_class)
+            # 从连接池获取连接
+            self.__connection = self.pool.get_connection()
+            self.__cursor = self.__connection.cursor(cursor_class)
             if self.__execute_many:
                 self.__cursor.executemany(self.query, self.values)
             else:
                 self.__cursor.execute(self.query, self.values)
             if self.commit:
-                self.connection.commit()
+                self.__connection.commit()
         except MySQLError as err:
             if self.__cursor:
                 self.__cursor.close()
+            if self.__connection:
+                self.__connection.close()
             self.__error = err
         finally:
             self.__executed = True
@@ -196,7 +213,7 @@ class Result(Generic[T]):
         if data is None:
             self.close()
             return None
-        if self._result_class != tuple and self._result_class != dict:
+        if self._result_class is not tuple and self._result_class is not dict:
             _data: T = self._result_class(**data)
         else:
             _data: T = data
@@ -215,7 +232,7 @@ class Result(Generic[T]):
         if not data:
             self.close()
             return _data
-        if self._result_class != tuple and self._result_class != dict:
+        if self._result_class is not tuple and self._result_class is not dict:
             _data = [self._result_class(**item) for item in data]
         else:
             _data = data
@@ -231,7 +248,7 @@ class Result(Generic[T]):
             return _data
         # noinspection PyUnresolvedReferences
         data = self.__cursor.fetchall()
-        if self._result_class != tuple and self._result_class != dict:
+        if self._result_class is not tuple and self._result_class is not dict:
             _data: list[T] = [self._result_class(**item) for item in data]
             return _data
         else:
@@ -252,7 +269,7 @@ class Result(Generic[T]):
                     # noinspection PyUnresolvedReferences
                     data = self.__cursor.fetchone()
                     if data:
-                        if self._result_class != tuple and self._result_class != dict:
+                        if self._result_class is not tuple and self._result_class is not dict:
                             _data: T = self._result_class(**data)
                         else:
                             _data: T = data

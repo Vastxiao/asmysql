@@ -1,10 +1,12 @@
 """
 主要测试类型提示的使用。
 """
+
 import asyncio
-from asmysql.v2 import AsMysql, Engine
+
 from pydantic import BaseModel
 
+from asmysql.v2 import AsMysql, Engine
 
 engine = Engine(url="mysql://root:xiao@192.168.62.195:3306/")
 
@@ -21,7 +23,6 @@ class User(BaseModel):
 
 
 class Test(AsMysql):
-
     async def test(self):
         print("=== 测试 await 用法 ===")
         result = await self.client.execute("SELECT user, host FROM mysql.user LIMIT 5", result_class=Mydata)
@@ -79,36 +80,29 @@ class Test(AsMysql):
 
         # 插入测试数据
         await self.client.execute(
-            "INSERT INTO test_users (name, email) VALUES (%s, %s)",
-            ("张三", "zhangsan@example.com")
+            "INSERT INTO test_users (name, email) VALUES (%s, %s)", ("张三", "zhangsan@example.com")
         )
 
         # 查询数据
         result = await self.client.execute(
-            "SELECT id, name, email FROM test_users WHERE name = %s",
-            ("张三",),
-            result_class=User
+            "SELECT id, name, email FROM test_users WHERE name = %s", ("张三",), result_class=User
         )
-        
+
         print("\n=== 测试 async for item in result (User model) ===")
         async for item in result:
             print(f"type({type(item)}) {item!r} {item}")
 
         result = await self.client.execute(
-            "SELECT id, name, email FROM test_users WHERE name = %s",
-            ("张三",),
-            result_class=User
+            "SELECT id, name, email FROM test_users WHERE name = %s", ("张三",), result_class=User
         )
-        
+
         print("\n=== 测试 fetch_one (User model) ===")
         user = await result.fetch_one()
         print(f"type({type(user)}) {user!r} {user}")
 
         print("\n=== 测试直接在 execute 返回结果上使用 async for 迭代 (User model) ===")
         async for user in self.client.execute(
-            "SELECT id, name, email FROM test_users WHERE name = %s",
-            ("张三",),
-            result_class=User
+            "SELECT id, name, email FROM test_users WHERE name = %s", ("张三",), result_class=User
         ):
             print(f"type({type(user)}) {user!r} {user}")
 

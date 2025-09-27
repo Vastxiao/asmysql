@@ -59,7 +59,6 @@ class Engine:
         connect_timeout: int = None,
         auto_commit: bool = None,
         echo_sql_log: bool = None,
-        # result_dict: bool = None,
         stream: bool = None,
         result_class: type = None,
     ):
@@ -99,7 +98,6 @@ class Engine:
         self.connect_timeout: Final[int] = connect_timeout or self.connect_timeout
         self.auto_commit: Final[bool] = auto_commit if auto_commit is not None else self.auto_commit
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
-        # self.result_dict: Final[bool] = result_dict if result_dict is not None else self.result_dict
         self.stream: Final[bool] = stream if stream is not None else self.stream
         self.result_class: Final[type] = result_class if result_class is not None else self.result_class
 
@@ -131,6 +129,7 @@ class Engine:
                     port=self.port,
                     user=self.user,
                     password=self.password,
+                    charset=self.charset,
                     minsize=self.min_pool_size,
                     maxsize=self.max_pool_size,
                     pool_recycle=self.pool_recycle,
