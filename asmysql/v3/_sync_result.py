@@ -65,10 +65,11 @@ class Result(Generic[T]):
                 self.pool.release(conn)
 
     def close(self):
-        conn = self.__cursor.connection
-        self.__cursor.close()
-        if conn:
-            self.pool.release(conn)
+        if self.__cursor:
+            conn = self.__cursor.connection
+            self.__cursor.close()
+            if conn:
+                self.pool.release(conn)
 
     def __enter__(self):
         self.__conn_autoclose = False
@@ -83,23 +84,19 @@ class Result(Generic[T]):
     def __iter__(self):
         """支持 for item in result 语法"""
         self.__conn_autoclose = False
+        self.__call__()
         return self
 
     def __next__(self) -> T:
-        self.__call__()
         """支持 for item in result 语法"""
         if self.error:
             # 有错误则不迭代
             raise StopIteration
         else:
             # noinspection PyUnresolvedReferences
-            data = self.__cursor.fetchone()
-            if data:
-                if self._result_class is not tuple and self._result_class is not dict:
-                    _data: T = self._result_class(**data)
-                else:
-                    _data: T = data
-                return _data
+            data = self.fetch_one()
+            if data is not None:
+                return data
             else:
                 self.close()
                 raise StopIteration
@@ -114,7 +111,7 @@ class Result(Generic[T]):
         cursor_class = _get_cursor_class(result_class=self._result_class, stream=self.stream)
         try:
             # 从连接池获取连接
-            conn = self.pool.acquire()
+            conn = self.pool.get_connection()
             self.__cursor = conn.cursor(cursor_class)
             if self.__execute_many:
                 self.__cursor.executemany(self.query, self.values)
@@ -123,9 +120,18 @@ class Result(Generic[T]):
             if self.commit:
                 self.__cursor.connection.commit()
         except MySQLError as err:
-            self.__cursor.close()
-            self.pool.release(self.__cursor.connection)
             self.__error = err
+            # 确保清理资源
+            if self.__cursor:
+                try:
+                    conn = self.__cursor.connection
+                    self.__cursor.close()
+                    if conn:
+                        self.pool.release(conn)
+                except Exception:
+                    pass  # 忽略清理过程中的错误
+                finally:
+                    self.__cursor = None
         finally:
             self.__executed = True
         return self
@@ -158,7 +164,7 @@ class Result(Generic[T]):
         如果mysql报错，则返回None
         如果使用stream执行sql语句，则返回None
         """
-        if self.error:
+        if self.error or not self.__cursor:
             return None
         if self.stream:
             return None
@@ -173,7 +179,9 @@ class Result(Generic[T]):
         如果没插入insert数据，则返回None
         如果mysql报错，则返回None
         """
-        return self.__cursor.lastrowid if not self.error else None
+        if self.error or not self.__cursor:
+            return None
+        return self.__cursor.lastrowid
 
     @property
     def row_number(self):
@@ -181,7 +189,9 @@ class Result(Generic[T]):
         获取当前游标的位置:
         用于返回当前游标在结果集中的行索引（从0开始），若无法确定索引则返回 None
         """
-        return self.__cursor.rownumber if not self.error else None
+        if self.error or not self.__cursor:
+            return None
+        return self.__cursor.rownumber
 
     def fetch_one(self, close: bool = None) -> Optional[T]:
         """获取一条记录
@@ -192,7 +202,7 @@ class Result(Generic[T]):
         """
         if close is None:
             close = self.__conn_autoclose
-        if self.error:
+        if self.error or not self.__cursor:
             return None
         # noinspection PyUnresolvedReferences
         data = self.__cursor.fetchone()
@@ -213,7 +223,7 @@ class Result(Generic[T]):
             close = self.__conn_autoclose
 
         _data: list[T] = []
-        if self.error:
+        if self.error or not self.__cursor:
             return _data
         # noinspection PyUnresolvedReferences
         data = self.__cursor.fetchmany(size)
@@ -231,7 +241,7 @@ class Result(Generic[T]):
     def fetch_all(self) -> list[T]:
         """获取所有记录"""
         _data: list[T] = []
-        if self.error:
+        if self.error or not self.__cursor:
             return _data
         # noinspection PyUnresolvedReferences
         data = self.__cursor.fetchall()
@@ -245,7 +255,7 @@ class Result(Generic[T]):
 
     def iterate(self) -> Iterator[T]:
         """生成器遍历所有记录"""
-        if self.error:
+        if self.error or not self.__cursor:
             # 有错误则不迭代
             return
             # 直接return等价于以下代码:

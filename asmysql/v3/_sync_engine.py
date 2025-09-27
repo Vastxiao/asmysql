@@ -38,7 +38,6 @@ class Engine:
     connect_timeout: int = 5  # 连接超时时间（秒）
     auto_commit: bool = True
     echo_sql_log: bool = False  # 是否打印sql语句日志
-    # result_dict: bool = False  # 返回结果是否为字典
     stream: bool = False  # 是否使用流式返回结果
     result_class: type = tuple  # 返回结果类型
 
@@ -146,15 +145,13 @@ class Engine:
         _status: EngineStatus = {
             "address": self.url,
             "connected": True if self.is_connected else False,
-            "pool_minsize": self.__pool.pool.mincached if self.__pool else None,
-            "pool_maxsize": self.__pool.pool.maxcached if self.__pool else None,
-            "pool_size": self.__pool.pool.size() if self.__pool else None,
+            "pool_minsize": self.__pool._mincached if self.__pool else None,
+            "pool_maxsize": self.__pool._maxcached if self.__pool else None,
+            "pool_size": len(self.__pool.pool._idle_cache) + self.__pool.pool._connections if self.__pool else None,
             "pool_free": len(self.__pool.pool._idle_cache)
             if self.__pool and hasattr(self.__pool.pool, "_idle_cache")
             else None,
-            "pool_used": (self.__pool.pool.size() - len(self.__pool.pool._idle_cache))
-            if self.__pool and hasattr(self.__pool.pool, "_idle_cache")
-            else None,
+            "pool_used": self.__pool.pool._connections if self.__pool else None,
         }
         return _status
 

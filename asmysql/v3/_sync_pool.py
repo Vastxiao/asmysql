@@ -77,6 +77,10 @@ class Pool:
             **kwargs,
         )
 
+        # 保存配置参数，以便在status方法中使用
+        self._mincached = mincached
+        self._maxcached = maxcached
+
     @property
     def pool(self):
         """
@@ -94,6 +98,20 @@ class Pool:
         """
         return self.__pool.connection()
 
+    # def get_cursor(self, result_class):
+    #     conn = self.__pool.connection()
+    #     cur = conn.cursor()
+    #     return cur
+
+    def release(self, conn: pymysql.Connection):
+        """
+        将连接返回到连接池
+
+        :param conn: 要释放的数据库连接
+        """
+        # DBUtils会自动处理连接的回收，不需要手动释放
+        _ = conn
+
     @property
     def status(self):
         """
@@ -102,10 +120,9 @@ class Pool:
         :return: 包含连接池状态信息的字典
         """
         return {
-            "pool_minsize": self.__pool.mincached,
-            "pool_maxsize": self.__pool.maxcached,
-            "pool_size": self.__pool.size(),
+            "pool_minsize": self._mincached,
+            "pool_maxsize": self._maxcached,
+            "pool_size": len(self.__pool._idle_cache) + self.__pool._connections if self.__pool else None,
             "pool_free": len(self.__pool._idle_cache) if hasattr(self.__pool, "_idle_cache") else None,
-            "pool_used": self.__pool.size()
-            - (len(self.__pool._idle_cache) if hasattr(self.__pool, "_idle_cache") else 0),
+            "pool_used": self.__pool._connections if self.__pool else None,
         }
