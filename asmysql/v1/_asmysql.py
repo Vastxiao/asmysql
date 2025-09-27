@@ -1,19 +1,22 @@
 from functools import lru_cache
-from typing import Final, final, Optional
+from typing import Final, Optional, final
+
 from aiomysql import Pool, create_pool
 from pymysql.err import MySQLError
+
 from ._cursor_client import CursorClient
 from ._error import err_msg
 
 
 class AsMysql:
     """异步的数据库aiomysql封装类"""
-    host: str = '127.0.0.1'
+
+    host: str = "127.0.0.1"
     port: int = 3306
-    user: str = ''
-    password: str = ''
-    database: str = ''
-    charset: str = 'utf8mb4'
+    user: str = ""
+    password: str = ""
+    database: str = ""
+    charset: str = "utf8mb4"
     min_pool_size: int = 1
     max_pool_size: int = 10
     pool_recycle: float = -1  # 空闲TCP连接回收等待时间（秒）
@@ -22,13 +25,21 @@ class AsMysql:
     echo_sql_log: bool = False  # 是否打印sql语句日志
 
     @final
-    def __init__(self, host: str = None, port: int = None,
-                 user: str = None, password: str = None,
-                 database: str = None, charset: str = None,
-                 min_pool_size: int = None, max_pool_size: int = None,
-                 pool_recycle: float = None, connect_timeout: int = None,
-                 auto_commit: bool = None,
-                 echo_sql_log: bool = None):
+    def __init__(
+        self,
+        host: str = None,
+        port: int = None,
+        user: str = None,
+        password: str = None,
+        database: str = None,
+        charset: str = None,
+        min_pool_size: int = None,
+        max_pool_size: int = None,
+        pool_recycle: float = None,
+        connect_timeout: int = None,
+        auto_commit: bool = None,
+        echo_sql_log: bool = None,
+    ):
         self.host: Final[str] = host or self.host
         self.port: Final[int] = port or self.port
         self.user: Final[str] = user or self.user
@@ -42,17 +53,17 @@ class AsMysql:
         self.auto_commit: Final[bool] = auto_commit if auto_commit is not None else self.auto_commit
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
 
-        self.url: Final[str] = f'mysql://{self.host}:{self.port}{"/" + self.database if self.database else ""}'
+        self.url: Final[str] = f"mysql://{self.host}:{self.port}{'/' + self.database if self.database else ''}"
         self.__pool: Optional[Pool] = None
         self.__cursor_client: Optional[CursorClient] = None
 
     @lru_cache
     def __repr__(self):
-        return f'<{self.__class__.__name__} {self.url}>'
+        return f"<{self.__class__.__name__} {self.url}>"
 
     @lru_cache
     def __str__(self):
-        return f'{self.__class__.__name__}={self.url}'
+        return f"{self.__class__.__name__}={self.url}"
 
     def __aenter__(self):
         return self.connect()
@@ -107,16 +118,18 @@ class AsMysql:
     @property
     def pool(self):
         if not self.__pool:
-            raise ConnectionError(f"Please connect to mysql first, function use in instance: "
-                                  f" await {self.__class__.__name__}.connect()")
+            raise ConnectionError(
+                f"Please connect to mysql first, function use in instance:  await {self.__class__.__name__}.connect()"
+            )
         return self.__pool
 
     @final
     @property
     def client(self):
         if not self.__cursor_client:
-            raise ConnectionError(f"Please connect to mysql first, function use in instance: "
-                                  f" await {self.__class__.__name__}.connect()")
+            raise ConnectionError(
+                f"Please connect to mysql first, function use in instance:  await {self.__class__.__name__}.connect()"
+            )
         return self.__cursor_client
 
     @final
