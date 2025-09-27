@@ -138,6 +138,7 @@ class Engine:
                     port=self.port,
                     user=self.user,
                     password=self.password,
+                    charset=self.charset,
                     minsize=self.min_pool_size,
                     maxsize=self.max_pool_size,
                     pool_recycle=self.pool_recycle,
@@ -229,7 +230,7 @@ class Engine:
         values: Union[Sequence, dict] = None,
         *,
         stream: bool = None,
-        result_class: type = None,
+        result_class: type[T] = None,
         commit: bool = None,
     ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
         """
@@ -286,7 +287,7 @@ class Engine:
         values: Sequence[Union[Sequence, dict]],
         *,
         stream: bool = None,
-        result_class: type = None,
+        result_class: type[T] = None,
         commit: bool = None,
     ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
         """

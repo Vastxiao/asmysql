@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import (
     AsyncContextManager,
-    AsyncIterator,
+    AsyncGenerator,
     Awaitable,
     Final,
     Optional,
@@ -39,7 +39,6 @@ class Engine:
     connect_timeout: int = 5  # 连接超时时间（秒）
     auto_commit: bool = True
     echo_sql_log: bool = False  # 是否打印sql语句日志
-    # result_dict: bool = False  # 返回结果是否为字典
     stream: bool = False  # 是否使用流式返回结果
     result_class: type = tuple  # 返回结果类型
 
@@ -201,20 +200,7 @@ class Engine:
         stream: bool = None,
         result_class: type[tuple] = tuple,
         commit: bool = None,
-    ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncIterator[tuple]]:
-        """
-        Execute a SQL statement and return a Result object
-        支持两种用法:
-        1. result = await execute(...)
-        2. async with execute(...) as result:
-
-        :param query: SQL statement
-        :param values: parameters, can be a tuple or dictionary
-        :param stream: whether to stream the result
-        :param result_class: the class tuple to use for the result
-        :param commit: whether to commit the transaction, default is auto
-        """
-        ...
+    ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
 
     @overload
     def execute(
@@ -225,20 +211,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T],
         commit: bool = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncIterator[T]]:
-        """
-        Execute a SQL statement and return a Result object
-        支持两种用法:
-        1. result = await execute(...)
-        2. async with execute(...) as result:
-
-        :param query: SQL statement
-        :param values: parameters, can be a tuple or dictionary
-        :param stream: whether to stream the result
-        :param result_class: the custom class to use for the result
-        :param commit: whether to commit the transaction, default is auto
-        """
-        ...
+    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
 
     @final
     def execute(
@@ -249,7 +222,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T] = None,
         commit: bool = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncIterator[T]]:
+    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -284,20 +257,7 @@ class Engine:
         stream: bool = None,
         result_class: type[tuple] = tuple,
         commit: bool = None,
-    ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncIterator[tuple]]:
-        """
-        Execute a SQL statement and return a Result object
-        支持两种用法:
-        1. result = await execute_many(...)
-        2. async with execute_many(...) as result:
-
-        :param query: SQL statement
-        :param values: parameters, can be a tuple or dictionary
-        :param stream: whether to stream the result
-        :param result_class: the class tuple to use for the result
-        :param commit: whether to commit the transaction, default is auto
-        """
-        ...
+    ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
 
     @overload
     def execute_many(
@@ -308,20 +268,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T],
         commit: bool = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncIterator[T]]:
-        """
-        Execute a SQL statement and return a Result object
-        支持两种用法:
-        1. result = await execute_many(...)
-        2. async with execute_many(...) as result:
-
-        :param query: SQL statement
-        :param values: parameters, can be a tuple or dictionary
-        :param stream: whether to stream the result
-        :param result_class: the custom class to use for the result
-        :param commit: whether to commit the transaction, default is auto
-        """
-        ...
+    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
 
     @final
     def execute_many(
@@ -329,11 +276,10 @@ class Engine:
         query: str,
         values: Sequence[Union[Sequence, dict]],
         *,
-        # result_dict: bool = None,
         stream: bool = None,
         result_class: type[T] = None,
         commit: bool = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncIterator[T]]:
+    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:

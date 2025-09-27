@@ -147,7 +147,7 @@ class Result(Generic[T]):
 
         如果没有错误则返回空字符串
         """
-        __err_msg: str = self.error_msg[1] if self.error else ""
+        __err_msg: str = self.error.args[1] if self.error else ""
         return __err_msg
 
     @property

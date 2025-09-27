@@ -7,7 +7,7 @@ from pymysql.err import MySQLError
 T = TypeVar("T")
 
 
-def _get_cursor_class(*, result_class: type, stream: bool):
+def _get_cursor_class(*, result_class: T, stream: bool):
     if result_class is tuple:
         if stream:
             return SSCursor
@@ -26,8 +26,6 @@ class Result(Generic[T]):
         query: str,
         values: Union[Sequence, dict] = None,
         execute_many: bool = False,
-        # result_dict: bool = False,
-        # result_model: Optional[T] = None,
         stream: bool = False,
         commit: bool = True,
         result_class: T = tuple,
@@ -36,15 +34,13 @@ class Result(Generic[T]):
         self.query: Final[str] = query
         self.values: Final[Union[Sequence, dict]] = values
         self.__execute_many: Final[bool] = execute_many
-        # self.result_dict: Final[bool] = result_dict
-        # self.result_model: Final[Optional[T]] = result_model
         self.stream: Final[bool] = stream
         self.commit: Final[bool] = commit
         self._result_class: Final[T] = result_class
-        self.__conn_auto_close: bool = True
         self.__cursor: Optional[Cursor] = None
         self.__executed: bool = False
         self.__error: Optional[MySQLError] = None
+        self.__conn_autoclose: bool = True
 
     # @property
     # def cursor(self):
@@ -73,7 +69,7 @@ class Result(Generic[T]):
             self.pool.release(conn)
 
     async def __aenter__(self):
-        self.__conn_auto_close = False
+        self.__conn_autoclose = False
         await self.__call__()
         return self
 
@@ -84,10 +80,10 @@ class Result(Generic[T]):
 
     def __aiter__(self):
         """支持 async for item in result 语法"""
-        self.__conn_auto_close = False
+        self.__conn_autoclose = False
         return self
 
-    async def __anext__(self) -> T:
+    async def __anext__(self):
         await self.__call__()
         """支持 async for item in result 语法"""
         if self.error:
@@ -95,10 +91,8 @@ class Result(Generic[T]):
             raise StopAsyncIteration
         else:
             # noinspection PyUnresolvedReferences
-            data = await self.__cursor.fetchone()
-            if data:
-                if self._result_class is not tuple and self._result_class is not dict:
-                    data = self._result_class(**data)
+            data = await self.fetch_one()
+            if data is not None:
                 return data
             else:
                 await self.close()
@@ -196,6 +190,8 @@ class Result(Generic[T]):
                       注意：如果设置不关闭游标连接，必须自己调用 Result.close() 释放连接(否则连接池可能有问题)。
         :return: 返回一条记录，如果没有数据则返回None
         """
+        if close is None:
+            close = self.__conn_autoclose
         if self.error:
             return None
         # noinspection PyUnresolvedReferences
@@ -207,13 +203,19 @@ class Result(Generic[T]):
             _data: T = self._result_class(**data)
         else:
             _data: T = data
-        _auto_close = close if close is not None else self.__conn_auto_close
-        if _auto_close:
+        if self.__conn_autoclose:
             await self.close()
         return _data
 
     async def fetch_many(self, size: int = None, close: bool = None):
-        """获取多条记录"""
+        """获取多条记录
+
+        :param close: 是否自动关闭游标连接
+                      注意：如果设置不关闭游标连接，必须自己调用 Result.close() 释放连接(否则连接池可能有问题)。
+        """
+        if close is None:
+            close = self.__conn_autoclose
+
         _data: list[T] = []
         if self.error:
             return _data
@@ -226,8 +228,7 @@ class Result(Generic[T]):
             _data = [self._result_class(**item) for item in data]
         else:
             _data = data
-        _auto_close = close if close is not None else self.__conn_auto_close
-        if _auto_close:
+        if self.__conn_autoclose:
             await self.close()
         return _data
 
