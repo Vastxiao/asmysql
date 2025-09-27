@@ -1,7 +1,6 @@
 from functools import lru_cache
-from typing import Final, Generic, Optional, Sequence, TypeVar, Union
+from typing import Final, Generic, Iterator, Optional, Sequence, TypeVar, Union
 
-import pymysql
 from pymysql.cursors import Cursor, DictCursor, SSCursor, SSDictCursor
 from pymysql.err import MySQLError
 
@@ -29,8 +28,6 @@ class Result(Generic[T]):
         query: str,
         values: Union[Sequence, dict] = None,
         execute_many: bool = False,
-        # result_dict: bool = False,
-        # result_model: Optional[T] = None,
         stream: bool = False,
         commit: bool = True,
         result_class: type[T] = tuple,
@@ -39,16 +36,13 @@ class Result(Generic[T]):
         self.query: Final[str] = query
         self.values: Final[Union[Sequence, dict]] = values
         self.__execute_many: Final[bool] = execute_many
-        # self.result_dict: Final[bool] = result_dict
-        # self.result_model: Final[Optional[T]] = result_model
         self.stream: Final[bool] = stream
         self.commit: Final[bool] = commit
         self._result_class: Final[type[T]] = result_class
-        self.__conn_auto_close: bool = True
         self.__cursor: Optional[Cursor] = None
-        self.__connection: Optional[pymysql.Connection] = None
         self.__executed: bool = False
         self.__error: Optional[MySQLError] = None
+        self.__conn_autoclose: bool = True
 
     # @property
     # def cursor(self):
@@ -66,26 +60,18 @@ class Result(Generic[T]):
         if self.error:
             return
         if self.__cursor:
-            try:
-                self.__cursor.close()
-            except:
-                pass
-        if self.__connection:
-            # 返回连接到连接池
-            try:
-                self.__connection.close()  # DBUtils会自动将连接返回到池中
-            except:
-                pass
+            conn = self.__cursor.connection
+            if conn:
+                self.pool.release(conn)
 
     def close(self):
-        if self.__cursor:
-            self.__cursor.close()
-        if self.__connection:
-            # 返回连接到连接池
-            self.__connection.close()  # DBUtils会自动将连接返回到池中
+        conn = self.__cursor.connection
+        self.__cursor.close()
+        if conn:
+            self.pool.release(conn)
 
     def __enter__(self):
-        self.__conn_auto_close = False
+        self.__conn_autoclose = False
         self.__call__()
         return self
 
@@ -96,7 +82,7 @@ class Result(Generic[T]):
 
     def __iter__(self):
         """支持 for item in result 语法"""
-        self.__conn_auto_close = False
+        self.__conn_autoclose = False
         return self
 
     def __next__(self) -> T:
@@ -128,19 +114,17 @@ class Result(Generic[T]):
         cursor_class = _get_cursor_class(result_class=self._result_class, stream=self.stream)
         try:
             # 从连接池获取连接
-            self.__connection = self.pool.get_connection()
-            self.__cursor = self.__connection.cursor(cursor_class)
+            conn = self.pool.acquire()
+            self.__cursor = conn.cursor(cursor_class)
             if self.__execute_many:
                 self.__cursor.executemany(self.query, self.values)
             else:
                 self.__cursor.execute(self.query, self.values)
             if self.commit:
-                self.__connection.commit()
+                self.__cursor.connection.commit()
         except MySQLError as err:
-            if self.__cursor:
-                self.__cursor.close()
-            if self.__connection:
-                self.__connection.close()
+            self.__cursor.close()
+            self.pool.release(self.__cursor.connection)
             self.__error = err
         finally:
             self.__executed = True
@@ -206,6 +190,8 @@ class Result(Generic[T]):
                       注意：如果设置不关闭游标连接，必须自己调用 Result.close() 释放连接(否则连接池可能有问题)。
         :return: 返回一条记录，如果没有数据则返回None
         """
+        if close is None:
+            close = self.__conn_autoclose
         if self.error:
             return None
         # noinspection PyUnresolvedReferences
@@ -217,13 +203,15 @@ class Result(Generic[T]):
             _data: T = self._result_class(**data)
         else:
             _data: T = data
-        _auto_close = close if close is not None else self.__conn_auto_close
-        if _auto_close:
+        if self.__conn_autoclose:
             self.close()
         return _data
 
     def fetch_many(self, size: int = None, close: bool = None) -> list[T]:
         """获取多条记录"""
+        if close is None:
+            close = self.__conn_autoclose
+
         _data: list[T] = []
         if self.error:
             return _data
@@ -236,8 +224,7 @@ class Result(Generic[T]):
             _data = [self._result_class(**item) for item in data]
         else:
             _data = data
-        _auto_close = close if close is not None else self.__conn_auto_close
-        if _auto_close:
+        if self.__conn_autoclose:
             self.close()
         return _data
 

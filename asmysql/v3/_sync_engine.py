@@ -2,7 +2,7 @@ from functools import lru_cache
 from typing import (
     ContextManager,
     Final,
-    Iterator,
+    Generator,
     Optional,
     Sequence,
     TypeVar,
@@ -168,6 +168,9 @@ class Engine:
         # DBUtils的PooledDB没有显式的关闭方法，连接池会在对象销毁时自动清理
         self.__pool = None
 
+    def release_connections(self):
+        """释放连接池中所有空闲的连接"""
+
     @final
     @property
     def is_connected(self):
@@ -192,7 +195,7 @@ class Engine:
         stream: bool = None,
         result_class: type[tuple] = tuple,
         commit: bool = None,
-    ) -> Union[Result[tuple], ContextManager[Result[tuple]], Iterator[tuple]]: ...
+    ) -> Union[Result[tuple], ContextManager[Result[tuple]], Generator[tuple, None]]: ...
 
     @overload
     def execute(
@@ -203,7 +206,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T],
         commit: bool = None,
-    ) -> Union[Result[T], ContextManager[Result[T]], Iterator[T]]: ...
+    ) -> Union[Result[T], ContextManager[Result[T]], Generator[T, None]]: ...
 
     @final
     def execute(
@@ -214,7 +217,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T] = None,
         commit: bool = None,
-    ) -> Union[Result[T], ContextManager[Result[T]], Iterator[T]]:
+    ) -> Union[Result[T], ContextManager[Result[T]], Generator[T, None]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -249,7 +252,7 @@ class Engine:
         stream: bool = None,
         result_class: type[tuple] = tuple,
         commit: bool = None,
-    ) -> Union[Result[tuple], ContextManager[Result[tuple]], Iterator[tuple]]: ...
+    ) -> Union[Result[tuple], ContextManager[Result[tuple]], Generator[tuple, None]]: ...
 
     @overload
     def execute_many(
@@ -260,7 +263,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T],
         commit: bool = None,
-    ) -> Union[Result[T], ContextManager[Result[T]], Iterator[T]]: ...
+    ) -> Union[Result[T], ContextManager[Result[T]], Generator[T, None]]: ...
 
     @final
     def execute_many(
@@ -272,7 +275,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T] = None,
         commit: bool = None,
-    ) -> Union[Result[T], ContextManager[Result[T]], Iterator[T]]:
+    ) -> Union[Result[T], ContextManager[Result[T]], Generator[T, None]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:

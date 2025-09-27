@@ -2,12 +2,10 @@ from functools import lru_cache
 from typing import Generic, TypeVar, final
 
 from ._async_engine import Engine as AsyncEngine
-
-# from ._sync_engine import Engine as SyncEngine
+from ._sync_engine import Engine as SyncEngine
 
 # 定义类型变量
-# EngineType = TypeVar("EngineType", SyncEngine, AsyncEngine)
-EngineType = TypeVar("EngineType", bound=AsyncEngine)
+EngineType = TypeVar("EngineType", SyncEngine, AsyncEngine)
 
 
 class AsMysql(Generic[EngineType]):
