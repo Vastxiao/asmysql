@@ -3,7 +3,9 @@ from unittest.mock import AsyncMock, Mock
 
 from pydantic import BaseModel
 
-from asmysql.v2 import AsMysql, Engine, Result
+from asmysql.v3 import AsMysql
+from asmysql.v3 import AsyncEngine as Engine
+from asmysql.v3 import AsyncResult as Result
 
 
 class User(BaseModel):
