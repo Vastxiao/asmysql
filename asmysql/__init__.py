@@ -1,3 +1,9 @@
-from .v2 import Engine
-from .v2 import AsMysql
-from .v2 import Result
+from .v3 import AsMysql, AsyncEngine, AsyncResult, SyncEngine, SyncResult
+
+__all__ = [
+    "AsMysql",
+    "AsyncEngine",
+    "AsyncResult",
+    "SyncEngine",
+    "SyncResult",
+]
