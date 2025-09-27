@@ -35,7 +35,7 @@ class TestAsMysql(AsMysql):
             print_engine_status()
 
     async def await_exec_result_fetch_all(self):
-        result = await self.client.execute("select user,host from mysql.user", stream=True)
+        result = await self.client.execute("select user,host from mysql.user", stream=True, result_class=dict)
         print_engine_status()
         if result.error:
             print(f"error_no: {result.error_no}, error_msg:{result.error_msg}")
@@ -58,7 +58,7 @@ class TestAsMysql(AsMysql):
             print_engine_status()
 
     async def await_exec_result_async_for_result(self):
-        result = await self.client.execute("select user,host from mysql.user", stream=True)
+        result = await self.client.execute("select user,host from mysql.user", stream=True, result_class=dict)
         print_engine_status()
         if result.error:
             print(f"error_no: {result.error_no}, error_msg:{result.error_msg}")
@@ -82,6 +82,7 @@ class TestAsMysql(AsMysql):
 
     async def async_for_item_in_exec(self):
         async for item in self.client.execute("select user,host from mysql.user", stream=True, result_class=dict):
+            item: dict
             print(item)
             print_engine_status()
 
@@ -94,8 +95,9 @@ async def main():
     test_mysql = TestAsMysql(engine)
 
     # await test_mysql.print_users()
-    await test_mysql.async_with_exec_result()
+    # await test_mysql.async_with_exec_result()
     # await test_mysql.print_async_for_result()
+    await test_mysql.async_for_item_in_exec()
 
     await engine.disconnect()
     print_engine_status()

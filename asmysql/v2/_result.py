@@ -91,13 +91,9 @@ class Result(Generic[T]):
             raise StopAsyncIteration
         else:
             # noinspection PyUnresolvedReferences
-            data = await self.__cursor.fetchone()
-            if data:
-                if self._result_class is not tuple and self._result_class is not dict:
-                    _data = self._result_class(**data)
-                else:
-                    _data: T = data
-                return _data
+            data = await self.fetch_one()
+            if data is not None:
+                return data
             else:
                 await self.close()
                 raise StopAsyncIteration
@@ -214,7 +210,11 @@ class Result(Generic[T]):
         return _data
 
     async def fetch_many(self, size: int = None, close: bool = None):
-        """获取多条记录"""
+        """获取多条记录
+
+        :param close: 是否自动关闭游标连接
+                      注意：如果设置不关闭游标连接，必须自己调用 Result.close() 释放连接(否则连接池可能有问题)。
+        """
         if close is None:
             close = self.__conn_autoclose
 

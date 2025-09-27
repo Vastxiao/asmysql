@@ -49,7 +49,6 @@ class Engine:
     connect_timeout: int = 5  # 连接超时时间（秒）
     auto_commit: bool = True
     echo_sql_log: bool = False  # 是否打印sql语句日志
-    # result_dict: bool = False  # 返回结果是否为字典
     stream: bool = False  # 是否使用流式返回结果
     result_class: type = tuple  # 返回结果类型
 
@@ -69,7 +68,6 @@ class Engine:
         connect_timeout: int = None,
         auto_commit: bool = None,
         echo_sql_log: bool = None,
-        # result_dict: bool = None,
         stream: bool = None,
         result_class: type = None,
     ):
@@ -109,7 +107,6 @@ class Engine:
         self.connect_timeout: Final[int] = connect_timeout or self.connect_timeout
         self.auto_commit: Final[bool] = auto_commit if auto_commit is not None else self.auto_commit
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
-        # self.result_dict: Final[bool] = result_dict if result_dict is not None else self.result_dict
         self.stream: Final[bool] = stream if stream is not None else self.stream
         self.result_class: Final[type] = result_class if result_class is not None else self.result_class
 
@@ -288,7 +285,6 @@ class Engine:
         query: str,
         values: Sequence[Union[Sequence, dict]],
         *,
-        # result_dict: bool = None,
         stream: bool = None,
         result_class: type = None,
         commit: bool = None,
