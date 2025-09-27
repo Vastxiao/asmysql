@@ -195,7 +195,7 @@ class Engine:
         stream: bool = None,
         result_class: type[tuple] = tuple,
         commit: bool = None,
-    ) -> Union[Result[tuple], ContextManager[Result[tuple]], Generator[tuple, None]]: ...
+    ) -> Union[Result[tuple], ContextManager[Result[tuple]], Generator[tuple, None, None]]: ...
 
     @overload
     def execute(
@@ -206,7 +206,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T],
         commit: bool = None,
-    ) -> Union[Result[T], ContextManager[Result[T]], Generator[T, None]]: ...
+    ) -> Union[Result[T], ContextManager[Result[T]], Generator[T, None, None]]: ...
 
     @final
     def execute(
@@ -217,7 +217,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T] = None,
         commit: bool = None,
-    ) -> Union[Result[T], ContextManager[Result[T]], Generator[T, None]]:
+    ) -> Union[Result[T], ContextManager[Result[T]], Generator[T, None, None]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
@@ -252,7 +252,7 @@ class Engine:
         stream: bool = None,
         result_class: type[tuple] = tuple,
         commit: bool = None,
-    ) -> Union[Result[tuple], ContextManager[Result[tuple]], Generator[tuple, None]]: ...
+    ) -> Union[Result[tuple], ContextManager[Result[tuple]], Generator[tuple, None, None]]: ...
 
     @overload
     def execute_many(
@@ -263,7 +263,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T],
         commit: bool = None,
-    ) -> Union[Result[T], ContextManager[Result[T]], Generator[T, None]]: ...
+    ) -> Union[Result[T], ContextManager[Result[T]], Generator[T, None, None]]: ...
 
     @final
     def execute_many(
@@ -275,7 +275,7 @@ class Engine:
         stream: bool = None,
         result_class: type[T] = None,
         commit: bool = None,
-    ) -> Union[Result[T], ContextManager[Result[T]], Generator[T, None]]:
+    ) -> Union[Result[T], ContextManager[Result[T]], Generator[T, None, None]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:

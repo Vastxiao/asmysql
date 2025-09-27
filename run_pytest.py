@@ -35,22 +35,37 @@ def run_tests():
     suite = unittest.TestSuite()
     
     # 添加v3 mock测试
-    suite.addTests(loader.loadTestsFromModule(__import__("pytest.v3.test_asmysql_mock", fromlist=[""])))
+    suite.addTests(loader.loadTestsFromModule(__import__("pytest.v3.test_asmysql_async_mock", fromlist=[""])))
     
     # 运行v3 mock测试
     runner = unittest.TextTestRunner(verbosity=2)
-    result_v3 = runner.run(suite)
+    result_v3_async_mock = runner.run(suite)
+    
+    # 运行v3同步mock测试
+    print("\n" + "="*50)
+    print("Running V3 Sync Mock Tests")
+    print("="*50)
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
+    
+    # 添加v3同步mock测试
+    suite.addTests(loader.loadTestsFromModule(__import__("pytest.v3.test_asmysql_sync_mock", fromlist=[""])))
+    
+    # 运行v3同步mock测试
+    runner = unittest.TextTestRunner(verbosity=2)
+    result_v3_sync_mock = runner.run(suite)
     
     # 汇总结果
     print("\n" + "="*50)
     print("TEST SUMMARY")
     print("="*50)
-    print(f"V2 Tests: Ran {result_v2.testsRun} tests, {len(result_v2.failures)} failures, {len(result_v2.errors)} errors")
-    print(f"V3 Tests: Ran {result_v3.testsRun} tests, {len(result_v3.failures)} failures, {len(result_v3.errors)} errors")
+    print(f"V2 Mock Tests: Ran {result_v2.testsRun} tests, {len(result_v2.failures)} failures, {len(result_v2.errors)} errors")
+    print(f"V3 Async Mock Tests: Ran {result_v3_async_mock.testsRun} tests, {len(result_v3_async_mock.failures)} failures, {len(result_v3_async_mock.errors)} errors")
+    print(f"V3 Sync Mock Tests: Ran {result_v3_sync_mock.testsRun} tests, {len(result_v3_sync_mock.failures)} failures, {len(result_v3_sync_mock.errors)} errors")
     
-    total_tests = result_v2.testsRun + result_v3.testsRun
-    total_failures = len(result_v2.failures) + len(result_v3.failures)
-    total_errors = len(result_v2.errors) + len(result_v3.errors)
+    total_tests = result_v2.testsRun + result_v3_async_mock.testsRun + result_v3_sync_mock.testsRun
+    total_failures = len(result_v2.failures) + len(result_v3_async_mock.failures) + len(result_v3_sync_mock.failures)
+    total_errors = len(result_v2.errors) + len(result_v3_async_mock.errors) + len(result_v3_sync_mock.errors)
     
     print(f"Total: Ran {total_tests} tests, {total_failures} failures, {total_errors} errors")
     
