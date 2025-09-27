@@ -87,7 +87,7 @@ class Result(Generic[T]):
         self.__conn_auto_close = False
         return self
 
-    async def __anext__(self):
+    async def __anext__(self) -> T:
         await self.__call__()
         """支持 async for item in result 语法"""
         if self.error:
@@ -98,10 +98,8 @@ class Result(Generic[T]):
             data = await self.__cursor.fetchone()
             if data:
                 if self._result_class is not tuple and self._result_class is not dict:
-                    _data: T = self._result_class(**data)
-                else:
-                    _data: T = data
-                return _data
+                    data = self._result_class(**data)
+                return data
             else:
                 await self.close()
                 raise StopAsyncIteration
