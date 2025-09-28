@@ -1,15 +1,16 @@
+import time
 from collections import deque
 from threading import Condition, Lock
-from typing import Deque, Final, Set
+from typing import Deque, Set
 
 import pymysql
-from dbutils.pooled_db import PooledDB
 from pymysql.connections import Connection
 
 
+# noinspection SpellCheckingInspection
 class Pool:
     """
-    基于 DBUtils 实现的同步 MySQL 连接池，功能仿照 aiomysql.Pool
+    基于 pymysql 实现的同步 MySQL 连接池，功能仿照 aiomysql.Pool
     """
 
     def __init__(
@@ -56,6 +57,7 @@ class Pool:
             "password": password,
             "charset": charset,
             "connect_timeout": connect_timeout,
+            "autocommit": auto_commit,
             **kwargs,
         }
 
@@ -72,39 +74,6 @@ class Pool:
         # 线程同步相关
         self._lock = Lock()
         self._cond = Condition(self._lock)
-
-        # 将aiomysql风格的参数转换为DBUtils参数
-        mincached = min_pool_size
-        maxcached = max_pool_size
-        maxconnections = max_pool_size
-        maxusage = None if pool_recycle < 0 else int(pool_recycle)
-        blocking = True
-
-        # 设置会话命令
-        setsession = []
-        if auto_commit:
-            setsession.append("SET AUTOCOMMIT=1")
-        else:
-            setsession.append("SET AUTOCOMMIT=0")
-
-        self.__pool: Final[PooledDB] = PooledDB(
-            creator=pymysql,
-            host=host,
-            port=port,
-            user=user,
-            password=password,
-            charset=charset,
-            mincached=mincached,
-            maxcached=maxcached,
-            maxshared=0,  # DBUtils中的共享连接特性，默认禁用
-            maxconnections=maxconnections,
-            blocking=blocking,
-            maxusage=maxusage,
-            setsession=setsession or None,
-            ping=1,  # 默认检查连接有效性
-            connect_timeout=connect_timeout,
-            **kwargs,
-        )
 
         # 填充初始连接池
         if min_pool_size > 0:
@@ -198,7 +167,8 @@ class Pool:
                 self._fill_free_pool(True)
                 if self._free:
                     conn = self._free.popleft()
-                    assert not conn.closed, conn
+                    # noinspection PyUnresolvedReferences,PyProtectedMember
+                    assert not conn._closed, conn
                     assert conn not in self._used, (conn, self._used)
                     self._used.add(conn)
                     return conn
@@ -213,13 +183,14 @@ class Pool:
             conn = self._free[-1]
 
             # 检查连接是否已经关闭
+            # noinspection PyUnresolvedReferences,PyProtectedMember
             if conn._sock is None:
                 self._free.pop()
                 conn.close()
             # 检查连接是否超时
-            elif self._recycle > -1:
-                # 在DBUtils中，连接超时由maxusage参数控制，这里简化处理
-                self._free.rotate()
+            elif self._recycle > -1 and hasattr(conn, '_last_used') and (time.time() - conn._last_used > self._recycle):
+                self._free.pop()
+                conn.close()
             else:
                 self._free.rotate()
             n += 1
@@ -227,10 +198,16 @@ class Pool:
         while self.size < self.minsize:
             self._acquiring += 1
             try:
-                conn = self.__pool.connection()
+                conn = self._new_connection()
                 # raise exception if pool is closing
+                if self._closing:
+                    conn.close()
+                    return
                 self._free.append(conn)
                 self._cond.notify()
+            except (pymysql.Error, OSError) as e:
+                # 发生异常时减少_acquiring计数
+                raise Exception(f"Failed to create new connection: {str(e)}") from e
             finally:
                 self._acquiring -= 1
         if self._free:
@@ -239,10 +216,16 @@ class Pool:
         if override_min and (not self.maxsize or self.size < self.maxsize):
             self._acquiring += 1
             try:
-                conn = self.__pool.connection()
+                conn = self._new_connection()
                 # raise exception if pool is closing
+                if self._closing:
+                    conn.close()
+                    return
                 self._free.append(conn)
                 self._cond.notify()
+            except (pymysql.Error, OSError) as e:
+                # 发生异常时减少_acquiring计数
+                raise Exception(f"Failed to create new connection: {str(e)}") from e
             finally:
                 self._acquiring -= 1
 
@@ -253,48 +236,38 @@ class Pool:
     def release(self, conn: Connection):
         """Release free connection back to the connection pool."""
         if conn in self._terminated:
-            assert conn.closed, conn
+            # noinspection PyUnresolvedReferences,PyProtectedMember
+            assert conn._closed, conn
             self._terminated.remove(conn)
             return
         assert conn in self._used, (conn, self._used)
         self._used.remove(conn)
-        if not conn.closed:
-            # 检查是否有活动的事务
+        # noinspection PyUnresolvedReferences,PyProtectedMember
+        if not conn._closed:
             try:
-                in_trans = conn.get_transaction_status()
+                # 检查是否有活动的事务
+                # noinspection PyUnresolvedReferences
+                in_trans = not conn.get_autocommit() and (conn.server_status & 0x0001)  # SERVER_STATUS_IN_TRANS
                 if in_trans:
                     conn.close()
                     return
-            except AttributeError:
-                # pymysql.Connection 可能没有 get_transaction_status 方法
-                pass
+            except (pymysql.Error, AttributeError):
+                # 如果无法确定事务状态，安全起见关闭连接
+                conn.close()
+                return
 
             if self._closing:
                 conn.close()
             else:
+                # 记录最后使用时间
+                conn._last_used = time.time()
                 self._free.append(conn)
         self._wakeup()
 
-    @property
-    def pool(self):
-        """
-        获取连接池对象
-
-        :return: 连接池对象
-        """
-        return self.__pool
-
-    @property
-    def status(self):
-        """
-        获取连接池状态信息
-
-        :return: 包含连接池状态信息的字典
-        """
-        return {
-            "pool_minsize": self._minsize,
-            "pool_maxsize": self.maxsize,
-            "pool_size": len(self._free) + len(self._used) + self._acquiring,
-            "pool_free": len(self._free),
-            "pool_used": len(self._used),
-        }
+    def _new_connection(self):
+        """Create a new connection and return it"""
+        try:
+            return pymysql.connect(**self._conn_kwargs)
+        except Exception as e:
+            # 捕获连接异常并重新抛出，提供更明确的错误信息
+            raise Exception(f"Failed to create new connection: {str(e)}") from e

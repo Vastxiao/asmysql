@@ -145,13 +145,11 @@ class Engine:
         _status: EngineStatus = {
             "address": self.url,
             "connected": True if self.is_connected else False,
-            "pool_minsize": self.__pool._mincached if self.__pool else None,
-            "pool_maxsize": self.__pool._maxcached if self.__pool else None,
-            "pool_size": len(self.__pool.pool._idle_cache) + self.__pool.pool._connections if self.__pool else None,
-            "pool_free": len(self.__pool.pool._idle_cache)
-            if self.__pool and hasattr(self.__pool.pool, "_idle_cache")
-            else None,
-            "pool_used": self.__pool.pool._connections if self.__pool else None,
+            "pool_minsize": self.__pool.minsize if self.__pool else None,
+            "pool_maxsize": self.__pool.maxsize if self.__pool else None,
+            "pool_size": self.__pool.size if self.__pool else None,
+            "pool_free": self.__pool.freesize if self.__pool else None,
+            "pool_used": (self.__pool.size - self.__pool.freesize) if self.__pool else None,
         }
         return _status
 
@@ -181,7 +179,7 @@ class Engine:
             raise ConnectionError(
                 f"Please connect to mysql first, function use in instance:  {self.__class__.__name__}.connect()"
             ) from None
-        return self.__pool.pool
+        return self.__pool
 
     @overload
     def execute(
