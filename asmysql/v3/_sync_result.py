@@ -111,7 +111,7 @@ class Result(Generic[T]):
         cursor_class = _get_cursor_class(result_class=self._result_class, stream=self.stream)
         try:
             # 从连接池获取连接
-            conn = self.pool.get_connection()
+            conn = self.pool.acquire()
             self.__cursor = conn.cursor(cursor_class)
             if self.__execute_many:
                 self.__cursor.executemany(self.query, self.values)
