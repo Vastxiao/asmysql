@@ -14,7 +14,6 @@
     "python.terminal.activateEnvironment": true,
     // 排除 uv 缓存和虚拟环境文件
     "files.exclude": {
-        "**/.venv": true,
         "**/.uv": true, // uv 的缓存目录
         "**/__pycache__": true
     }
