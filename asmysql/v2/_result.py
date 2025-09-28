@@ -4,7 +4,7 @@ from typing import Final, Generic, Optional, Sequence, TypeVar, Union
 from aiomysql import Cursor, DictCursor, Pool, SSCursor, SSDictCursor
 from pymysql.err import MySQLError
 
-T = TypeVar("T")
+T = TypeVar("T", bound=type)
 
 
 def _get_cursor_class(*, result_class: T, stream: bool):
@@ -190,9 +190,8 @@ class Result(Generic[T]):
                       注意：如果设置不关闭游标连接，必须自己调用 Result.close() 释放连接(否则连接池可能有问题)。
         :return: 返回一条记录，如果没有数据则返回None
         """
-        if close is None:
-            close = self.__conn_autoclose
-
+        if close is not None:
+            self.__conn_autoclose = close
         if self.error:
             return None
         # noinspection PyUnresolvedReferences
@@ -204,7 +203,6 @@ class Result(Generic[T]):
             _data: T = self._result_class(**data)
         else:
             _data: T = data
-
         if self.__conn_autoclose:
             await self.close()
         return _data
@@ -212,11 +210,12 @@ class Result(Generic[T]):
     async def fetch_many(self, size: int = None, close: bool = None):
         """获取多条记录
 
+        :param size: 获取记录的数量
         :param close: 是否自动关闭游标连接
                       注意：如果设置不关闭游标连接，必须自己调用 Result.close() 释放连接(否则连接池可能有问题)。
         """
         if close is None:
-            close = self.__conn_autoclose
+            self.__conn_autoclose = close
 
         _data: list[T] = []
         if self.error:

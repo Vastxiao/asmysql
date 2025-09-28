@@ -6,10 +6,10 @@ from pymysql.err import MySQLError
 
 from ._sync_pool import Pool
 
-T = TypeVar("T")
+T = TypeVar("T", bound=type)
 
 
-def _get_cursor_class(*, result_class: type, stream: bool):
+def _get_cursor_class(*, result_class: T, stream: bool):
     if result_class is tuple:
         if stream:
             return SSCursor
@@ -30,7 +30,7 @@ class Result(Generic[T]):
         execute_many: bool = False,
         stream: bool = False,
         commit: bool = True,
-        result_class: type[T] = tuple,
+        result_class: T = tuple,
     ):
         self.pool: Final[Pool] = pool
         self.query: Final[str] = query
@@ -38,7 +38,7 @@ class Result(Generic[T]):
         self.__execute_many: Final[bool] = execute_many
         self.stream: Final[bool] = stream
         self.commit: Final[bool] = commit
-        self._result_class: Final[type[T]] = result_class
+        self._result_class: Final[T] = result_class
         self.__cursor: Optional[Cursor] = None
         self.__executed: bool = False
         self.__error: Optional[MySQLError] = None
@@ -65,11 +65,10 @@ class Result(Generic[T]):
                 self.pool.release(conn)
 
     def close(self):
-        if self.__cursor:
-            conn = self.__cursor.connection
-            self.__cursor.close()
-            if conn:
-                self.pool.release(conn)
+        conn = self.__cursor.connection
+        self.__cursor.close()
+        if conn:
+            self.pool.release(conn)
 
     def __enter__(self):
         self.__conn_autoclose = False
@@ -120,18 +119,9 @@ class Result(Generic[T]):
             if self.commit:
                 self.__cursor.connection.commit()
         except MySQLError as err:
+            self.__cursor.close()
+            self.pool.release(self.__cursor.connection)
             self.__error = err
-            # 确保清理资源
-            if self.__cursor:
-                try:
-                    conn = self.__cursor.connection
-                    self.__cursor.close()
-                    if conn:
-                        self.pool.release(conn)
-                except Exception:
-                    pass  # 忽略清理过程中的错误
-                finally:
-                    self.__cursor = None
         finally:
             self.__executed = True
         return self
@@ -164,7 +154,7 @@ class Result(Generic[T]):
         如果mysql报错，则返回None
         如果使用stream执行sql语句，则返回None
         """
-        if self.error or not self.__cursor:
+        if self.error:
             return None
         if self.stream:
             return None
@@ -179,7 +169,7 @@ class Result(Generic[T]):
         如果没插入insert数据，则返回None
         如果mysql报错，则返回None
         """
-        if self.error or not self.__cursor:
+        if self.error:
             return None
         return self.__cursor.lastrowid
 
@@ -189,7 +179,7 @@ class Result(Generic[T]):
         获取当前游标的位置:
         用于返回当前游标在结果集中的行索引（从0开始），若无法确定索引则返回 None
         """
-        if self.error or not self.__cursor:
+        if self.error:
             return None
         return self.__cursor.rownumber
 
@@ -200,9 +190,9 @@ class Result(Generic[T]):
                       注意：如果设置不关闭游标连接，必须自己调用 Result.close() 释放连接(否则连接池可能有问题)。
         :return: 返回一条记录，如果没有数据则返回None
         """
-        if close is None:
-            close = self.__conn_autoclose
-        if self.error or not self.__cursor:
+        if close is not None:
+            self.__conn_autoclose = close
+        if self.error:
             return None
         # noinspection PyUnresolvedReferences
         data = self.__cursor.fetchone()

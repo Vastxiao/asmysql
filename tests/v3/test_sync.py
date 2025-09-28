@@ -1,4 +1,3 @@
-import unittest
 
 from asmysql.v3 import AsMysql
 from asmysql.v3 import SyncEngine as Engine
@@ -13,18 +12,18 @@ def print_engine_status():
 class TestAsMysql(AsMysql):
     def exec_result_fetch_one(self):
         # 不使用流式查询来测试基础功能
-        with self.client.execute("select user,host from mysql.user limit 1") as result:
+        result = self.client.execute("select user,host from mysql.user limit 1",)
+        print_engine_status()
+        if result.error:
+            print(f"error_no: {result.error_no}, error_msg:{result.error_msg}")
+        else:
+            data = result.fetch_one()
+            print(data)
             print_engine_status()
-            if result.error:
-                print(f"error_no: {result.error_no}, error_msg:{result.error_msg}")
-            else:
-                data = result.fetch_one()
-                print("ooooooooooooooooooooooooooooo", data)
-                print_engine_status()
 
     def exec_result_fetch_many(self):
         # 不使用流式查询来测试基础功能
-        with self.client.execute("select user,host from mysql.user limit 5") as result:
+        with self.client.execute("select user,host from mysql.user limit 5", stream=True) as result:
             print_engine_status()
             if result.error:
                 print(f"error_no: {result.error_no}, error_msg:{result.error_msg}")
@@ -107,27 +106,25 @@ class TestAsMysql(AsMysql):
                 print_engine_status()
 
 
-class TestSync(unittest.TestCase):
-    def test_sync_operations(self):
-        """测试同步操作"""
-        print_engine_status()
-        engine.connect()
-        print_engine_status()
+def test_sync_operations():
+    """测试同步操作"""
+    print_engine_status()
+    engine.connect()
+    print_engine_status()
 
-        test_mysql = TestAsMysql(engine)
+    test_mysql = TestAsMysql(engine)
 
-        # 测试各种方法
-        test_mysql.exec_result_fetch_one()
-        # test_mysql.exec_result_fetch_many()
-        # test_mysql.exec_result_fetch_all()
-        # test_mysql.exec_result_iter()
-        # test_mysql.for_result()
-        # test_mysql.with_exec_result()
-        # test_mysql.for_item_in_exec()
+    # 测试各种方法
+    test_mysql.exec_result_fetch_one()
+    # test_mysql.exec_result_fetch_many()
+    # test_mysql.exec_result_fetch_all()
+    # test_mysql.exec_result_iter()
+    # test_mysql.for_result()
+    # test_mysql.with_exec_result()
+    # test_mysql.for_item_in_exec()
 
-        engine.disconnect()
-        print_engine_status()
+    engine.disconnect()
+    print_engine_status()
 
 
-if __name__ == "__main__":
-    unittest.main()
+test_sync_operations()
