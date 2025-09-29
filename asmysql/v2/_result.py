@@ -4,7 +4,7 @@ from typing import Final, Generic, Optional, Sequence, TypeVar, Union
 from aiomysql import Cursor, DictCursor, Pool, SSCursor, SSDictCursor
 from pymysql.err import MySQLError
 
-T = TypeVar("T", bound=type)
+T = TypeVar("T")
 
 
 def _get_cursor_class(*, result_class: T, stream: bool):

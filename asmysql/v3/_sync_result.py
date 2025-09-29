@@ -6,7 +6,7 @@ from pymysql.err import MySQLError
 
 from ._sync_pool import Pool
 
-T = TypeVar("T", bound=type)
+T = TypeVar("T")
 
 
 def _get_cursor_class(*, result_class: T, stream: bool):
@@ -195,7 +195,7 @@ class Result(Generic[T]):
         if self.error:
             return None
         # noinspection PyUnresolvedReferences
-        data = self.__cursor.fetchone()
+        data: tuple | dict = self.__cursor.fetchone()
         if data is None:
             self.close()
             return None
