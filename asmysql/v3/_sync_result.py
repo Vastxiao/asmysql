@@ -6,10 +6,10 @@ from pymysql.err import MySQLError
 
 from ._sync_pool import Pool
 
-T = TypeVar("T")
+T = TypeVar("T", bound=type)
 
 
-def _get_cursor_class(*, result_class: T, stream: bool):
+def _get_cursor_class(*, result_class: type, stream: bool):
     if result_class is tuple:
         if stream:
             return SSCursor
@@ -26,7 +26,7 @@ class Result(Generic[T]):
         *,
         pool: Pool,
         query: str,
-        values: Union[Sequence, dict] = None,
+        values: Optional[Union[Sequence, dict]] = None,
         execute_many: bool = False,
         stream: bool = False,
         commit: bool = True,
@@ -34,7 +34,7 @@ class Result(Generic[T]):
     ):
         self.pool: Final[Pool] = pool
         self.query: Final[str] = query
-        self.values: Final[Union[Sequence, dict]] = values
+        self.values: Final[Union[Sequence, dict, None]] = values
         self.__execute_many: Final[bool] = execute_many
         self.stream: Final[bool] = stream
         self.commit: Final[bool] = commit

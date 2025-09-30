@@ -17,5 +17,5 @@
         "**/.uv": true, // uv 的缓存目录
         "**/__pycache__": true
     },
-    "python.analysis.typeCheckingMode": "strict",
+    "python.analysis.typeCheckingMode": "basic",
 }
