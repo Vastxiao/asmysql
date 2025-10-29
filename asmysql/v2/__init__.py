@@ -6,8 +6,8 @@ AsyncEngine = Engine
 AsyncResult = Result
 
 __all__ = [
-    "Engine",
     "AsMysql",
+    "Engine",
     "Result",
     "AsyncEngine",
     "AsyncResult",
