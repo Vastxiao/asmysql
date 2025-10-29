@@ -1,13 +1,18 @@
 [project]
 name = "asmysql"
-version = "1.3.2"
+version = "2.0.0"
 description = "An Asynchronous MySQL Client Engine Using Aiomysql."
 authors = [{ name = "vastxiao", email = "vastxiao@gmail.com" }]
 maintainers = [{ name = "vastxiao", email = "vastxiao@gmail.com" }]
 keywords = ["async", "asyncio", "mysql", "aiomysql"]
 classifiers = [
-    #    "Programming Language :: Python :: 3",
-    #    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Operating System :: POSIX :: Linux",
     #    "License :: OSI Approved :: MIT License",
@@ -23,7 +28,7 @@ urls."Vastxiao Blog" = "https://vastxiao.github.io/"
 urls."Gitee Repo" = "https://gitee.com/vastxiao/asmysql"
 
 
-license = { text = "MIT" }
+license = { file = "LICENSE" }
 readme = "README.md"
 
 requires-python = ">=3.9"
@@ -32,12 +37,12 @@ dependencies = ["aiomysql[rsa]>=0.3.2"]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.12.3",
-     "pytest",
-     "ipython",
-     "pydantic>=2.11.7",
+    "ruff",
+    "pytest",
+    "ipython",
+    "pydantic>=2.11.7",
 ]
-test = ["sqlmodel>=0.0.24"]
+#test = ["sqlmodel>=0.0.24"]
 
 
 [tool.ruff] # 复用之前的 Ruff 配置（uv lint 会读取）
@@ -60,11 +65,11 @@ name = "pypi"
 url = "https://pypi.org/simple/"
 
 [build-system]
-requires = ["uv_build>=0.7.20,<0.8.0"]
+requires = ["uv_build"]
 build-backend = "uv_build"
 [tool.uv.build-backend]
 module-root = ""
-source-include = ["CHANGELOG.md", "CHANGELOG_zh.md", "README_zh.md"]
+source-include = ["README_zh.md"]
 
 [[tool.uv.index]]
 name = "testpypi"
