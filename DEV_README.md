@@ -8,7 +8,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 pip install uv
 ```
 
-## 开发环境搭建（poetry）
+## 开发环境搭建
 
 ```bash
 # 初始化开发环境
@@ -20,6 +20,12 @@ uv sync
 #uv pip list
 # 在当前shell激活python环境
 #. .venv/bin/activate
+```
+
+## 运行pytest测试功能
+
+```bash
+uv run python run_pytest.py
 ```
 
 ## 构建软件包

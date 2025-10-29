@@ -21,7 +21,9 @@ asmysql is a library for using the MySQL asynchronous client, which is a wrapper
 * Very easy to use, simply inherit the AsMysql class for logical development.
 * Supports automatic management of the MySQL connection pool and reconnection mechanism.
 * Automatically captures and handles MysqlError errors globally.
+* Separates MySQL connection engine and development logic class.
 * Separates statement execution from data retrieval.
+* Supports uncached data stream acquisition for large data result sets (without occupying memory).
 
 ## Install
 
@@ -32,11 +34,39 @@ pip install asmysql
 
 ## Documentation
 
-### Quick Start
+### Quick Start v2
 
 ```python
 import asyncio
+from asmysql import Engine
 from asmysql import AsMysql
+
+
+class TestAsMysql(AsMysql):
+    async def print_users(self):
+        result = await self.client.execute('select user,host from mysql.user')
+        if result.error:
+            print(f"error_no: {result.error_no}, error_msg:{result.error_msg}")
+        else:
+            # result.iterate() is an asynchronous iterator that can fetch each row of the execution result.
+            async for item in result.iterate():
+                print(item)
+
+async def main():
+    engine = Engine(host='192.168.1.192', port=3306)
+    await engine.connect()
+    test_mysql = TestAsMysql(engine)
+    await test_mysql.print_users()
+    await engine.disconnect()
+
+asyncio.run(main())
+```
+
+### Compatible with v1 version
+
+```python
+import asyncio
+from asmysql.v1 import AsMysql
 
 
 # Directly inherit the AsMysql class for development:
@@ -50,7 +80,7 @@ class TestAsMysql(AsMysql):
 
     async def get_users(self):
         # The self.client attribute is specifically used to execute SQL statements, providing aiomysql's execute and execute_many methods.
-        result = await self.client.execute('select user,authentication_string,host from mysql.user')
+        result = await self.client.execute('select user,host from mysql.user')
         # result is specifically used to obtain execution results, providing fetch_one, fetch_many, fetch_all, and iterate methods.
         # result.err is the exception object (Exception) for all MySQL execution errors.
         if result.err:
@@ -70,59 +100,6 @@ async def main():
     # Remember to disconnect the MySQL connection before exiting the program:
     await mysql.disconnect()
 
-
-asyncio.run(main())
-```
-
-### Support for asynchronous context managers.
-
-```python
-import asyncio
-from asmysql import AsMysql
-
-class TestAsMysql(AsMysql):
-    async def get_users(self):
-        result = await self.client.execute('select user,authentication_string,host from mysql.user')
-        if result.err:
-            print(result.err)
-        else:
-            async for item in result.iterate():
-                print(item)
-
-async def main():
-    # Using async with will automatically close the MySQL connection when the code exits.
-    async with TestAsMysql() as mysql:
-        await mysql.get_users()
-
-if __name__ == '__main__':
-    asyncio.run(main())
-```
-
-### More Usage
-
-```python
-import asyncio
-from asmysql import AsMysql
-
-class TestAsMysql(AsMysql):
-    async def get_users(self):
-        result = await self.client.execute('select user,authentication_string,host from mysql.user')
-        if result.err:
-            print(result.err)
-        else:
-            return await result.fetch_all()
-
-# When creating a MySQL instance, parameters such as MySQL address and user password can be passed in.
-mysql = TestAsMysql(host='192.168.1.192', port=3306)
-
-async def main():
-    # This will connect to MySQL:
-    await mysql.connect()  # or: await mysql
-
-    print(await mysql.get_users())
-
-    # Disconnect MySQL connection:
-    await mysql.disconnect()
 
 asyncio.run(main())
 ```
