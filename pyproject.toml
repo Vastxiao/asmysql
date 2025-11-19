@@ -38,7 +38,6 @@ dependencies = ["aiomysql[rsa]>=0.3.2"]
 [dependency-groups]
 dev = [
     "ruff",
-    "pytest",
     "ipython",
     "pydantic>=2.11.7",
 ]
