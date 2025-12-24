@@ -1,7 +1,9 @@
 import asyncio
 from typing import Optional
+
+from sqlmodel import Field, SQLModel, select
+
 from asmysql import AsMysql
-from sqlmodel import SQLModel, Field, select
 
 
 class TblSmsRecord(SQLModel, table=True):
@@ -14,11 +16,11 @@ class TblSmsRecord(SQLModel, table=True):
 
 
 class TestAsMysql(AsMysql):
-    host = '192.168.62.195'
+    host = "192.168.62.195"
     port = 3306
-    user = 'root'
-    password = 'xiao'
-    database = 'db_sms'
+    user = "root"
+    password = "xiao"
+    database = "db_sms"
 
     async def get_users(self):
         # result = await self.client.execute('select user,authentication_string,host from mysql.user')

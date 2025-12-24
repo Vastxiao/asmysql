@@ -1,7 +1,6 @@
 import asyncio
 from urllib import parse
 
-
 parsed = parse.urlparse("mysql://root:xiao@192.168.62.195:3306/")
 
 print(parsed)

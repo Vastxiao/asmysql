@@ -1,17 +1,12 @@
-import aiomysql
 import asyncio
+
+import aiomysql
 
 
 async def create_pool():
     # noinspection PyUnresolvedReferences
     pool = await aiomysql.create_pool(
-        host='192.168.62.195',
-        port=3306,
-        user='root',
-        password='xiao',
-        db='db_sms',
-        minsize=3,
-        maxsize=10
+        host="192.168.62.195", port=3306, user="root", password="xiao", db="db_sms", minsize=3, maxsize=10
     )
     return pool
 

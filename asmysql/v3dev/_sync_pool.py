@@ -6,6 +6,13 @@ from typing import Deque, Set
 import pymysql
 from pymysql.connections import Connection
 
+"""
+开发中，请勿使用
+ai_prompt:
+_sync_pool.py中的Pool的实现,想要跟　aiomysql中的Pool功能一样，但需要使用同步实现。
+因为aiomysql中的Pool是异步实现，现在根据这个功能实现 _sync_pool.py 中Pool的同步版本，依赖pymysql。
+"""
+
 
 # noinspection SpellCheckingInspection
 class Pool:
@@ -188,7 +195,7 @@ class Pool:
                 self._free.pop()
                 conn.close()
             # 检查连接是否超时
-            elif self._recycle > -1 and hasattr(conn, '_last_used') and (time.time() - conn._last_used > self._recycle):
+            elif self._recycle > -1 and hasattr(conn, "_last_used") and (time.time() - conn._last_used > self._recycle):
                 self._free.pop()
                 conn.close()
             else:

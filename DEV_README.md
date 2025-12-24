@@ -40,8 +40,8 @@ uv build
 
 ```bash
 # test:
-uv publish --username __token__ 
+uv publish --username __token__
 
 # pypi:
-uv publish --index testpypi --username __token__ 
+uv publish --index testpypi --username __token__
 ```

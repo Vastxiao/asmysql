@@ -36,11 +36,29 @@ pip install asmysql
 
 ### 快速开始v2
 
+**使用Engine类进行mysql连接：**
+
+```python
+import asyncio
+from asmysql import Engine
+
+engine = Engine(host='192.168.1.192', port=3306)
+
+async def main():
+    await engine.connect()
+    async with engine.execute('select user,host from mysql.user') as result:
+        async for item in result.iterate():
+            print(item)
+
+asyncio.run(main())
+```
+
+**使用AsMysql类进行逻辑开发：**
+
 ```python
 import asyncio
 from asmysql import Engine
 from asmysql import AsMysql
-
 
 class TestAsMysql(AsMysql):
     async def print_users(self):
@@ -68,7 +86,6 @@ asyncio.run(main())
 import asyncio
 from asmysql.v1 import AsMysql
 
-
 # 直接继承AsMysql类进行开发:
 class TestAsMysql(AsMysql):
     # 这里可以定义一些Mysql实例初始化的默认参数
@@ -90,16 +107,13 @@ class TestAsMysql(AsMysql):
             async for item in result.iterate():
                 print(item)
 
-                
 async def main():
     # 这个会创建实例并连接mysql：
     mysql = await TestAsMysql()
-
+    # 执行sql语句
     await mysql.get_users()
-
     # 程序退出前记得断开mysql连接：
     await mysql.disconnect()
-
 
 asyncio.run(main())
 ```
