@@ -36,12 +36,39 @@ pip install asmysql
 
 ### Quick Start v2
 
+**Using Engine class for MySQL connection:**
+
+```python
+import asyncio
+
+from asmysql import Engine
+
+# Create MySQL connection engine
+engine = Engine(url="mysql://root:pass@127.0.0.1:3306/?charset=utf8mb4")
+
+
+async def main():
+    # Connect to MySQL
+    await engine.connect()
+    # Execute SQL statement
+    async with engine.execute("select user,host from mysql.user") as result:
+        async for item in result.iterate():
+            print(item)
+    # Disconnect MySQL connection
+    await engine.disconnect()
+
+
+asyncio.run(main())
+```
+
+**Using AsMysql class for logical development:**
+
 ```python
 import asyncio
 from asmysql import Engine
 from asmysql import AsMysql
 
-
+# Write logical development class
 class TestAsMysql(AsMysql):
     async def print_users(self):
         result = await self.client.execute('select user,host from mysql.user')
@@ -53,10 +80,15 @@ class TestAsMysql(AsMysql):
                 print(item)
 
 async def main():
+    # Create MySQL connection engine
     engine = Engine(host='192.168.1.192', port=3306)
+    # Connect to MySQL
     await engine.connect()
+    # Create logical development class instance
     test_mysql = TestAsMysql(engine)
+    # Execute logic
     await test_mysql.print_users()
+    # Disconnect MySQL connection
     await engine.disconnect()
 
 asyncio.run(main())
@@ -67,7 +99,6 @@ asyncio.run(main())
 ```python
 import asyncio
 from asmysql.v1 import AsMysql
-
 
 # Directly inherit the AsMysql class for development:
 class TestAsMysql(AsMysql):
@@ -90,16 +121,13 @@ class TestAsMysql(AsMysql):
             async for item in result.iterate():
                 print(item)
 
-                
 async def main():
     # This will create an instance and connect to MySQL:
     mysql = await TestAsMysql()
-
+    # Execute SQL statement
     await mysql.get_users()
-
     # Remember to disconnect the MySQL connection before exiting the program:
     await mysql.disconnect()
-
 
 asyncio.run(main())
 ```

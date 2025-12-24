@@ -40,15 +40,23 @@ pip install asmysql
 
 ```python
 import asyncio
+
 from asmysql import Engine
 
-engine = Engine(host='192.168.1.192', port=3306)
+# 创建mysql连接引擎
+engine = Engine(url="mysql://root:pass@127.0.0.1:3306/?charset=utf8mb4")
+
 
 async def main():
+    # 连接mysql
     await engine.connect()
-    async with engine.execute('select user,host from mysql.user') as result:
+    # 执行sql语句
+    async with engine.execute("select user,host from mysql.user") as result:
         async for item in result.iterate():
             print(item)
+    # 断开mysql连接
+    await engine.disconnect()
+
 
 asyncio.run(main())
 ```
@@ -60,6 +68,7 @@ import asyncio
 from asmysql import Engine
 from asmysql import AsMysql
 
+# 编写逻辑开发类
 class TestAsMysql(AsMysql):
     async def print_users(self):
         result = await self.client.execute('select user,host from mysql.user')
@@ -71,10 +80,15 @@ class TestAsMysql(AsMysql):
                 print(item)
 
 async def main():
+    # 创建mysql连接引擎
     engine = Engine(host='192.168.1.192', port=3306)
+    # 连接mysql
     await engine.connect()
+    # 创建逻辑开发类实例
     test_mysql = TestAsMysql(engine)
+    # 执行逻辑
     await test_mysql.print_users()
+    # 断开mysql连接
     await engine.disconnect()
 
 asyncio.run(main())
