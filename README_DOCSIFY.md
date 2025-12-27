@@ -1,21 +1,5 @@
 # Docsify 文档配置说明
 
-## 启动文档服务器
-
-在 `docs` 目录下运行：
-
-```bash
-docsify serve .
-```
-
-或者使用全局安装的 docsify-cli：
-
-```bash
-docsify serve docs
-```
-
-文档将在 `http://localhost:3000` 启动。
-
 ## 目录结构
 
 ```
@@ -63,7 +47,7 @@ docs/
 1. 将 `docs` 目录推送到 GitHub
 2. 在仓库设置中启用 GitHub Pages
 3. 选择 `docs` 目录作为源目录
-4. 访问 `https://yourusername.github.io/asmysql/` 查看文档
+4. 访问 `https://vastxiao.github.io/asmysql/` 查看文档
 
 ## 功能特性
 
@@ -74,3 +58,19 @@ docs/
 - ✅ 分页导航
 - ✅ 图片缩放
 - ✅ 响应式设计
+
+
+## 启动文档服务器（测试）
+
+在 `docs` 目录下运行：
+
+```bash
+# 1. 使用Docsify启动服务器
+# 安装：npm install docsify-cli -g
+docsify serve docs
+# 文档将在 `http://localhost:3000` 启动。
+# 或者
+# 2. 使用Python启动服务器
+cd docs && python -m http.server 3000
+# 文档将在 `http://localhost:3000` 启动。
+```

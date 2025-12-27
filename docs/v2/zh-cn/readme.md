@@ -735,9 +735,9 @@ result = await engine.execute_many(
 
 ## 更多资源
 
-- [API 参考文档](./API_zh.md)
-- [使用示例](./EXAMPLES_zh.md)
-- [变更日志](./CHANGELOG_zh.md)
+- [API 参考文档](./API.md)
+- [使用示例](./EXAMPLES.md)
+- [变更日志](./CHANGELOG.md)
 - [GitHub 仓库](https://github.com/vastxiao/asmysql)
 - [Gitee 仓库](https://gitee.com/vastxiao/asmysql)
 
