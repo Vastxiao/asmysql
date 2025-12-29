@@ -3,11 +3,11 @@
 
 <head>
   <title>AsMysql Documentation</title>
-  <meta name="description" content="AsMysql - 一个基于 aiomysql 封装的异步 MySQL 客户端库">
+  <meta name="description" content="AsMysql - 一个基于 aiomysql 封装的异步 MySQL 客户端 Python 库">
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/themes/vue.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css">
 </head>
 
 <body>
@@ -22,82 +22,90 @@
       subMaxLevel: 3,
       auto2top: true,
       homepage: 'README.md',
-      coverpage: false,
       notFoundPage: true,
       routerMode: 'history',
-      search: {
-        maxAge: 86400000,
-        paths: 'auto',
-        placeholder: '搜索文档',
-        noData: '找不到结果!',
-        depth: 6
+      externalLinkTarget: '_blank',
+
+      notFoundPage: {
+        '/': '_404.md',
+        '/zh-cn': '_404_zh.md',
+        '/en-us': '_404.md',
       },
-      pagination: {
-        previousText: '上一章节',
-        nextText: '下一章节',
-        crossChapter: true,
-        crossChapterText: true,
-      },
-      plugins: [
-        function (hook, vm) {
-          var currentSidebar = null;
-          var currentNavbar = null;
 
-          hook.mounted(function () {
-            updateSidebarAndNavbar(vm);
-          });
+      // search: {
+      //   maxAge: 86400000,
+      //   paths: 'auto',
+      //   placeholder: '搜索文档',
+      //   noData: '找不到结果!',
+      //   depth: 6
+      // },
+      // pagination: {
+      //   previousText: '上一章节',
+      //   nextText: '下一章节',
+      //   crossChapter: true,
+      //   crossChapterText: true,
+      // },
+      // plugins: [
+      //   function (hook, vm) {
+      //     var currentSidebar = null;
+      //     var currentNavbar = null;
 
-          hook.doneEach(function () {
-            updateSidebarAndNavbar(vm);
-          });
+      //     hook.mounted(function () {
+      //       updateSidebarAndNavbar(vm);
+      //     });
 
-          function updateSidebarAndNavbar(vm) {
-            var path = vm.route.path;
-            // 检测路径中的语言标识：zh-cn 或 en-us
-            var isZh = path.includes('/zh-cn/') ||
-              path.includes('README_zh.md') ||
-              path === '/README_zh.md' ||
-              (!path.includes('/en-us/') && (path.startsWith('/v2/') || path.startsWith('/latest/')));
+      //     hook.doneEach(function () {
+      //       updateSidebarAndNavbar(vm);
+      //     });
 
-            var sidebarFile = isZh ? '_sidebar.zh.md' : '_sidebar.md';
-            var navbarFile = isZh ? '_navbar.zh.md' : '_navbar.md';
+      //     function updateSidebarAndNavbar(vm) {
+      //       var path = vm.route.path;
+      //       // 检测路径中的语言标识：zh-cn 或 en-us
+      //       var isZh = path.includes('/zh-cn/') ||
+      //         path.includes('README_zh.md') ||
+      //         path === '/README_zh.md' ||
+      //         (!path.includes('/en-us/') && (path.startsWith('/v2/') || path.startsWith('/latest/')));
 
-            // 如果侧边栏文件发生变化，重新加载
-            if (currentSidebar !== sidebarFile) {
-              currentSidebar = sidebarFile;
-              fetch(sidebarFile)
-                .then(res => res.text())
-                .then(text => {
-                  var html = vm.compiler.compile(text);
-                  var sidebarEl = document.querySelector('.sidebar');
-                  if (sidebarEl) {
-                    sidebarEl.innerHTML = html;
-                  }
-                })
-                .catch(err => console.error('Failed to load sidebar:', err));
-            }
+      //       var sidebarFile = isZh ? '_sidebar.zh.md' : '_sidebar.md';
+      //       var navbarFile = isZh ? '_navbar.zh.md' : '_navbar.md';
 
-            // 如果导航栏文件发生变化，重新加载
-            if (currentNavbar !== navbarFile) {
-              currentNavbar = navbarFile;
-              fetch(navbarFile)
-                .then(res => res.text())
-                .then(text => {
-                  var html = vm.compiler.compile(text);
-                  var navbarEl = document.querySelector('.app-nav');
-                  if (navbarEl) {
-                    navbarEl.innerHTML = html;
-                  }
-                })
-                .catch(err => console.error('Failed to load navbar:', err));
-            }
-          }
-        }
-      ]
+      //       // 如果侧边栏文件发生变化，重新加载
+      //       if (currentSidebar !== sidebarFile) {
+      //         currentSidebar = sidebarFile;
+      //         fetch(sidebarFile)
+      //           .then(res => res.text())
+      //           .then(text => {
+      //             var html = vm.compiler.compile(text);
+      //             var sidebarEl = document.querySelector('.sidebar');
+      //             if (sidebarEl) {
+      //               sidebarEl.innerHTML = html;
+      //             }
+      //           })
+      //           .catch(err => console.error('Failed to load sidebar:', err));
+      //       }
+
+      //       // 如果导航栏文件发生变化，重新加载
+      //       if (currentNavbar !== navbarFile) {
+      //         currentNavbar = navbarFile;
+      //         fetch(navbarFile)
+      //           .then(res => res.text())
+      //           .then(text => {
+      //             var html = vm.compiler.compile(text);
+      //             var navbarEl = document.querySelector('.app-nav');
+      //             if (navbarEl) {
+      //               navbarEl.innerHTML = html;
+      //             }
+      //           })
+      //           .catch(err => console.error('Failed to load navbar:', err));
+      //       }
+      //     }
+      //   }
+      // ]
     }
   </script>
-  <!-- Docsify v4 -->
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+  <!-- 表情符号 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
 
   <!--
   搜索插件
@@ -111,11 +119,11 @@
   <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
   图片缩放
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
-  表情符号
-  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
+
   外部链接
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/external-script.min.js"></script>
   -->
+
 </body>
 
 </html>

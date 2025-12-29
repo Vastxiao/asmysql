@@ -1,3 +1,9 @@
-* [English](README.md)
-* [中文](README_zh.md)
-* [GitHub](https://github.com/vastxiao/asmysql)
+* Version
+
+  * [v2](v2/zh-cn/README.md)
+  * [v1](v1/en-us/README.md)
+
+
+* Translations
+  * [:us:, :uk:](en-us/)
+  * [:cn:](zh-cn/)
