@@ -4,8 +4,6 @@
 
 ## v2.0.0
 
-**发布日期**: 2024年
-
 ### 重大变更 (Breaking Changes)
 
 v2.0.0 是一个完全重构的版本，与 v1 版本不兼容。主要变更包括：
@@ -30,8 +28,8 @@ v2.0.0 是一个完全重构的版本，与 v1 版本不兼容。主要变更包
   - v2: 需要显式创建 `Engine` 并调用 `connect()`
 
 - **执行方式变更**
-  - v1: `self.client.execute(...)`
-  - v2: `self.client.execute(...)` (保持不变，但 `client` 现在是 `Engine` 实例)
+  - v1: AsMysql `self.client.execute(...)`
+  - v2: AsMysql `self.client.execute(...)` (保持不变，但 `client` 现在是 `Engine` 实例)
 
 ### 新功能 (New Features)
 
@@ -178,66 +176,4 @@ v2 版本保留了 v1 版本的核心特性：
 
 ### 迁移指南
 
-#### 从 v1 迁移到 v2
-
-1. **更新导入**
-   ```python
-   # v1
-   from asmysql import AsMysql
-   
-   # v2
-   from asmysql import Engine, AsMysql
-   ```
-
-2. **更新连接方式**
-   ```python
-   # v1
-   class MyService(AsMysql):
-       host = '127.0.0.1'
-       port = 3306
-       user = 'root'
-       password = 'pass'
-   
-   mysql = await MyService()
-   
-   # v2
-   engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
-   await engine.connect()
-   
-   class MyService(AsMysql):
-       pass
-   
-   service = MyService(engine)
-   ```
-
-3. **更新错误属性**
-   ```python
-   # v1
-   if result.err:
-       print(result.err_msg)
-   
-   # v2
-   if result.error:
-       print(result.error_msg)
-   ```
-
-4. **使用新的功能**
-   ```python
-   # v2 新增：URL 连接
-   engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
-   
-   # v2 新增：流式查询
-   async for row in engine.execute("SELECT * FROM large_table", stream=True):
-       process(row)
-   
-   # v2 新增：自定义结果类型
-   result = await engine.execute("SELECT * FROM users", result_class=dict)
-   ```
-
-### 相关链接
-
-- [GitHub 仓库](https://github.com/vastxiao/asmysql)
-- [Gitee 仓库](https://gitee.com/vastxiao/asmysql)
-- [PyPI 包](https://pypi.org/project/asmysql/)
-- [文档](https://github.com/vastxiao/asmysql/blob/main/README_zh.md)
-
+详细的迁移指南请参考 [迁移指南](migration.md)。

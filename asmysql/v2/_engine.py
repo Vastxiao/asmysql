@@ -248,7 +248,7 @@ class Engine:
         _stream = stream if stream is not None else self.stream
         result_class = result_class if result_class is not None else self.result_class
 
-        return Result(
+        return Result[type[T]](
             pool=self.__pool,
             query=query,
             values=values,
@@ -305,7 +305,7 @@ class Engine:
         _stream = stream if stream is not None else self.stream
         result_class = result_class if result_class is not None else self.result_class
 
-        return Result(
+        return Result[type[T]](
             pool=self.__pool,
             query=query,
             values=values,
