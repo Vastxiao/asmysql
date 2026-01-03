@@ -11,26 +11,43 @@
 </head>
 
 <body>
-  <div id="app">加载中...</div>
+  <div id="app">Loading...</div>
   <script>
     window.$docsify = {
       name: 'asmysql',
       repo: 'https://github.com/vastxiao/asmysql',
       loadSidebar: true,
+      // autoHeader: true,
       loadNavbar: true,
+      // 小屏设备下合并导航栏到侧边栏
       mergeNavbar: true,
-      subMaxLevel: 3,
+      maxLevel: 2,
+      subMaxLevel: 2,
       auto2top: true,
       homepage: 'README.md',
       notFoundPage: true,
       routerMode: 'history',
       externalLinkTarget: '_blank',
-
-      notFoundPage: {
-        '/': '_404.md',
-        '/zh-cn': '_404_zh.md',
-        '/en-us': '_404.md',
+      // 启用相对路径
+      relativePath: true,
+      // 启用封面页
+      coverpage: true,
+      // 只在访问主页时加载封面
+      onlyCover: false,
+      // 404 页面
+      // notFoundPage: {
+      //   '/': '_404.md',
+      //   '/zh-cn': '_404_zh.md',
+      //   '/en-us': '_404.md',
+      // },
+      alias: {
+        '/v2/?': '/v2/en-us/',
+        '/v2/$1': '/v2/en-us/$1',
+        '/v1/?': '/v1/en-us/',
+        '/v1/$1': '/v1/en-us/$1',
       },
+      // fallbackLanguages: ['en-us', 'zh-cn'],
+
 
       // search: {
       //   maxAge: 86400000,
