@@ -12,12 +12,75 @@
 
 <body>
   <div id="app">Loading...</div>
+
+  <script>
+    // ========== 全局配置 ==========
+    var DEFAULT_VERSION = 'v2';  // 默认版本，统一配置，修改此处即可
+    var supportedLangs = ['en-us', 'zh-cn'];  // 支持的语言列表
+    // =============================
+
+    /**
+     * 全局语言切换函数
+     * @param {string} targetLang - 目标语言 (en-us 或 zh-cn)
+     */
+    function switchLang(targetLang) {
+      // 获取当前路径 (history 模式使用 pathname)
+      var currentPath = window.location.pathname || '/';
+
+      // 检查原始路径是否有尾部斜杠
+      var hasTrailingSlash = currentPath.endsWith('/');
+
+      // 解析路径: /v{version}/{lang}/{page...} 或 /v{version}/{page...}
+      var pathParts = currentPath.split('/').filter(function (p) { return p !== ''; });
+
+      // 构建新路径
+      var newPath;
+
+      if (pathParts.length === 0) {
+        // 根路径 "/" -> 默认跳转到 /{DEFAULT_VERSION}/{targetLang}/
+        newPath = '/' + DEFAULT_VERSION + '/' + targetLang + '/';
+      } else if (pathParts[0].match(/^v\d+$/)) {
+        // 路径以版本号开头 (如 v1, v2)
+        var version = pathParts[0];
+
+        if (pathParts.length >= 2 && supportedLangs.indexOf(pathParts[1]) !== -1) {
+          // 已有语言标识: /v2/en-us/xxx -> /v2/{targetLang}/xxx
+          pathParts[1] = targetLang;
+          newPath = '/' + pathParts.join('/');
+          // 如果原始路径有尾部斜杠，或者路径只有版本和语言（没有其他部分），添加尾部斜杠
+          if (hasTrailingSlash || pathParts.length === 2) {
+            newPath += '/';
+          }
+        } else {
+          // 没有语言标识: /v2/xxx -> /v2/{targetLang}/xxx
+          var restParts = pathParts.slice(1);
+          newPath = '/' + version + '/' + targetLang + (restParts.length > 0 ? '/' + restParts.join('/') : '/');
+          // 如果原始路径有尾部斜杠且还有其他部分，添加尾部斜杠
+          if (hasTrailingSlash && restParts.length > 0) {
+            newPath += '/';
+          }
+        }
+      } else {
+        // 其他路径: 直接跳转到默认版本的目标语言
+        newPath = '/' + DEFAULT_VERSION + '/' + targetLang + '/';
+      }
+
+      // 确保路径格式正确
+      if (!newPath.startsWith('/')) {
+        newPath = '/' + newPath;
+      }
+
+      // 使用 history API 进行导航 (配合 docsify 的 history 模式)
+      window.location.href = newPath;
+    }
+  </script>
+
   <script>
     window.$docsify = {
-      name: 'asmysql',
+      // 文档标题，会显示在侧边栏顶部
+      name: 'AsMysql Documentation',
       repo: 'https://github.com/vastxiao/asmysql',
       loadSidebar: true,
-      // autoHeader: true,
       loadNavbar: true,
       // 小屏设备下合并导航栏到侧边栏
       mergeNavbar: true,
@@ -26,7 +89,6 @@
       auto2top: true,
       homepage: 'README.md',
       notFoundPage: true,
-      routerMode: 'history',
       externalLinkTarget: '_blank',
       // 启用相对路径
       relativePath: true,
@@ -34,90 +96,19 @@
       coverpage: true,
       // 只在访问主页时加载封面
       onlyCover: false,
-      // 404 页面
-      // notFoundPage: {
-      //   '/': '_404.md',
-      //   '/zh-cn': '_404_zh.md',
-      //   '/en-us': '_404.md',
-      // },
-      alias: {
-        '/v2/?': '/v2/en-us/',
-        '/v2/$1': '/v2/en-us/$1',
-        '/v1/?': '/v1/en-us/',
-        '/v1/$1': '/v1/en-us/$1',
-      },
-      // fallbackLanguages: ['en-us', 'zh-cn'],
-
-
-      // search: {
-      //   maxAge: 86400000,
-      //   paths: 'auto',
-      //   placeholder: '搜索文档',
-      //   noData: '找不到结果!',
-      //   depth: 6
-      // },
-      // pagination: {
-      //   previousText: '上一章节',
-      //   nextText: '下一章节',
-      //   crossChapter: true,
-      //   crossChapterText: true,
-      // },
-      // plugins: [
-      //   function (hook, vm) {
-      //     var currentSidebar = null;
-      //     var currentNavbar = null;
-
-      //     hook.mounted(function () {
-      //       updateSidebarAndNavbar(vm);
-      //     });
-
-      //     hook.doneEach(function () {
-      //       updateSidebarAndNavbar(vm);
-      //     });
-
-      //     function updateSidebarAndNavbar(vm) {
-      //       var path = vm.route.path;
-      //       // 检测路径中的语言标识：zh-cn 或 en-us
-      //       var isZh = path.includes('/zh-cn/') ||
-      //         path.includes('README_zh.md') ||
-      //         path === '/README_zh.md' ||
-      //         (!path.includes('/en-us/') && (path.startsWith('/v2/') || path.startsWith('/latest/')));
-
-      //       var sidebarFile = isZh ? '_sidebar.zh.md' : '_sidebar.md';
-      //       var navbarFile = isZh ? '_navbar.zh.md' : '_navbar.md';
-
-      //       // 如果侧边栏文件发生变化，重新加载
-      //       if (currentSidebar !== sidebarFile) {
-      //         currentSidebar = sidebarFile;
-      //         fetch(sidebarFile)
-      //           .then(res => res.text())
-      //           .then(text => {
-      //             var html = vm.compiler.compile(text);
-      //             var sidebarEl = document.querySelector('.sidebar');
-      //             if (sidebarEl) {
-      //               sidebarEl.innerHTML = html;
-      //             }
-      //           })
-      //           .catch(err => console.error('Failed to load sidebar:', err));
-      //       }
-
-      //       // 如果导航栏文件发生变化，重新加载
-      //       if (currentNavbar !== navbarFile) {
-      //         currentNavbar = navbarFile;
-      //         fetch(navbarFile)
-      //           .then(res => res.text())
-      //           .then(text => {
-      //             var html = vm.compiler.compile(text);
-      //             var navbarEl = document.querySelector('.app-nav');
-      //             if (navbarEl) {
-      //               navbarEl.innerHTML = html;
-      //             }
-      //           })
-      //           .catch(err => console.error('Failed to load navbar:', err));
-      //       }
-      //     }
-      //   }
-      // ]
+      // 使用 history 模式路由
+      routerMode: 'history',
+      // 路由别名 (使用动态配置，统一管理默认版本)
+      alias: (function () {
+        var alias = {};
+        // 默认版本的路由别名
+        alias['/' + DEFAULT_VERSION + '/?'] = '/' + DEFAULT_VERSION + '/en-us/';
+        alias['/' + DEFAULT_VERSION + '/$1'] = '/' + DEFAULT_VERSION + '/en-us/$1';
+        // 其他版本的路由别名
+        alias['/v1/?'] = '/v1/en-us/';
+        alias['/v1/$1'] = '/v1/en-us/$1';
+        return alias;
+      })(),
     }
   </script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
