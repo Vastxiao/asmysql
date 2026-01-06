@@ -2,179 +2,40 @@
 
 This document records all changes in asmysql v2 version.
 
-## v2.0.0
+## [v2.0.0](changelog/v2-0-0.md)
 
 ### Breaking Changes
 
 v2.0.0 is a completely refactored version that is incompatible with v1. Main changes include:
 
-#### 1. Architecture Refactoring
-
-- **Separated Engine and AsMysql Classes**
-  - New `Engine` class: Independent MySQL connection engine, can be used standalone
-  - `AsMysql` class: Business logic development base class, accesses `Engine` through `client` attribute
-  - This design completely separates connection management and business logic
-
-#### 2. Result Class Changes
-
-- **Error Attribute Renaming**
-  - `Result.err` → `Result.error`
-  - More compliant with Python naming conventions
-
-#### 3. API Changes
-
-- **Connection Method Changes**
-  - v1: Auto-connect after inheriting `AsMysql`
-  - v2: Need to explicitly create `Engine` and call `connect()`
-
-- **Execution Method Changes**
-  - v1: AsMysql `self.client.execute(...)`
-  - v2: AsMysql `self.client.execute(...)` (unchanged, but `client` is now an `Engine` instance)
+- **Architecture Refactoring**: Separated `Engine` and `AsMysql` classes, added independent `Engine` class to handle MySQL connections and execute statements
+- **Result Class Changes**: `Result.err` attribute renamed to `Result.error`
+- **API Changes**: Connection method changed from auto-connect to explicitly creating `Engine` and calling `connect()`
 
 ### New Features
 
-#### 1. Engine Class
-
-A brand new connection engine class providing the following features:
-
-- **URL Connection String Support**
-  ```python
-  engine = Engine(url="mysql://user:password@host:port/?charset=utf8mb4")
-  ```
-
-- **Connection Status Monitoring**
-  ```python
-  status = engine.status
-  # Returns detailed connection pool status information
-  ```
-
-- **Flexible Connection Management**
-  - Support for `async with` context manager
-  - Support for `await engine()` syntax
-  - Support for `await engine` syntax
-
-- **Connection Pool Configuration**
-  - `min_pool_size`: Minimum connections
-  - `max_pool_size`: Maximum connections
-  - `pool_recycle`: Idle connection recycle time
-  - `connect_timeout`: Connection timeout
-
-#### 2. Result Class Enhancements
-
-- **Error Information Access**
-  - `error_no`: Get MySQL error code
-  - `error_msg`: Get MySQL error message
-  - `error`: Get complete error exception object
-
-- **Streaming Query Support**
-  ```python
-  result = await engine.execute("SELECT * FROM large_table", stream=True)
-  async for row in result:
-      process(row)  # Process row by row without memory consumption
-  ```
-
-- **Context Manager Support**
-  ```python
-  async with engine.execute("SELECT * FROM users") as result:
-      data = await result.fetch_all()
-  ```
-
-- **Async Iterator Support**
-  ```python
-  # Method 1: Direct iteration
-  async for row in engine.execute("SELECT * FROM users"):
-      print(row)
-  
-  # Method 2: Iterate Result
-  result = await engine.execute("SELECT * FROM users")
-  async for row in result:
-      print(row)
-  ```
-
-- **Custom Result Types**
-  ```python
-  # Supports tuple (default), dict, or custom model classes
-  result = await engine.execute(
-      "SELECT * FROM users",
-      result_class=dict  # or custom Pydantic model
-  )
-  ```
-
-#### 3. Execution Method Enhancements
-
-- **execute() Method**
-  - Support for `stream` parameter: Enable streaming query
-  - Support for `result_class` parameter: Specify return result type
-  - Support for `commit` parameter: Control transaction commit
-  - Support for multiple calling methods:
-    - `result = await engine.execute(...)`
-    - `async with engine.execute(...) as result:`
-    - `async for item in engine.execute(...):`
-
-- **execute_many() Method**
-  - Batch execute SQL statements
-  - Support for same parameter options
-
-#### 4. Type Hints
-
-- Complete type hint support
-- Support for generic types (`Result[T]`)
-- IDE-friendly code completion
-
-#### 5. Testing
-
-- New pytest test suite
-- Covers main functional scenarios
-- Support for Mock testing
+- **Engine Class**: Brand new connection engine class with URL connection string support, connection status monitoring, and flexible connection management
+- **Result Class Enhancements**: Support for error information access (`error_no`, `error_msg`), streaming queries, context managers, async iterators, and custom result types
+- **Execution Method Enhancements**: `execute()` method supports `stream`, `result_class`, `commit` parameters and multiple calling methods
+- **Type Hints**: Complete type hint support with generic types (`Result[T]`)
+- **Testing**: New pytest test suite covering main functional scenarios
 
 ### Updates
 
-#### 1. Package Management Tool
-
-- Use `uv` as package management tool
-- Faster dependency installation speed
-- Better dependency resolution
-
-#### 2. Code Quality
-
-- Improved code structure
-- Better error handling
-- Clearer docstrings
+- **Package Management Tool**: Using `uv` as package management tool
+- **Code Quality**: Improved code structure, error handling, and docstrings
 
 ### Core Features
 
 v2 version retains the core features of v1:
 
-1. **Easy to Use**
-   - asmysql is an easy-to-use library that wraps aiomysql
-   - Provides more friendly API
-
-2. **Connection Pool Management**
-   - Automatic MySQL connection pool management
-   - Support for reconnection mechanism
-   - Connection pool status monitoring
-
-3. **Error Handling**
-   - Global automatic capture of `MysqlError` errors
-   - Provides error code and error message access
-   - Elegant error handling mechanism
-
-4. **Separation of Execution and Retrieval**
-   - Separation of SQL statement execution and result retrieval
-   - Support for multiple data retrieval methods
-   - Flexible result processing
-
-5. **Type Hints**
-   - Complete Python type hints
-   - IDE-friendly code completion
-   - Type safety
-
-6. **Business Logic Development**
-   - Directly inherit `AsMysql` class for logic development
-   - Clear code organization
-   - Easy to test and maintain
+1. **Easy to Use**: asmysql is an easy-to-use library that wraps aiomysql
+2. **Connection Pool Management**: Automatic MySQL connection pool management with reconnection mechanism
+3. **Error Handling**: Global automatic capture of `MysqlError` errors
+4. **Separation of Execution and Retrieval**: Separation of SQL statement execution and result retrieval
+5. **Type Hints**: Complete Python type hint support
+6. **Business Logic Development**: Directly inherit `AsMysql` class for logic development
 
 ### Migration Guide
 
 For detailed migration guide, please refer to [Migration Guide](migration.md).
-

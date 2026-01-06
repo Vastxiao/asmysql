@@ -78,7 +78,7 @@
   <script>
     window.$docsify = {
       // 文档标题，会显示在侧边栏顶部
-      name: 'AsMysql Documentation',
+      // name: 'AsMysql Docs',
       repo: 'https://github.com/vastxiao/asmysql',
       loadSidebar: true,
       loadNavbar: true,
@@ -98,6 +98,26 @@
       onlyCover: false,
       // 使用 history 模式路由
       routerMode: 'history',
+
+      // 搜索配置
+      // 完整配置参数
+      search: {
+        maxAge: 86400000, // 过期时间，单位毫秒，默认一天
+        paths: 'auto',
+        // 搜索标题的最大层级, 1 - 6
+        depth: 2,
+        // 是否隐藏其他侧边栏内容
+        hideOtherSidebarContent: true,
+        // 避免搜索索引冲突
+        // 同一域下的多个网站之间
+        namespace: 'asmysql',
+        // 使用不同的索引作为路径前缀（namespaces）
+        // 注意：仅适用于 paths: 'auto' 模式
+        // 初始化索引时，我们从侧边栏查找第一个路径
+        // 如果它与列表中的前缀匹配，我们将切换到相应的索引
+        pathNamespaces: /^(\/(v1|v2))?(\/(zh-cn|en-us))?/
+      },
+      ga: 'G-J6DZ14ZC29', // 谷歌分析ID
     }
   </script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
@@ -107,20 +127,22 @@
   <!-- 搜索插件 -->
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
 
-  <!--
-  代码高亮
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
-  复制代码
-  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
-  分页
-  <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
-  图片缩放
+  <!-- 谷歌分析 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/ga.min.js"></script>
+
+  <!-- 图片缩放 -->
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
 
-  外部链接
-  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/external-script.min.js"></script>
-  -->
+  <!-- 复制到剪贴板 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+
+  <!-- 分页导航 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+
+  <!-- 代码高亮 -->
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
+  <!-- <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script> -->
 
 </body>
 

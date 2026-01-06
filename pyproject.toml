@@ -20,10 +20,7 @@ classifiers = [
 
 urls.Home = "https://pypi.org/project/asmysql/"
 urls.Repository = "https://github.com/Vastxiao/asmysql"
-urls.Documentation = "https://github.com/Vastxiao/asmysql/blob/main/README.md"
-urls."Readme-zh" = "https://github.com/Vastxiao/asmysql/blob/main/README_zh.md"
-urls."Changelog-zh" = "https://github.com/Vastxiao/asmysql/blob/main/CHANGELOG_zh.md"
-urls."Changelog" = "https://github.com/Vastxiao/asmysql/blob/main/CHANGELOG.md"
+urls.Documentation = "https://vastxiao.github.io/asmysql/"
 urls."Vastxiao Blog" = "https://vastxiao.github.io/"
 urls."Gitee Repo" = "https://gitee.com/vastxiao/asmysql"
 
@@ -36,11 +33,7 @@ requires-python = ">=3.9"
 dependencies = ["aiomysql[rsa]>=0.3.2"]
 
 [dependency-groups]
-dev = [
-    "ruff",
-    "ipython",
-    "pydantic>=2.11.7",
-]
+dev = ["ruff", "ipython", "pydantic>=2.11.7"]
 #test = ["sqlmodel>=0.0.24"]
 
 

@@ -9,6 +9,6 @@
     * [业务逻辑](business-logic.md)
     * [最佳实践](best-practices.md)
     * [常见问题](faq.md)
-    * [API参考](vpi.md)
+    * [API参考](api.md)
     * [使用示例](examples.md)
     * [变更日志](changelog.md)
