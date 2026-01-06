@@ -144,6 +144,21 @@
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
   <!-- <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script> -->
 
+  <!-- 使用 Gitalk 作为评论系统 -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.css">
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/gitalk.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js"></script>
+  <script>
+    const gitalk = new Gitalk({
+      clientID: 'Iv23lithVszkC68JbBAJ',
+      clientSecret: 'cd10db6f4032c990b6b70149ff3ca1858b1c1b1d',
+      repo: 'asmysql',
+      owner: 'vastxiao',
+      admin: ['vastxiao'],
+      // facebook-like distraction free mode
+      distractionFreeMode: false
+    })
+  </script>
 </body>
 
 </html>

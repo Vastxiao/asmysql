@@ -1,4 +1,8 @@
-# Docsify 文档配置说明
+# AsMysql的技术文档配置说明
+
+## 依赖的文档框架(Docsify)
+
+https://docsify.js.org/#/zh-cn/
 
 ## 目录结构
 

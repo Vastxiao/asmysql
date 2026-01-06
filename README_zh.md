@@ -10,6 +10,7 @@
 * PyPI: https://pypi.org/project/asmysql/
 * GitHub: https://github.com/vastxiao/asmysql
 * Gitee: https://gitee.com/vastxiao/asmysql
+* Docs: https://vastxiao.github.io/asmysql/
 
 ## 【简介】
 
