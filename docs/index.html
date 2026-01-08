@@ -19,10 +19,41 @@
   gtag('config', 'G-J6DZ14ZC29');
 </script>
 
+<!-- 百度统计 -->
+<script>
+  var _hmt = _hmt || [];
+  (function () {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?837638987d8f113e2a9eaed37f54202c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+</script>
+
 <body>
   <div id="app">Loading...</div>
 
   <script>
+    // ========== 首页路径规范化处理 ==========
+    // 如果访问首页且URL结尾没有斜杠，自动重定向到带斜杠的版本
+    (function () {
+      var currentPath = window.location.pathname || '/';
+      var currentUrl = window.location.href;
+
+      // 判断是否为首页：路径为空、只有/、或只有仓库名（如 /asmysql）
+      var pathParts = currentPath.split('/').filter(function (p) { return p !== ''; });
+      var isHomePage = currentPath === '/' ||
+        currentPath === '' ||
+        (pathParts.length === 1 && !pathParts[0].match(/^v\d+$/) && ['en-us', 'zh-cn'].indexOf(pathParts[0]) === -1);
+
+      // 如果是首页且没有尾部斜杠，重定向到带斜杠的版本
+      if (isHomePage && !currentPath.endsWith('/')) {
+        var newUrl = currentUrl.replace(/\/?$/, '/');
+        window.location.replace(newUrl);
+      }
+    })();
+    // =========================================
+
     // ========== 全局配置 ==========
     var DEFAULT_VERSION = 'v2';  // 默认版本，统一配置，修改此处即可
     var supportedLangs = ['en-us', 'zh-cn'];  // 支持的语言列表
@@ -40,30 +71,45 @@
       var hasTrailingSlash = currentPath.endsWith('/');
 
       // 解析路径: /v{version}/{lang}/{page...} 或 /v{version}/{page...}
+      // 支持 GitHub Pages 路径: /{repo}/v{version}/{lang}/{page...}
       var pathParts = currentPath.split('/').filter(function (p) { return p !== ''; });
+
+      // 检测并提取仓库名前缀（用于 GitHub Pages）
+      // 如果第一个路径段不是版本号，且不是语言标识，则可能是仓库名
+      var basePath = '';  // 基础路径前缀（如 /asmysql）
+      var startIdx = 0;   // 实际路径开始索引
+
+      if (pathParts.length > 0 && !pathParts[0].match(/^v\d+$/) && supportedLangs.indexOf(pathParts[0]) === -1) {
+        // 第一个路径段可能是仓库名（如 asmysql）
+        basePath = '/' + pathParts[0];
+        startIdx = 1;
+      }
+
+      // 获取实际路径部分（去除仓库名前缀）
+      var actualParts = pathParts.slice(startIdx);
 
       // 构建新路径
       var newPath;
 
-      if (pathParts.length === 0) {
-        // 根路径 "/" -> 默认跳转到 /{DEFAULT_VERSION}/{targetLang}/
-        newPath = '/' + DEFAULT_VERSION + '/' + targetLang + '/';
-      } else if (pathParts[0].match(/^v\d+$/)) {
+      if (actualParts.length === 0) {
+        // 根路径或只有仓库名 -> 默认跳转到 {basePath}/{DEFAULT_VERSION}/{targetLang}/
+        newPath = basePath + '/' + DEFAULT_VERSION + '/' + targetLang + '/';
+      } else if (actualParts[0].match(/^v\d+$/)) {
         // 路径以版本号开头 (如 v1, v2)
-        var version = pathParts[0];
+        var version = actualParts[0];
 
-        if (pathParts.length >= 2 && supportedLangs.indexOf(pathParts[1]) !== -1) {
+        if (actualParts.length >= 2 && supportedLangs.indexOf(actualParts[1]) !== -1) {
           // 已有语言标识: /v2/en-us/xxx -> /v2/{targetLang}/xxx
-          pathParts[1] = targetLang;
-          newPath = '/' + pathParts.join('/');
+          actualParts[1] = targetLang;
+          newPath = basePath + '/' + actualParts.join('/');
           // 如果原始路径有尾部斜杠，或者路径只有版本和语言（没有其他部分），添加尾部斜杠
-          if (hasTrailingSlash || pathParts.length === 2) {
+          if (hasTrailingSlash || actualParts.length === 2) {
             newPath += '/';
           }
         } else {
           // 没有语言标识: /v2/xxx -> /v2/{targetLang}/xxx
-          var restParts = pathParts.slice(1);
-          newPath = '/' + version + '/' + targetLang + (restParts.length > 0 ? '/' + restParts.join('/') : '/');
+          var restParts = actualParts.slice(1);
+          newPath = basePath + '/' + version + '/' + targetLang + (restParts.length > 0 ? '/' + restParts.join('/') : '/');
           // 如果原始路径有尾部斜杠且还有其他部分，添加尾部斜杠
           if (hasTrailingSlash && restParts.length > 0) {
             newPath += '/';
@@ -71,7 +117,7 @@
         }
       } else {
         // 其他路径: 直接跳转到默认版本的目标语言
-        newPath = '/' + DEFAULT_VERSION + '/' + targetLang + '/';
+        newPath = basePath + '/' + DEFAULT_VERSION + '/' + targetLang + '/';
       }
 
       // 确保路径格式正确
