@@ -1,8 +1,8 @@
 import asyncio
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
 # 创建异步引擎
 # 替换这里的URL为你的数据库连接字符串

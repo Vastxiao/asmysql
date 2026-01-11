@@ -1,0 +1,6 @@
+{
+    "recommendations": [
+        "ms-python.python", // Python 核心支持
+        "ms-python.vscode-pylance", // IntelliSense 引擎
+    ]
+}

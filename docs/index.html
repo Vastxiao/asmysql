@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>AsMysql Documentation</title>
+  <meta name="description" content="AsMysql - 一个基于 aiomysql 封装的异步 MySQL 客户端 Python 库">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css">
+</head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-J6DZ14ZC29"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-J6DZ14ZC29');
+</script>
+
+<!-- 百度统计 -->
+<script>
+  var _hmt = _hmt || [];
+  (function () {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?837638987d8f113e2a9eaed37f54202c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+</script>
+
+<body>
+  <div id="app">Loading...</div>
+
+  <script>
+    // ========== 首页路径规范化处理 ==========
+    // 如果访问首页且URL结尾没有斜杠，自动重定向到带斜杠的版本
+    (function () {
+      var currentPath = window.location.pathname || '/';
+      var currentUrl = window.location.href;
+
+      // 判断是否为首页：路径为空、只有/、或只有仓库名（如 /asmysql）
+      var pathParts = currentPath.split('/').filter(function (p) { return p !== ''; });
+      var isHomePage = currentPath === '/' ||
+        currentPath === '' ||
+        (pathParts.length === 1 && !pathParts[0].match(/^v\d+$/) && ['en-us', 'zh-cn'].indexOf(pathParts[0]) === -1);
+
+      // 如果是首页且没有尾部斜杠，重定向到带斜杠的版本
+      if (isHomePage && !currentPath.endsWith('/')) {
+        var newUrl = currentUrl.replace(/\/?$/, '/');
+        window.location.replace(newUrl);
+      }
+    })();
+    // =========================================
+
+    // ========== 全局配置 ==========
+    var DEFAULT_VERSION = 'v2';  // 默认版本，统一配置，修改此处即可
+    var supportedLangs = ['en-us', 'zh-cn'];  // 支持的语言列表
+    // =============================
+
+    /**
+     * 全局语言切换函数
+     * @param {string} targetLang - 目标语言 (en-us 或 zh-cn)
+     */
+    function switchLang(targetLang) {
+      // 获取当前路径 (history 模式使用 pathname)
+      var currentPath = window.location.pathname || '/';
+
+      // 检查原始路径是否有尾部斜杠
+      var hasTrailingSlash = currentPath.endsWith('/');
+
+      // 解析路径: /v{version}/{lang}/{page...} 或 /v{version}/{page...}
+      // 支持 GitHub Pages 路径: /{repo}/v{version}/{lang}/{page...}
+      var pathParts = currentPath.split('/').filter(function (p) { return p !== ''; });
+
+      // 检测并提取仓库名前缀（用于 GitHub Pages）
+      // 如果第一个路径段不是版本号，且不是语言标识，则可能是仓库名
+      var basePath = '';  // 基础路径前缀（如 /asmysql）
+      var startIdx = 0;   // 实际路径开始索引
+
+      if (pathParts.length > 0 && !pathParts[0].match(/^v\d+$/) && supportedLangs.indexOf(pathParts[0]) === -1) {
+        // 第一个路径段可能是仓库名（如 asmysql）
+        basePath = '/' + pathParts[0];
+        startIdx = 1;
+      }
+
+      // 获取实际路径部分（去除仓库名前缀）
+      var actualParts = pathParts.slice(startIdx);
+
+      // 构建新路径
+      var newPath;
+
+      if (actualParts.length === 0) {
+        // 根路径或只有仓库名 -> 默认跳转到 {basePath}/{DEFAULT_VERSION}/{targetLang}/
+        newPath = basePath + '/' + DEFAULT_VERSION + '/' + targetLang + '/';
+      } else if (actualParts[0].match(/^v\d+$/)) {
+        // 路径以版本号开头 (如 v1, v2)
+        var version = actualParts[0];
+
+        if (actualParts.length >= 2 && supportedLangs.indexOf(actualParts[1]) !== -1) {
+          // 已有语言标识: /v2/en-us/xxx -> /v2/{targetLang}/xxx
+          actualParts[1] = targetLang;
+          newPath = basePath + '/' + actualParts.join('/');
+          // 如果原始路径有尾部斜杠，或者路径只有版本和语言（没有其他部分），添加尾部斜杠
+          if (hasTrailingSlash || actualParts.length === 2) {
+            newPath += '/';
+          }
+        } else {
+          // 没有语言标识: /v2/xxx -> /v2/{targetLang}/xxx
+          var restParts = actualParts.slice(1);
+          newPath = basePath + '/' + version + '/' + targetLang + (restParts.length > 0 ? '/' + restParts.join('/') : '/');
+          // 如果原始路径有尾部斜杠且还有其他部分，添加尾部斜杠
+          if (hasTrailingSlash && restParts.length > 0) {
+            newPath += '/';
+          }
+        }
+      } else {
+        // 其他路径: 直接跳转到默认版本的目标语言
+        newPath = basePath + '/' + DEFAULT_VERSION + '/' + targetLang + '/';
+      }
+
+      // 确保路径格式正确
+      if (!newPath.startsWith('/')) {
+        newPath = '/' + newPath;
+      }
+
+      // 使用 history API 进行导航 (配合 docsify 的 history 模式)
+      window.location.href = newPath;
+    }
+  </script>
+
+  <script>
+    window.$docsify = {
+      // 文档标题，会显示在侧边栏顶部
+      // name: 'AsMysql Docs',
+      repo: 'https://github.com/vastxiao/asmysql',
+      loadSidebar: true,
+      loadNavbar: true,
+      // 小屏设备下合并导航栏到侧边栏
+      mergeNavbar: true,
+      maxLevel: 2,
+      subMaxLevel: 2,
+      auto2top: true,
+      homepage: 'README.md',
+      notFoundPage: true,
+      externalLinkTarget: '_blank',
+      // 启用相对路径
+      relativePath: true,
+      // 启用封面页
+      coverpage: true,
+      // 只在访问主页时加载封面
+      onlyCover: false,
+      // 使用 history 模式路由
+      routerMode: 'history',
+
+      // 搜索配置
+      // 完整配置参数
+      search: {
+        maxAge: 86400000, // 过期时间，单位毫秒，默认一天
+        paths: 'auto',
+        // 搜索标题的最大层级, 1 - 6
+        depth: 2,
+        // 是否隐藏其他侧边栏内容
+        hideOtherSidebarContent: true,
+        // 避免搜索索引冲突
+        // 同一域下的多个网站之间
+        namespace: 'asmysql',
+        // 使用不同的索引作为路径前缀（namespaces）
+        // 注意：仅适用于 paths: 'auto' 模式
+        // 初始化索引时，我们从侧边栏查找第一个路径
+        // 如果它与列表中的前缀匹配，我们将切换到相应的索引
+        pathNamespaces: /^(\/(v1|v2))?(\/(zh-cn|en-us))?/
+      },
+    }
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+  <!-- 表情符号 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
+
+  <!-- 搜索插件 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+
+  <!-- 图片缩放 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+
+  <!-- 复制到剪贴板 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+
+  <!-- 分页导航 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+
+  <!-- 代码高亮 -->
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
+  <!-- <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script> -->
+
+  <!-- 使用 Gitalk 作为评论系统 -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.css">
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/gitalk.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js"></script>
+  <script>
+    const gitalk = new Gitalk({
+      clientID: 'Ov23li45eQYGgiJcxYiO',
+      clientSecret: '8957eb76f3a4fce5b461753179a7906188168b51',
+      repo: 'asmysql',
+      owner: 'vastxiao',
+      admin: ['vastxiao'],
+      // facebook-like distraction free mode
+      distractionFreeMode: false
+    })
+  </script>
+</body>
+
+</html>

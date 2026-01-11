@@ -1,25 +1,25 @@
-from typing import Final, Optional
-from typing import AsyncIterator
 from functools import lru_cache
+from typing import AsyncIterator, Final, Optional
+
 from aiomysql import Cursor
+from pymysql.err import MySQLError
 
 from ._error import err_msg
 
 
 class Result:
-    def __init__(self, query: str, *, rows: int = None,
-                 cursor: Cursor = None, err: Exception = None):
+    def __init__(self, query: str, *, rows: int = None, cursor: Cursor = None, err: MySQLError = None):
         if bool(cursor) ^ bool(err):
             self.query: Final[str] = query
             self.rows: Final[int] = rows
             self.cursor: Final[Cursor] = cursor
-            self.err: Final[Exception] = err
+            self.err: Final[MySQLError] = err
         else:
             raise AttributeError("require arg: cursor or err")
 
     @lru_cache
     def __repr__(self):
-        return f'<{self.__class__.__name__}: {self.query}>'
+        return f"<{self.__class__.__name__}: {self.query}>"
 
     @property
     @lru_cache
