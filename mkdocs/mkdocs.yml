@@ -1,0 +1,140 @@
+site_name: asmysql
+site_url: https://vastxiao.github.io/asmysql/
+site_description: 一个基于 aiomysql 封装的异步 MySQL 客户端 Python 库
+site_author: vastxiao
+repo_name: vastxiao/asmysql
+repo_url: https://github.com/vastxiao/asmysql
+
+# 文档源目录配置
+docs_dir: docs
+
+theme:
+  name: material
+  language: zh
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: 切换到深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: 切换到浅色模式
+  font:
+    text: Noto Sans SC
+    code: JetBrains Mono
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/vastxiao/asmysql
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/asmysql/
+  analytics:
+    provider: google
+    property: G-J6DZ14ZC29
+  version:
+    provider: manual
+    default: v2
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - 首页: index.md
+  - V2 中文:
+      - 概述: v2/zh-cn/index.md
+      - 安装指南: v2/zh-cn/installation.md
+      - 快速开始: v2/zh-cn/quickstart.md
+      - 连接管理: v2/zh-cn/connection.md
+      - 查询操作: v2/zh-cn/query.md
+      - 结果处理: v2/zh-cn/result.md
+      - 事务控制: v2/zh-cn/transaction.md
+      - 业务逻辑: v2/zh-cn/business-logic.md
+      - 最佳实践: v2/zh-cn/best-practices.md
+      - 常见问题: v2/zh-cn/faq.md
+      - API参考: v2/zh-cn/api.md
+      - 使用示例: v2/zh-cn/examples.md
+      - 变更日志: v2/zh-cn/changelog.md
+  - V2 English:
+      - Overview: v2/en-us/index.md
+      - Installation: v2/en-us/installation.md
+      - Quick Start: v2/en-us/quickstart.md
+      - Connection: v2/en-us/connection.md
+      - Query: v2/en-us/query.md
+      - Result: v2/en-us/result.md
+      - Transaction: v2/en-us/transaction.md
+      - Business Logic: v2/en-us/business-logic.md
+      - Best Practices: v2/en-us/best-practices.md
+      - FAQ: v2/en-us/faq.md
+      - API Reference: v2/en-us/api.md
+      - Examples: v2/en-us/examples.md
+      - Changelog: v2/en-us/changelog.md
+  - V1 中文:
+      - 概述: v1/zh-cn/index.md
+      - 变更日志: v1/zh-cn/CHANGELOG.md
+  - V1 English:
+      - Overview: v1/en-us/index.md
+      - Changelog: v1/en-us/CHANGELOG.md

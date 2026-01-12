@@ -33,9 +33,14 @@ requires-python = ">=3.9"
 dependencies = ["aiomysql[rsa]>=0.3.2"]
 
 [dependency-groups]
-dev = ["ruff", "ipython", "pydantic>=2.11.7"]
+dev = [
+    "ruff",
+    "ipython",
+    "pydantic>=2.11.7",
+    "mkdocs",
+    "mkdocs-material>=9.7.1",
+]
 #test = ["sqlmodel>=0.0.24"]
-
 
 [tool.ruff] # 复用之前的 Ruff 配置（uv lint 会读取）
 select = ["E", "F", "I"] # PEP8 错误、语法错误、导入排序
