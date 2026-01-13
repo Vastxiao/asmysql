@@ -102,39 +102,21 @@ extra:
 extra_css:
   - stylesheets/extra.css
 
+extra_javascript:
+  - javascripts/language-switcher.js
+
 nav:
   - 首页: index.md
-  - V2 中文:
-      - 概述: v2/zh-cn/index.md
-      - 安装指南: v2/zh-cn/installation.md
-      - 快速开始: v2/zh-cn/quickstart.md
-      - 连接管理: v2/zh-cn/connection.md
-      - 查询操作: v2/zh-cn/query.md
-      - 结果处理: v2/zh-cn/result.md
-      - 事务控制: v2/zh-cn/transaction.md
-      - 业务逻辑: v2/zh-cn/business-logic.md
-      - 最佳实践: v2/zh-cn/best-practices.md
-      - 常见问题: v2/zh-cn/faq.md
-      - API参考: v2/zh-cn/api.md
-      - 使用示例: v2/zh-cn/examples.md
-      - 变更日志: v2/zh-cn/changelog.md
-  - V2 English:
-      - Overview: v2/en-us/index.md
-      - Installation: v2/en-us/installation.md
-      - Quick Start: v2/en-us/quickstart.md
-      - Connection: v2/en-us/connection.md
-      - Query: v2/en-us/query.md
-      - Result: v2/en-us/result.md
-      - Transaction: v2/en-us/transaction.md
-      - Business Logic: v2/en-us/business-logic.md
-      - Best Practices: v2/en-us/best-practices.md
-      - FAQ: v2/en-us/faq.md
-      - API Reference: v2/en-us/api.md
-      - Examples: v2/en-us/examples.md
-      - Changelog: v2/en-us/changelog.md
-  - V1 中文:
-      - 概述: v1/zh-cn/index.md
-      - 变更日志: v1/zh-cn/CHANGELOG.md
-  - V1 English:
-      - Overview: v1/en-us/index.md
-      - Changelog: v1/en-us/CHANGELOG.md
+  - 概述: v2/zh-cn/index.md
+  - 安装指南: v2/zh-cn/installation.md
+  - 快速开始: v2/zh-cn/quickstart.md
+  - 连接管理: v2/zh-cn/connection.md
+  - 查询操作: v2/zh-cn/query.md
+  - 结果处理: v2/zh-cn/result.md
+  - 事务控制: v2/zh-cn/transaction.md
+  - 业务逻辑: v2/zh-cn/business-logic.md
+  - 最佳实践: v2/zh-cn/best-practices.md
+  - 常见问题: v2/zh-cn/faq.md
+  - API参考: v2/zh-cn/api.md
+  - 使用示例: v2/zh-cn/examples.md
+  - 变更日志: v2/zh-cn/changelog.md
