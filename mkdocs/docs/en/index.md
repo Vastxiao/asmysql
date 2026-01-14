@@ -14,10 +14,10 @@
 `asmysql` is a library for using the MySQL asynchronous client, which is a wrapper for `aiomysql`. It provides a simple and powerful API for async MySQL operations in Python.
 
 ### Latest Version
-- [V2](/v2/en-us/)
+- [V2](/en/v2/)
 
 ### Legacy Version
-- [V1](/v1/en-us/)
+- [V1](/en/v1/)
 
 ## Installation
 

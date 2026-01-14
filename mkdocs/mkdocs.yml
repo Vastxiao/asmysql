@@ -68,9 +68,7 @@ markdown_extensions:
   - pymdownx.betterem
   - pymdownx.caret
   - pymdownx.details
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.emoji
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -99,24 +97,57 @@ extra:
     provider: manual
     default: v2
 
+  # 直接插入 HTML 到 <head> 标签内
+  head_html: |
+    <!-- 百度统计 -->
+    <script>
+      var _hmt = _hmt || [];
+      (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?837638987d8f113e2a9eaed37f54202c";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+
+    <!-- Gitalk 配置 -->
+    <script>
+      window.mkdocs = window.mkdocs || {};
+      window.mkdocs.gitalk = {
+        owner: 'vastxiao',
+        repo: 'asmysql',
+        admin: 'vastxiao',
+        client_id: 'Ov23li45eQYGgiJcxYiO',  // GitHub OAuth App 的 Client ID
+        client_secret: '8957eb76f3a4fce5b461753179a7906188168b51',  // GitHub OAuth App 的 Client Secret
+        language: 'zh-CN',
+        distraction_free_mode: false,
+        create_issue_manually: false,
+        labels: 'Gitalk'
+      };
+    </script>
+
 extra_css:
   - stylesheets/extra.css
+  - https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css
 
 extra_javascript:
   - javascripts/language-switcher.js
+  - https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js
+  - javascripts/gitalk.js
 
+# 默认导航（中文）
 nav:
   - 首页: index.md
-  - 概述: v2/zh-cn/index.md
-  - 安装指南: v2/zh-cn/installation.md
-  - 快速开始: v2/zh-cn/quickstart.md
-  - 连接管理: v2/zh-cn/connection.md
-  - 查询操作: v2/zh-cn/query.md
-  - 结果处理: v2/zh-cn/result.md
-  - 事务控制: v2/zh-cn/transaction.md
-  - 业务逻辑: v2/zh-cn/business-logic.md
-  - 最佳实践: v2/zh-cn/best-practices.md
-  - 常见问题: v2/zh-cn/faq.md
-  - API参考: v2/zh-cn/api.md
-  - 使用示例: v2/zh-cn/examples.md
-  - 变更日志: v2/zh-cn/changelog.md
+  - 概述: zh/v2/index.md
+  - 安装指南: zh/v2/installation.md
+  - 快速开始: zh/v2/quickstart.md
+  - 连接管理: zh/v2/connection.md
+  - 查询操作: zh/v2/query.md
+  - 结果处理: zh/v2/result.md
+  - 事务控制: zh/v2/transaction.md
+  - 业务逻辑: zh/v2/business-logic.md
+  - 最佳实践: zh/v2/best-practices.md
+  - 常见问题: zh/v2/faq.md
+  - API参考: zh/v2/api.md
+  - 使用示例: zh/v2/examples.md
+  - 变更日志: zh/v2/changelog.md

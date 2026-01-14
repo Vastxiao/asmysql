@@ -78,19 +78,19 @@ asyncio.run(main())
 ## 文档版本
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0;">
-  <a href="v2/zh-cn/" style="display: block; padding: 1.5rem; border-radius: 8px; background: var(--md-primary-fg-color); color: white; text-decoration: none; text-align: center;">
+  <a href="zh/v2/" style="display: block; padding: 1.5rem; border-radius: 8px; background: var(--md-primary-fg-color); color: white; text-decoration: none; text-align: center;">
     <strong style="font-size: 1.2rem;">V2 中文文档</strong>
     <br><span style="opacity: 0.9;">最新版本 (推荐)</span>
   </a>
-  <a href="v2/en-us/" style="display: block; padding: 1.5rem; border-radius: 8px; background: var(--md-primary-fg-color); color: white; text-decoration: none; text-align: center;">
+  <a href="en/v2/" style="display: block; padding: 1.5rem; border-radius: 8px; background: var(--md-primary-fg-color); color: white; text-decoration: none; text-align: center;">
     <strong style="font-size: 1.2rem;">V2 English Docs</strong>
     <br><span style="opacity: 0.9;">Latest (Recommended)</span>
   </a>
-  <a href="v1/zh-cn/" style="display: block; padding: 1.5rem; border-radius: 8px; background: var(--md-code-bg-color); text-decoration: none; text-align: center;">
+  <a href="zh/v1/" style="display: block; padding: 1.5rem; border-radius: 8px; background: var(--md-code-bg-color); text-decoration: none; text-align: center;">
     <strong style="font-size: 1.2rem;">V1 中文文档</strong>
     <br><span style="opacity: 0.7;">旧版本</span>
   </a>
-  <a href="v1/en-us/" style="display: block; padding: 1.5rem; border-radius: 8px; background: var(--md-code-bg-color); text-decoration: none; text-align: center;">
+  <a href="en/v1/" style="display: block; padding: 1.5rem; border-radius: 8px; background: var(--md-code-bg-color); text-decoration: none; text-align: center;">
     <strong style="font-size: 1.2rem;">V1 English Docs</strong>
     <br><span style="opacity: 0.7;">Legacy</span>
   </a>

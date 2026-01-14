@@ -1,4 +1,4 @@
-(function () {
+(function() {
   'use strict';
 
   // 语言映射配置
@@ -6,79 +6,6 @@
     'zh-cn': { name: '中文', icon: 'material/translate' },
     'en-us': { name: 'English', icon: 'material/translate' }
   };
-
-  // 导航菜单文本映射
-  const navTextMap = {
-    'zh-cn': {
-      'index.md': '首页',
-      'zh/v2/index.md': '概述',
-      'zh/v2/installation.md': '安装指南',
-      'zh/v2/quickstart.md': '快速开始',
-      'zh/v2/connection.md': '连接管理',
-      'zh/v2/query.md': '查询操作',
-      'zh/v2/result.md': '结果处理',
-      'zh/v2/transaction.md': '事务控制',
-      'zh/v2/business-logic.md': '业务逻辑',
-      'zh/v2/best-practices.md': '最佳实践',
-      'zh/v2/faq.md': '常见问题',
-      'zh/v2/api.md': 'API参考',
-      'zh/v2/examples.md': '使用示例',
-      'zh/v2/changelog.md': '变更日志'
-    },
-    'en-us': {
-      'index.md': 'Home',
-      'en/v2/index.md': 'Overview',
-      'en/v2/installation.md': 'Installation',
-      'en/v2/quickstart.md': 'Quickstart',
-      'en/v2/connection.md': 'Connection',
-      'en/v2/query.md': 'Query',
-      'en/v2/result.md': 'Result',
-      'en/v2/transaction.md': 'Transaction',
-      'en/v2/business-logic.md': 'Business Logic',
-      'en/v2/best-practices.md': 'Best Practices',
-      'en/v2/faq.md': 'FAQ',
-      'en/v2/api.md': 'API Reference',
-      'en/v2/examples.md': 'Examples',
-      'en/v2/changelog.md': 'Changelog'
-    }
-  };
-
-  // 获取导航路径对应的文本键
-  function getNavTextKey(href) {
-    if (!href) return null;
-    const path = href.split('?')[0].split('#')[0];
-    // 移除基础路径
-    let textKey = path.replace(/^\/asmysql\/?/, '').replace(/\/$/, '');
-    // 处理 .html 后缀
-    if (textKey.endsWith('.html')) {
-      textKey = textKey.replace('.html', '.md');
-    } else if (textKey && !textKey.endsWith('.md') && !textKey.includes('#')) {
-      // 如果不是 .md 结尾且不是锚点，尝试添加 index.md
-      if (!textKey.includes('#')) {
-        textKey += '/index.md';
-      }
-    }
-    if (!textKey || textKey === '') {
-      textKey = 'index.md';
-    }
-    return textKey;
-  }
-
-  // 根据路径获取对应的导航文本
-  function getNavTextForPath(path, lang) {
-    const textKey = getNavTextKey(path);
-    if (!textKey) return null;
-
-    // 根据当前语言调整路径
-    let targetTextKey = textKey;
-    if (lang === 'en-us' && textKey.includes('zh/v2/')) {
-      targetTextKey = textKey.replace('zh/v2/', 'en/v2/');
-    } else if (lang === 'zh-cn' && textKey.includes('en/v2/')) {
-      targetTextKey = textKey.replace('en/v2/', 'zh/v2/');
-    }
-
-    return navTextMap[lang]?.[targetTextKey] || null;
-  }
 
   // 页面路径映射（用于在不同语言版本间切换）
   const pageMap = {
@@ -136,12 +63,12 @@
     const path = window.location.pathname;
     // 移除基础路径和尾部斜杠
     let pagePath = path.replace(/^\/asmysql\/?/, '').replace(/\/$/, '');
-
+    
     // 如果是首页
     if (!pagePath || pagePath === '') {
       return 'index.md';
     }
-
+    
     // 处理路径
     if (pagePath.endsWith('.html')) {
       pagePath = pagePath.replace('.html', '.md');
@@ -149,13 +76,13 @@
       // 如果路径不以 .md 结尾，可能是目录，添加 index.md
       pagePath += '/index.md';
     }
-
+    
     // 确保路径格式正确
     if (!pagePath.startsWith('zh/') && !pagePath.startsWith('en/') && pagePath !== 'index.md') {
       // 如果路径不包含语言信息，可能是根路径下的页面
       return pagePath;
     }
-
+    
     return pagePath;
   }
 
@@ -170,18 +97,18 @@
 
     const currentPath = getCurrentPagePath();
     const targetPath = pageMap[currentPath]?.[targetLang];
-
+    
     if (targetPath) {
       // 构建新的 URL
       const baseUrl = window.location.origin;
       const repoPath = '/asmysql/';
       let newPath = baseUrl + repoPath + targetPath.replace('.md', '/');
-
+      
       // 如果是首页，直接跳转到首页
       if (targetPath === 'index.md') {
         newPath = baseUrl + repoPath;
       }
-
+      
       window.location.href = newPath;
     } else {
       // 如果没有找到对应页面，跳转到对应语言的首页
@@ -196,67 +123,33 @@
   }
 
   /**
-   * 更新导航栏链接和文本以匹配当前语言
+   * 更新导航栏链接以匹配当前语言
    */
   function updateNavigationLinks() {
     const currentLang = detectCurrentLanguage();
     const navLinks = document.querySelectorAll('.md-nav__link[href]');
-
+    
     navLinks.forEach(link => {
       const href = link.getAttribute('href');
       if (!href) return;
-
+      
       // 移除查询参数和锚点
       const path = href.split('?')[0].split('#')[0];
-
-      // 更新链接路径
+      
+      // 检查是否是 v2 文档链接
       if (path.includes('zh/v2/') || path.includes('en/v2/')) {
         let newPath = path;
-
+        
         if (currentLang === 'en-us' && path.includes('zh/v2/')) {
           newPath = path.replace('zh/v2/', 'en/v2/');
         } else if (currentLang === 'zh-cn' && path.includes('en/v2/')) {
           newPath = path.replace('en/v2/', 'zh/v2/');
         }
-
+        
         if (newPath !== path) {
           const newHref = href.replace(path, newPath);
           link.setAttribute('href', newHref);
         }
-      }
-
-      // 更新导航文本
-      const navText = getNavTextForPath(href, currentLang);
-      if (navText) {
-        // 检查链接是否包含图标或其他子元素
-        const hasIcon = link.querySelector('.md-icon');
-        if (hasIcon) {
-          // 如果有图标，只更新文本部分
-          const textSpan = link.querySelector('span') || link;
-          const textNodes = Array.from(textSpan.childNodes).filter(node => node.nodeType === Node.TEXT_NODE);
-          if (textNodes.length > 0) {
-            textNodes[0].textContent = navText;
-          } else {
-            // 如果没有文本节点，在图标后添加文本
-            const textNode = document.createTextNode(navText);
-            textSpan.appendChild(textNode);
-          }
-        } else {
-          // 没有图标，直接更新整个文本内容
-          link.textContent = navText;
-        }
-      }
-    });
-
-    // 更新主导航栏的文本（.md-header 中的导航）
-    const headerNavLinks = document.querySelectorAll('.md-header__inner .md-nav__link[href], .md-tabs__link[href]');
-    headerNavLinks.forEach(link => {
-      const href = link.getAttribute('href');
-      if (!href) return;
-
-      const navText = getNavTextForPath(href, currentLang);
-      if (navText) {
-        link.textContent = navText;
       }
     });
   }
@@ -267,7 +160,7 @@
   function createLanguageSwitcher() {
     const currentLang = detectCurrentLanguage();
     const header = document.querySelector('.md-header');
-
+    
     if (!header) {
       return;
     }
@@ -280,12 +173,12 @@
     // 创建语言切换器容器
     const switcherContainer = document.createElement('div');
     switcherContainer.className = 'md-header__language-switcher';
-
+    
     // 创建下拉框
     const select = document.createElement('select');
     select.className = 'md-header__language-select';
     select.setAttribute('aria-label', '选择语言');
-
+    
     // 添加选项
     Object.keys(languageMap).forEach(lang => {
       const option = document.createElement('option');
@@ -296,14 +189,14 @@
       }
       select.appendChild(option);
     });
-
+    
     // 添加事件监听
-    select.addEventListener('change', function (e) {
+    select.addEventListener('change', function(e) {
       switchLanguage(e.target.value);
     });
-
+    
     switcherContainer.appendChild(select);
-
+    
     // 插入到 header 中（在搜索框之前）
     const searchButton = header.querySelector('[data-md-component="search"]');
     if (searchButton && searchButton.parentElement) {
@@ -311,14 +204,14 @@
     } else {
       header.appendChild(switcherContainer);
     }
-
+    
     // 更新导航链接
     updateNavigationLinks();
   }
 
   // 等待 DOM 加载完成
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
       createLanguageSwitcher();
       updateNavigationLinks();
     });
@@ -328,14 +221,14 @@
   }
 
   // 如果使用 instant loading，需要在导航后重新创建和更新
-  document.addEventListener('DOMContentLoaded', function () {
-    const observer = new MutationObserver(function (mutations) {
+  document.addEventListener('DOMContentLoaded', function() {
+    const observer = new MutationObserver(function(mutations) {
       if (!document.querySelector('.md-header__language-switcher')) {
         createLanguageSwitcher();
       }
       updateNavigationLinks();
     });
-
+    
     const header = document.querySelector('.md-header');
     const nav = document.querySelector('.md-nav');
     if (header) {
