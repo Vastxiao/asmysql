@@ -1,3 +1,9 @@
+---
+hide:
+  - navigation
+  - toc
+---
+
 # asmysql Documentation
 
 [![PyPI](https://img.shields.io/pypi/v/asmysql.svg?logo=pypi&logoColor=FFE873)](https://pypi.org/project/asmysql/)
@@ -14,10 +20,10 @@
 `asmysql` is a library for using the MySQL asynchronous client, which is a wrapper for `aiomysql`. It provides a simple and powerful API for async MySQL operations in Python.
 
 ### Latest Version
-- [V2](/en/v2/)
+- [V2](en/v2/)
 
 ### Legacy Version
-- [V1](/en/v1/)
+- [V1](en/v1/)
 
 ## Installation
 
