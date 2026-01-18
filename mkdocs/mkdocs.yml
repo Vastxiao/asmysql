@@ -28,23 +28,23 @@ theme:
   font:
     text: Noto Sans SC
     code: JetBrains Mono
-  # features:
-  # - navigation.tabs
-  # - navigation.tabs.sticky
-  # - navigation.indexes
-  # - header.autohide
-
-  # - navigation.tracking
-
-  # - navigation.sections
-  # - navigation.expand
-  # - navigation.top
+  features:
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.indexes
+    - toc.follow
+    - toc.integrate
+    - navigation.top
+    # - header.autohide
   # - navigation.footer
   # - search.suggest
   # - search.highlight
   # - content.code.copy
   # - content.code.annotate
-  # - toc.follow
 
   icon:
     repo: fontawesome/brands/github
@@ -57,16 +57,13 @@ plugins:
   - i18n:
       docs_structure: folder
       reconfigure_material: true
+      reconfigure_search: true
       languages:
         - locale: en
           name: English
           default: true
-          theme:
-            language: en
         - locale: zh
           name: 简体中文
-          theme:
-            language: zh
 extra:
   social:
     - icon: fontawesome/brands/github
