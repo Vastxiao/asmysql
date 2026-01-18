@@ -2,6 +2,7 @@
 hide:
   - navigation
   - toc
+  - path
 ---
 
 # asmysql 文档
@@ -23,7 +24,7 @@ hide:
 - [V2](v2/)
 
 ### 旧版本
-- [V1](en/v1/)
+- [V1](v1/)
 
 ## 安装
 

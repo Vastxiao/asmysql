@@ -29,22 +29,20 @@ theme:
     text: Noto Sans SC
     code: JetBrains Mono
   features:
-    - navigation.tracking
-    - navigation.tabs
-    - navigation.tabs.sticky
-    - navigation.sections
-    - navigation.expand
-    - navigation.path
-    - navigation.indexes
-    - toc.follow
-    - toc.integrate
-    - navigation.top
-    # - header.autohide
-  # - navigation.footer
-  # - search.suggest
-  # - search.highlight
-  # - content.code.copy
-  # - content.code.annotate
+    - navigation.tracking # 自动跟踪当前导航位置并在侧边栏高亮显示
+    # - navigation.tabs # 在顶部启用导航标签页分组
+    # - navigation.tabs.sticky # 导航标签页在滚动时固定在顶部
+    - navigation.sections # 侧边栏的多级导航结构，以章节分组形式展示
+    - navigation.expand # 默认展开所有导航菜单的章节
+    - navigation.path # 显示当前页面在文档结构中的路径（面包屑）
+    - navigation.indexes # 支持文档索引页（index.md）进行目录索引
+    - toc.follow # 目录（TOC）随页面滚动自动跟随高亮
+    - toc.integrate # 将 TOC 集成到主内容区域顶部而非侧边
+    - navigation.top # 在页面右下角显示返回顶部按钮
+    - search.suggest # 搜索时自动补全关键词建议
+    - search.highlight # 搜索内容高亮显示在页面中
+    # - header.autohide # 随页面滚动自动隐藏与显示顶部标题栏
+    - content.code.copy # 代码块顶部右上角显示一键复制按钮
 
   icon:
     repo: fontawesome/brands/github
@@ -73,10 +71,6 @@ extra:
   analytics:
     provider: google
     property: G-J6DZ14ZC29
-  # version:
-  #   provider: manual
-  #   default: v2
-
   # 直接插入 HTML 到 <head> 标签内
   head_html: |
     <!-- 百度统计 -->
