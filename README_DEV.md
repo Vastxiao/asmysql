@@ -45,20 +45,3 @@ uv publish --username __token__
 # pypi:
 uv publish --index testpypi --username __token__
 ```
-
-## 本地预览mkdocs文档
-
-```bash
-cd mkdocs
-uv run mkdocs serve
-# 访问 http://127.0.0.1:8000/
-```
-
-## GitHub Pages(GitHub配置mkdocs文档)
-
-```bash
-# 在 GitHub 仓库 Settings → Pages 中：
-# Source: 选择 GitHub Actions
-# 推送代码后，GitHub Actions 会自动构建并部署到:
-# https://vastxiao.github.io/asmysql/
-```

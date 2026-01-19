@@ -62,7 +62,13 @@ plugins:
           default: true
         - locale: zh
           name: 简体中文
+          nav_translations:
+            Quick Start: 快速开始
+            Changelog: 更新日志
 extra:
+  version:
+    provider: mike
+    alias: true
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/vastxiao/asmysql
@@ -138,12 +144,8 @@ extra_css:
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js
   - javascripts/gitalk.js
+
 # 默认导航
-# nav:
-#   - Home: index.md
-#   - English:
-#       - Entry: en/v1/README.md
-#       - Changelog: en/v1/CHANGELOG.md
-#   - 中文:
-#       - 入口: zh/v1/README.md
-#       - 更新日志: zh/v1/CHANGELOG.md
+nav:
+  - Quick Start: README.md
+  - Changelog: CHANGELOG.md
