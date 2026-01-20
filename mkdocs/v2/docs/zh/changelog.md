@@ -2,7 +2,7 @@
 
 本文档记录 asmysql v2 版本的所有变更。
 
-## [v2.0.0](changelog/v2-0-0.md)
+## [v2.0.0](changelog/v2.0.0.md)
 
 ### 重大变更 (Breaking Changes)
 

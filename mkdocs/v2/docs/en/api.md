@@ -4,10 +4,10 @@ This document details all APIs in asmysql v2 version.
 
 ## Table of Contents
 
-- [Engine Class](#engine-类)
-- [AsMysql Class](#asmysql-类)
-- [Result Class](#result-类)
-- [Type Definitions](#类型定义)
+- [Engine Class](#engine-class)
+- [AsMysql Class](#asmysql-class)
+- [Result Class](#result-class)
+- [Type Definitions](#type-definitions)
 
 ## Engine Class
 

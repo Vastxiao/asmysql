@@ -4,10 +4,10 @@
 
 ## 目录
 
-- [Engine 类](#engine-类)
-- [AsMysql 类](#asmysql-类)
-- [Result 类](#result-类)
-- [类型定义](#类型定义)
+- [Engine 类](#engine)
+- [AsMysql 类](#asmysql)
+- [Result 类](#result)
+- [类型定义](#type-definitions)
 
 ## Engine 类
 
@@ -729,7 +729,7 @@ await result()  # 执行查询
 data = await result.fetch_all()
 ```
 
-## 类型定义
+## 类型定义 {#type-definitions}
 
 ### EngineStatus
 

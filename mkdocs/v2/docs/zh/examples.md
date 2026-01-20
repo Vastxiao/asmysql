@@ -4,21 +4,21 @@
 
 ## 目录
 
-- [基础示例](#基础示例)
-- [连接管理](#连接管理)
-- [查询操作](#查询操作)
-- [插入操作](#插入操作)
-- [更新操作](#更新操作)
-- [删除操作](#删除操作)
-- [事务处理](#事务处理)
-- [流式查询](#流式查询)
-- [批量操作](#批量操作)
-- [自定义模型](#自定义模型)
-- [错误处理](#错误处理)
-- [业务逻辑封装](#业务逻辑封装)
-- [完整应用示例](#完整应用示例)
+- [基础示例](#basic-examples)
+- [连接管理](#connection-management)
+- [查询操作](#query-operations)
+- [插入操作](#insert-operations)
+- [更新操作](#update-operations)
+- [删除操作](#delete-operations)
+- [事务处理](#transaction-processing)
+- [流式查询](#streaming-queries)
+- [批量操作](#batch-operations)
+- [自定义模型](#custom-models)
+- [错误处理](#error-handling)
+- [业务逻辑封装](#business-logic-encapsulation)
+- [完整应用示例](#complete-application-examples)
 
-## 基础示例
+## 基础示例 {#basic-examples}
 
 ### 最简单的查询
 
@@ -61,7 +61,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## 连接管理
+## 连接管理 {#connection-management}
 
 ### 检查连接状态
 
@@ -104,7 +104,7 @@ engine = Engine(
 )
 ```
 
-## 查询操作
+## 查询操作 {#query-operations}
 
 ### 单条记录查询
 
@@ -216,7 +216,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## 插入操作
+## 插入操作 {#insert-operations}
 
 ### 单条插入
 
@@ -269,7 +269,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## 更新操作
+## 更新操作 {#update-operations}
 
 ### 更新单条记录
 
@@ -326,7 +326,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## 删除操作
+## 删除操作 {#delete-operations}
 
 ### 删除记录
 
@@ -353,7 +353,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## 事务处理
+## 事务处理 {#transaction-processing}
 
 ### 基本事务
 
@@ -403,7 +403,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## 流式查询
+## 流式查询 {#streaming-queries}
 
 ### 处理大数据集
 
@@ -468,7 +468,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## 批量操作
+## 批量操作 {#batch-operations}
 
 ### 批量插入
 
@@ -534,7 +534,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## 自定义模型
+## 自定义模型 {#custom-models}
 
 ### 使用 Pydantic 模型
 
@@ -616,7 +616,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## 错误处理
+## 错误处理 {#error-handling}
 
 ### 基本错误处理
 
@@ -685,7 +685,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## 业务逻辑封装
+## 业务逻辑封装 {#business-logic-encapsulation}
 
 ### 用户服务类
 
@@ -807,7 +807,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## 完整应用示例
+## 完整应用示例 {#complete-application-examples}
 
 ### Web 应用示例（FastAPI）
 

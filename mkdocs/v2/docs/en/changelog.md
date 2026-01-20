@@ -2,7 +2,7 @@
 
 This document records all changes in asmysql v2 version.
 
-## [v2.0.0](changelog/v2-0-0.md)
+## [v2.0.0](changelog/v2.0.0.md)
 
 ### Breaking Changes
 

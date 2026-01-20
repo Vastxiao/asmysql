@@ -4,19 +4,19 @@ This document provides detailed usage examples for asmysql v2 version.
 
 ## Table of Contents
 
-- [Basic Examples](#基础示例)
-- [Connection Management](#连接管理)
-- [Query Operations](#查询操作)
-- [Insert Operations](#插入操作)
-- [Update Operations](#更新操作)
-- [Delete Operations](#删除操作)
-- [Transaction Processing](#事务处理)
-- [Streaming Queries](#流式查询)
-- [Batch Operations](#批量操作)
-- [Custom Models](#自定义模型)
-- [Error Handling](#错误处理)
-- [Business Logic Encapsulation](#业务逻辑封装)
-- [Complete Application Examples](#完整应用示例)
+- [Basic Examples](#basic-examples)
+- [Connection Management](#connection-management)
+- [Query Operations](#query-operations)
+- [Insert Operations](#insert-operations)
+- [Update Operations](#update-operations)
+- [Delete Operations](#delete-operations)
+- [Transaction Processing](#transaction-processing)
+- [Streaming Queries](#streaming-queries)
+- [Batch Operations](#batch-operations)
+- [Custom Models](#custom-models)
+- [Error Handling](#error-handling)
+- [Business Logic Encapsulation](#business-logic-encapsulation)
+- [Complete Application Examples](#complete-application-examples)
 
 ## Basic Examples
 

@@ -139,9 +139,3 @@ engine = Engine(
 ```python
 engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
 ```
-
-## Related Documentation
-
-- [Connection Management](connection.md) - Learn detailed connection configuration
-- [Query Operations](query.md) - Learn query best practices
-

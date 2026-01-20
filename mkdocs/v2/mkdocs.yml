@@ -30,14 +30,14 @@ theme:
     code: JetBrains Mono
   features:
     - navigation.tracking # 自动跟踪当前导航位置并在侧边栏高亮显示
-    # - navigation.tabs # 在顶部启用导航标签页分组
-    # - navigation.tabs.sticky # 导航标签页在滚动时固定在顶部
+    - navigation.tabs # 在顶部启用导航标签页分组
+    - navigation.tabs.sticky # 导航标签页在滚动时固定在顶部
     - navigation.sections # 侧边栏的多级导航结构，以章节分组形式展示
     - navigation.expand # 默认展开所有导航菜单的章节
     - navigation.path # 显示当前页面在文档结构中的路径（面包屑）
     - navigation.indexes # 支持文档索引页（index.md）进行目录索引
     - toc.follow # 目录（TOC）随页面滚动自动跟随高亮
-    - toc.integrate # 将 TOC 集成到主内容区域顶部而非侧边
+    # - toc.integrate # 将 TOC 集成到主内容区域顶部而非侧边
     - navigation.top # 在页面右下角显示返回顶部按钮
     - search.suggest # 搜索时自动补全关键词建议
     - search.highlight # 搜索内容高亮显示在页面中
@@ -64,7 +64,22 @@ plugins:
           name: 简体中文
           nav_translations:
             Home: 首页
+            Getting Started: 入门指南
+            Installation: 安装
             Quick Start: 快速开始
+            User Guide: 使用指南
+            Connection Management: 连接管理
+            Query Operations: 查询操作
+            Result Handling: 结果处理
+            Transactions: 事务
+            Business Logic: 业务逻辑
+            Examples: 示例
+            API Reference: API 参考
+            Advanced: 进阶
+            Best Practices: 最佳实践
+            Migration Guide: 迁移指南
+            Resources: 资源
+            FAQ: 常见问题
             Changelog: 更新日志
 extra:
   version:
@@ -138,17 +153,30 @@ markdown_extensions:
   - pymdownx.tilde
 
 extra_css:
-  - stylesheets/extra.css
+  # - stylesheets/extra.css
   - https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css
 
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js
   - javascripts/gitalk.js
 
-# 默认导航
+# 导航结构
 nav:
   - Home: index.md
-  - V2: v2/
-  - V1:
-      - Quick Start: README.md
+  - Getting Started:
+      - Installation: installation.md
+      - Quick Start: quickstart.md
+  - User Guide:
+      - Connection Management: connection.md
+      - Query Operations: query.md
+      - Result Handling: result.md
+      - Transactions: transaction.md
+      - Business Logic: business-logic.md
+  - Examples: examples.md
+  - API Reference: api.md
+  - Advanced:
+      - Best Practices: best-practices.md
+      - Migration Guide: migration.md
+  - Resources:
+      - FAQ: faq.md
       - Changelog: changelog.md
