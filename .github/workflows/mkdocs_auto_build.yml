@@ -51,7 +51,7 @@ jobs:
           for VERSION in $VERSIONS; do
             echo "Deploying $VERSION..."
             cd mkdocs/$VERSION
-            mike deploy $VERSION $VERSION --push --remote origin
+            mike deploy $VERSION --push --remote origin
             cd ../..
             MAX_VERSION=$VERSION
           done
