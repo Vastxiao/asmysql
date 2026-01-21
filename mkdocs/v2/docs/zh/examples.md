@@ -2,7 +2,7 @@
 
 本文档提供 asmysql v2 版本的详细使用示例。
 
-## 目录
+## 导航
 
 - [基础示例](#basic-examples)
 - [连接管理](#connection-management)

@@ -81,6 +81,7 @@ plugins:
             Resources: 资源
             FAQ: 常见问题
             Changelog: 更新日志
+            Release Notes: 发布说明
 extra:
   version:
     provider: mike
@@ -180,3 +181,5 @@ nav:
   - Resources:
       - FAQ: faq.md
       - Changelog: changelog.md
+      - Release Notes:
+          - v2.0.0: changelog/v2.0.0.md

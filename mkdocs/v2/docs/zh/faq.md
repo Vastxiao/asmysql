@@ -95,9 +95,3 @@ engine = Engine(
     connect_timeout=10  # 10 秒超时
 )
 ```
-
-## 相关文档
-
-- [连接管理](connection.md) - 了解更多连接配置
-- [最佳实践](best-practices.md) - 查看推荐的使用方式
-
