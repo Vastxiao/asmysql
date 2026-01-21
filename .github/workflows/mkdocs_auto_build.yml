@@ -34,7 +34,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install mkdocs-material mike
+          pip install mkdocs-material mike mkdocs-static-i18n
 
       - name: Configure Git
         run: |
