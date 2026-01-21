@@ -41,13 +41,24 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
 
-      - name: Deploy v1
+      - name: Deploy all versions
         run: |
-          cd mkdocs/v1
-          mike deploy v1 v1 --push --remote origin
+          # 查找所有 v[数字] 目录并排序
+          VERSIONS=$(cd mkdocs && ls -d v[0-9]* 2>/dev/null | sort -V)
+          MAX_VERSION=""
 
-      - name: Deploy v2
-        run: |
-          cd mkdocs/v2
-          mike deploy v2 v2 --push --remote origin
-          mike set-default v2 --push --remote origin
+          # 遍历每个版本进行部署
+          for VERSION in $VERSIONS; do
+            echo "Deploying $VERSION..."
+            cd mkdocs/$VERSION
+            mike deploy $VERSION $VERSION --push --remote origin
+            cd ../..
+            MAX_VERSION=$VERSION
+          done
+
+          # 为最高版本设置默认版本
+          if [ -n "$MAX_VERSION" ]; then
+            echo "Setting default version to $MAX_VERSION..."
+            cd mkdocs/$MAX_VERSION
+            mike set-default $MAX_VERSION --push --remote origin
+          fi
