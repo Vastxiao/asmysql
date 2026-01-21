@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/api/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/api/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/api/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/best-practices/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/best-practices/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/best-practices/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/business-logic/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/business-logic/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/business-logic/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/changelog/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/changelog/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/changelog/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/connection/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/connection/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/connection/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/examples/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/examples/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/examples/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/faq/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/faq/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/faq/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/forum/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/forum/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/forum/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/installation/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/installation/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/installation/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/migration/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/migration/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/migration/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/query/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/query/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/query/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/quickstart/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/quickstart/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/quickstart/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/result/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/result/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/result/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/transaction/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/transaction/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/transaction/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/changelog/v2.0.0/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2/changelog/v2.0.0/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2zh/changelog/v2.0.0/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/api/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/api/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2api/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/best-practices/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/best-practices/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2best-practices/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/business-logic/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/business-logic/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2business-logic/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/changelog/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/changelog/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2changelog/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/connection/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/connection/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2connection/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/examples/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/examples/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2examples/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/faq/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/faq/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2faq/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/forum/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/forum/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2forum/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/installation/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/installation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2installation/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/migration/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/migration/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2migration/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/query/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/query/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2query/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/quickstart/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/quickstart/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2quickstart/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/result/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/result/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2result/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/transaction/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/transaction/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2transaction/"/>
+    </url>
+    <url>
+        <loc>https://vastxiao.github.io/asmysql/v2/zh/changelog/v2.0.0/</loc>
+        <lastmod>2026-01-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v2/zh/changelog/v2.0.0/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v2changelog/v2.0.0/"/>
+    </url>
+</urlset>
