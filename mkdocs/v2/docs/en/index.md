@@ -50,9 +50,13 @@ hide:
     <h3 style="margin-top: 0;">💾 Memory Friendly</h3>
     <p style="margin-bottom: 0; color: var(--md-default-fg-color--light);">Supports streaming queries, handling large datasets without memory consumption</p>
   </div>
-  <div style="padding: 1.5rem; border-radius: 8px; background: var(--md-code-bg-color); border: 1px solid var(--md-default-fg-color--lightest); transition: transform 0.2s; grid-column: 2;">
+  <div style="padding: 1.5rem; border-radius: 8px; background: var(--md-code-bg-color); border: 1px solid var(--md-default-fg-color--lightest); transition: transform 0.2s;">
     <h3 style="margin-top: 0;">🔌 Flexible Extension</h3>
     <p style="margin-bottom: 0; color: var(--md-default-fg-color--light);">Separated engine and business logic for better architecture design</p>
+  </div>
+  <div style="padding: 1.5rem; border-radius: 8px; background: var(--md-code-bg-color); border: 1px solid var(--md-default-fg-color--lightest); transition: transform 0.2s;">
+    <h3 style="margin-top: 0;">🪶 Ultra Lightweight</h3>
+    <p style="margin-bottom: 0; color: var(--md-default-fg-color--light);">Minimal code size, no redundant dependencies, simple deployment</p>
   </div>
 </div>
 

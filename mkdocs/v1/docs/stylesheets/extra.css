@@ -20,7 +20,7 @@
 }
 
 /* 代码块样式增强 */
-.md-typeset pre > code {
+.md-typeset pre>code {
   font-size: 0.85rem;
 }
 
@@ -90,40 +90,9 @@
   .md-header__language-switcher {
     margin-right: 0.25rem;
   }
-  
+
   .md-header__language-select {
     padding: 0.3rem 1.5rem 0.3rem 0.6rem;
     font-size: 0.75rem;
   }
-}
-
-/* Gitalk 样式 */
-#gitalk-container {
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--md-default-fg-color--lightest);
-}
-
-.gt-container {
-  max-width: 100%;
-}
-
-.gt-header-textarea {
-  min-height: 100px;
-}
-
-/* 深色模式下的 Gitalk 样式 */
-[data-md-color-scheme="slate"] .gt-container .gt-header-textarea,
-[data-md-color-scheme="slate"] .gt-container .gt-comment-content {
-  background-color: var(--md-code-bg-color);
-  color: var(--md-default-fg-color);
-}
-
-[data-md-color-scheme="slate"] .gt-container .gt-btn {
-  background-color: var(--md-primary-fg-color);
-  border-color: var(--md-primary-fg-color);
-}
-
-[data-md-color-scheme="slate"] .gt-container .gt-btn:hover {
-  background-color: var(--md-primary-fg-color--light);
 }

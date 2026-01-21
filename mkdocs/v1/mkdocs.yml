@@ -90,22 +90,6 @@ extra:
       })();
     </script>
 
-    <!-- Gitalk 配置 -->
-    <script>
-      window.mkdocs = window.mkdocs || {};
-      window.mkdocs.gitalk = {
-        owner: 'vastxiao',
-        repo: 'asmysql',
-        admin: 'vastxiao',
-        client_id: 'Ov23li45eQYGgiJcxYiO',  // GitHub OAuth App 的 Client ID
-        client_secret: '8957eb76f3a4fce5b461753179a7906188168b51',  // GitHub OAuth App 的 Client Secret
-        language: 'zh-CN',
-        distraction_free_mode: false,
-        create_issue_manually: false,
-        labels: 'Gitalk'
-      };
-    </script>
-
 markdown_extensions:
   - abbr
   - admonition
@@ -139,11 +123,6 @@ markdown_extensions:
 
 extra_css:
   - stylesheets/extra.css
-  - https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css
-
-extra_javascript:
-  - https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js
-  - javascripts/gitalk.js
 
 # 默认导航
 nav:

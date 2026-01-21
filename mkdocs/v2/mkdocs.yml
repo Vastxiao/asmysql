@@ -46,6 +46,7 @@ theme:
 
   icon:
     repo: fontawesome/brands/github
+  custom_dir: overrides
 
 plugins:
   - search:
@@ -82,6 +83,7 @@ plugins:
             FAQ: 常见问题
             Changelog: 更新日志
             Release Notes: 发布说明
+            Forum: 论坛
 extra:
   version:
     provider: mike
@@ -161,3 +163,4 @@ nav:
       - Changelog: changelog.md
       - Release Notes:
           - v2.0.0: changelog/v2.0.0.md
+  - Forum: forum.md
