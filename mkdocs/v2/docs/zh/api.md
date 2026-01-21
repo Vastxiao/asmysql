@@ -79,7 +79,7 @@ def __init__(
 - `result_class` (type, optional): 返回结果类型
 
 **示例**：
-engineengine
+
 ```python
 # 使用 URL
 engine = Engine(url="mysql://root:pass@127.0.0.1:3306/?charset=utf8mb4")

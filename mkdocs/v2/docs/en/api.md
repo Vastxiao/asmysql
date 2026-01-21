@@ -2,7 +2,7 @@
 
 This document details all APIs in asmysql v2 version.
 
-## Table of Contents
+## Navigation
 
 - [Engine Class](#engine-class)
 - [AsMysql Class](#asmysql-class)

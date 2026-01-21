@@ -2,7 +2,7 @@
 
 This document provides detailed usage examples for asmysql v2 version.
 
-## Table of Contents
+## Navigation
 
 - [Basic Examples](#basic-examples)
 - [Connection Management](#connection-management)

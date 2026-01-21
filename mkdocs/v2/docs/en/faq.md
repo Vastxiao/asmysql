@@ -96,8 +96,3 @@ engine = Engine(
 )
 ```
 
-## Related Documentation
-
-- [Connection Management](connection.md) - Learn more about connection configuration
-- [Best Practices](best-practices.md) - View recommended usage patterns
-
