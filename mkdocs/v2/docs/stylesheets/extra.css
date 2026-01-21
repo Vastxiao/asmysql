@@ -1,0 +1,328 @@
+/* ============================================
+   AsMysql 文档美化样式
+   ============================================ */
+
+/* 首页卡片悬停效果增强 */
+.md-typeset div[style*="grid-template-columns"]>div {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.md-typeset div[style*="grid-template-columns"]>div:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+[data-md-color-scheme="slate"] .md-typeset div[style*="grid-template-columns"]>div:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* 代码块样式美化 */
+.highlight,
+.highlighttable {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+[data-md-color-scheme="slate"] .highlight,
+[data-md-color-scheme="slate"] .highlighttable {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.highlight pre,
+.highlighttable pre {
+  padding: 1rem 1.25rem;
+}
+
+/* 代码块内行号美化 */
+.highlight .linenos {
+  padding-right: 1rem;
+  border-right: 1px solid var(--md-code-hl-color);
+}
+
+/* 表格样式优化 */
+.md-typeset table:not([class]) {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-primary-fg-color--light);
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+}
+
+.md-typeset table:not([class]) td {
+  padding: 0.875rem 1.25rem;
+}
+
+.md-typeset table:not([class]) tbody tr:hover {
+  background-color: var(--md-code-bg-color);
+  transition: background-color 0.2s ease;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 链接样式优化 */
+.md-typeset a {
+  transition: color 0.2s ease, opacity 0.2s ease;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.md-typeset a:hover {
+  opacity: 0.8;
+  text-decoration-thickness: 2px;
+}
+
+.md-typeset a:focus {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* 页面内容区域过渡动画 */
+.md-content__inner {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 标题样式优化 */
+.md-typeset h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+}
+
+.md-typeset h2 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--md-primary-fg-color--light);
+}
+
+.md-typeset h3 {
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* 引用块样式优化 */
+.md-typeset blockquote {
+  border-left: 4px solid var(--md-primary-fg-color);
+  padding-left: 1.5rem;
+  margin-left: 0;
+  border-radius: 4px;
+  background-color: var(--md-code-bg-color);
+  padding: 1rem 1.5rem;
+}
+
+/* Admonition 样式优化 */
+.md-typeset .admonition {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .admonition {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.md-typeset .admonition-title {
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+}
+
+.md-typeset .admonition>.admonition-title::before {
+  margin-right: 0.5rem;
+}
+
+/* 按钮样式优化 */
+.md-typeset .md-button {
+  border-radius: 6px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-weight: 500;
+}
+
+.md-typeset .md-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.md-typeset .md-button--primary {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.md-typeset .md-button--primary:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 标签页样式优化 */
+.md-typeset .tabbed-set>input:checked+label {
+  border-bottom: 2px solid var(--md-accent-fg-color);
+  font-weight: 600;
+}
+
+.md-typeset .tabbed-content {
+  border-radius: 8px;
+  padding: 1.5rem;
+  background-color: var(--md-code-bg-color);
+  margin-top: 0.5rem;
+}
+
+/* 搜索框样式优化 */
+.md-search__form {
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+/* 响应式设计优化 */
+@media screen and (max-width: 76.25em) {
+  .md-typeset h2 {
+    font-size: 1.5rem;
+  }
+
+  .md-typeset h3 {
+    font-size: 1.25rem;
+  }
+}
+
+@media screen and (max-width: 59.9375em) {
+  .md-typeset div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .md-typeset table:not([class]) {
+    font-size: 0.9rem;
+  }
+
+  .md-typeset table:not([class]) th,
+  .md-typeset table:not([class]) td {
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* 滚动条样式美化（仅 WebKit 浏览器） */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--md-default-bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--md-default-fg-color--lighter);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--md-default-fg-color--light);
+}
+
+/* 选择文本样式 */
+::selection {
+  background-color: var(--md-accent-fg-color--transparent);
+  color: var(--md-accent-fg-color);
+}
+
+/* 图片样式优化 */
+.md-typeset img {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.md-typeset img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-md-color-scheme="slate"] .md-typeset img {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-md-color-scheme="slate"] .md-typeset img:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 代码内联样式 */
+.md-typeset code {
+  border-radius: 4px;
+  padding: 0.2em 0.4em;
+  font-size: 0.9em;
+  background-color: var(--md-code-bg-color);
+  color: var(--md-code-fg-color);
+}
+
+/* 列表样式优化 */
+.md-typeset ul li,
+.md-typeset ol li {
+  margin-bottom: 0.5rem;
+}
+
+.md-typeset ul li::marker,
+.md-typeset ol li::marker {
+  color: var(--md-primary-fg-color);
+}
+
+/* 目录（TOC）样式优化 */
+.md-nav__link[data-md-state="blur"] {
+  opacity: 0.5;
+}
+
+.md-nav__link--active {
+  font-weight: 600;
+  color: var(--md-primary-fg-color);
+}
+
+/* 返回顶部按钮样式 */
+.md-top {
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.md-top:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 标签样式优化 */
+.md-typeset .md-typeset__scrollwrap {
+  border-radius: 8px;
+}
+
+/* 打印样式优化 */
+@media print {
+  .md-typeset div[style*="grid-template-columns"]>div {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .md-typeset table:not([class]) {
+    break-inside: auto;
+  }
+
+  .md-typeset table:not([class]) tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

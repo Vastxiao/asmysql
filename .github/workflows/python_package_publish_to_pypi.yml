@@ -19,7 +19,6 @@
 # 下面方式使用 Trusted Publisher 发布:
 name: Publish Package📦 To PyPI
 
-
 on:
   # 允许手动触发
   workflow_dispatch:
@@ -36,11 +35,9 @@ on:
   release:
     types: [published]
 
-
 # 设置工作流访问仓库的权限：只读。
 permissions:
   contents: read
-
 
 jobs:
   publish_python_package_to_pypi:
@@ -58,10 +55,10 @@ jobs:
         uses: actions/checkout@v4
 
       # 设置 Python环境和版本
-      - name: Setup Python 🐍 
+      - name: Setup Python 🐍
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Install Dependencies
         run: |

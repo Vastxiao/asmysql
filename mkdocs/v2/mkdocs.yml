@@ -1,0 +1,166 @@
+site_name: asmysql
+site_url: https://vastxiao.github.io/asmysql/
+site_description: An asynchronous MySQL client library for Python, built on top of aiomysql. 一个基于 aiomysql 封装的异步 MySQL 客户端 Python 库
+site_author: vastxiao
+repo_name: vastxiao/asmysql
+repo_url: https://github.com/vastxiao/asmysql
+
+# 文档源目录配置
+docs_dir: docs
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: 切换到深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: 切换到浅色模式
+  font:
+    text: Noto Sans SC
+    code: JetBrains Mono
+  features:
+    - navigation.tracking # 自动跟踪当前导航位置并在侧边栏高亮显示
+    - navigation.tabs # 在顶部启用导航标签页分组
+    - navigation.tabs.sticky # 导航标签页在滚动时固定在顶部
+    - navigation.sections # 侧边栏的多级导航结构，以章节分组形式展示
+    - navigation.expand # 默认展开所有导航菜单的章节
+    - navigation.path # 显示当前页面在文档结构中的路径（面包屑）
+    - navigation.indexes # 支持文档索引页（index.md）进行目录索引
+    - toc.follow # 目录（TOC）随页面滚动自动跟随高亮
+    # - toc.integrate # 将 TOC 集成到主内容区域顶部而非侧边
+    - navigation.top # 在页面右下角显示返回顶部按钮
+    - search.suggest # 搜索时自动补全关键词建议
+    - search.highlight # 搜索内容高亮显示在页面中
+    # - header.autohide # 随页面滚动自动隐藏与显示顶部标题栏
+    - content.code.copy # 代码块顶部右上角显示一键复制按钮
+
+  icon:
+    repo: fontawesome/brands/github
+  custom_dir: overrides
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+  - i18n:
+      docs_structure: folder
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: en
+          name: English
+          default: true
+        - locale: zh
+          name: 简体中文
+          nav_translations:
+            Home: 首页
+            Getting Started: 入门指南
+            Installation: 安装
+            Quick Start: 快速开始
+            User Guide: 使用指南
+            Connection Management: 连接管理
+            Query Operations: 查询操作
+            Result Handling: 结果处理
+            Transactions: 事务
+            Business Logic: 业务逻辑
+            Examples: 示例
+            API Reference: API 参考
+            Advanced: 进阶
+            Best Practices: 最佳实践
+            Migration Guide: 迁移指南
+            Resources: 资源
+            FAQ: 常见问题
+            Changelog: 更新日志
+            Release Notes: 发布说明
+            Forum: 论坛
+extra:
+  version:
+    provider: mike
+  extra_css:
+    - stylesheets/extra.css
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/vastxiao/asmysql
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/asmysql/
+  analytics:
+    provider: google
+    property: G-J6DZ14ZC29
+  # 直接插入 HTML 到 <head> 标签内
+  head_html: |
+    <!-- 百度统计 -->
+    <script>
+      var _hmt = _hmt || [];
+      (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?837638987d8f113e2a9eaed37f54202c";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# 导航结构
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: installation.md
+      - Quick Start: quickstart.md
+  - User Guide:
+      - Connection Management: connection.md
+      - Query Operations: query.md
+      - Result Handling: result.md
+      - Transactions: transaction.md
+      - Business Logic: business-logic.md
+  - Examples: examples.md
+  - API Reference: api.md
+  - Advanced:
+      - Best Practices: best-practices.md
+      - Migration Guide: migration.md
+  - Resources:
+      - FAQ: faq.md
+      - Changelog: changelog.md
+      - Release Notes:
+          - v2.0.0: changelog/v2.0.0.md
+  - Forum: forum.md
