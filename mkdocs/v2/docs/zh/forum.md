@@ -8,6 +8,21 @@ comments: true
   <p style="font-size: 1rem; color: var(--md-default-fg-color--light); margin: 0;">
     欢迎来到 asmysql 社区论坛！这里是与开发者、用户和其他社区成员交流讨论的最佳场所。
   </p>
+  <p style="font-size: 0.9rem; color: var(--md-default-fg-color--light); margin: 0.5rem 0 0 0;">
+    💬 GitHub 讨论可移步 <a href="https://github.com/Vastxiao/asmysql/discussions" target="_blank" rel="noopener">https://github.com/Vastxiao/asmysql/discussions</a>
+  </p>
+</div>
+
+## 公告
+
+<div style="padding: 0.875rem; border-radius: 6px; background: var(--md-code-bg-color); border: 1px solid var(--md-default-fg-color--lightest); margin: 1rem 0;">
+  <h4 style="margin-top: 0; margin-bottom: 0.375rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
+    <span>📣</span>
+    <span><a href="https://github.com/Vastxiao/asmysql/discussions/categories/announcements" target="_blank" rel="noopener" style="text-decoration: none; color: inherit;">查看最新公告</a></span>
+  </h4>
+  <p style="margin-bottom: 0; color: var(--md-default-fg-color--light); font-size: 0.8rem; line-height: 1.4;">
+    查看维护者发布的最新公告和更新
+  </p>
 </div>
 
 ## 讨论主题
@@ -18,7 +33,7 @@ comments: true
   <div style="padding: 0.875rem; border-radius: 6px; background: var(--md-code-bg-color); border: 1px solid var(--md-default-fg-color--lightest); transition: transform 0.2s;">
     <h4 style="margin-top: 0; margin-bottom: 0.375rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
       <span>💬</span>
-      <span>使用问题</span>
+      <span><a href="https://github.com/Vastxiao/asmysql/discussions/categories/q-a" target="_blank" rel="noopener" style="text-decoration: none; color: inherit;">使用问题</a></span>
     </h4>
     <p style="margin-bottom: 0; color: var(--md-default-fg-color--light); font-size: 0.8rem; line-height: 1.4;">
       遇到使用问题？在这里提问，社区成员会帮助您
@@ -27,7 +42,7 @@ comments: true
   <div style="padding: 0.875rem; border-radius: 6px; background: var(--md-code-bg-color); border: 1px solid var(--md-default-fg-color--lightest); transition: transform 0.2s;">
     <h4 style="margin-top: 0; margin-bottom: 0.375rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
       <span>💡</span>
-      <span>功能建议</span>
+      <span><a href="https://github.com/Vastxiao/asmysql/discussions/categories/ideas" target="_blank" rel="noopener" style="text-decoration: none; color: inherit;">功能建议</a></span>
     </h4>
     <p style="margin-bottom: 0; color: var(--md-default-fg-color--light); font-size: 0.8rem; line-height: 1.4;">
       有好的想法和建议？欢迎分享您的创意
@@ -36,7 +51,7 @@ comments: true
   <div style="padding: 0.875rem; border-radius: 6px; background: var(--md-code-bg-color); border: 1px solid var(--md-default-fg-color--lightest); transition: transform 0.2s;">
     <h4 style="margin-top: 0; margin-bottom: 0.375rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
       <span>⭐</span>
-      <span>最佳实践</span>
+      <span><a href="https://github.com/Vastxiao/asmysql/discussions/categories/show-and-tell" target="_blank" rel="noopener" style="text-decoration: none; color: inherit;">最佳实践</a></span>
     </h4>
     <p style="margin-bottom: 0; color: var(--md-default-fg-color--light); font-size: 0.8rem; line-height: 1.4;">
       分享您的使用经验和最佳实践
@@ -45,7 +60,7 @@ comments: true
   <div style="padding: 0.875rem; border-radius: 6px; background: var(--md-code-bg-color); border: 1px solid var(--md-default-fg-color--lightest); transition: transform 0.2s;">
     <h4 style="margin-top: 0; margin-bottom: 0.375rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
       <span>🐛</span>
-      <span>Bug 反馈</span>
+      <span><a href="https://github.com/Vastxiao/asmysql/issues" target="_blank" rel="noopener" style="text-decoration: none; color: inherit;">Bug 反馈</a></span>
     </h4>
     <p style="margin-bottom: 0; color: var(--md-default-fg-color--light); font-size: 0.8rem; line-height: 1.4;">
       发现 bug？请详细描述问题，我们会及时处理
@@ -54,7 +69,7 @@ comments: true
   <div style="padding: 0.875rem; border-radius: 6px; background: var(--md-code-bg-color); border: 1px solid var(--md-default-fg-color--lightest); transition: transform 0.2s;">
     <h4 style="margin-top: 0; margin-bottom: 0.375rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
       <span>📝</span>
-      <span>代码示例</span>
+      <span><a href="https://github.com/Vastxiao/asmysql/discussions/categories/show-and-tell" target="_blank" rel="noopener" style="text-decoration: none; color: inherit;">代码示例</a></span>
     </h4>
     <p style="margin-bottom: 0; color: var(--md-default-fg-color--light); font-size: 0.8rem; line-height: 1.4;">
       分享您编写的优秀代码示例
@@ -63,7 +78,7 @@ comments: true
   <div style="padding: 0.875rem; border-radius: 6px; background: var(--md-code-bg-color); border: 1px solid var(--md-default-fg-color--lightest); transition: transform 0.2s;">
     <h4 style="margin-top: 0; margin-bottom: 0.375rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
       <span>💭</span>
-      <span>其他话题</span>
+      <span><a href="https://github.com/Vastxiao/asmysql/discussions/categories/general" target="_blank" rel="noopener" style="text-decoration: none; color: inherit;">其他话题</a></span>
     </h4>
     <p style="margin-bottom: 0; color: var(--md-default-fg-color--light); font-size: 0.8rem; line-height: 1.4;">
       任何与 asmysql 相关的话题都欢迎讨论
