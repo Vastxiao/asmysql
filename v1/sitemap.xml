@@ -2,28 +2,28 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://vastxiao.github.io/asmysql/v1/</loc>
-        <lastmod>2026-01-21</lastmod>
+        <lastmod>2026-01-22</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v1/"/>
         <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v1zh/"/>
     </url>
     <url>
         <loc>https://vastxiao.github.io/asmysql/v1/CHANGELOG/</loc>
-        <lastmod>2026-01-21</lastmod>
+        <lastmod>2026-01-22</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v1/CHANGELOG/"/>
         <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v1zh/CHANGELOG/"/>
     </url>
     <url>
         <loc>https://vastxiao.github.io/asmysql/v1/zh/</loc>
-        <lastmod>2026-01-21</lastmod>
+        <lastmod>2026-01-22</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v1/zh/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v1"/>
     </url>
     <url>
         <loc>https://vastxiao.github.io/asmysql/v1/zh/CHANGELOG/</loc>
-        <lastmod>2026-01-21</lastmod>
+        <lastmod>2026-01-22</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh" href="https://vastxiao.github.io/asmysql/v1/zh/CHANGELOG/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://vastxiao.github.io/asmysql/v1CHANGELOG/"/>
