@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+{# 百度统计 #}
+<script>
+  var _hmt = _hmt || [];
+  (function () {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?837638987d8f113e2a9eaed37f54202c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+</script>
+
+{# 多语言 hreflang 标签 - 帮助 Google 理解语言版本关系 #}
+{% if page and page.canonical_url %}
+{% set current_url = page.canonical_url %}
+{% set base_url = config.site_url.rstrip('/') %}
+
+{# 判断当前页面是中文还是英文 #}
+{% if '/zh/' in current_url or current_url.endswith('/zh/') %}
+{# 当前是中文页 #}
+{% set en_url = current_url | replace('/zh/', '/') | replace('/asmysql/zh/', '/asmysql/') %}
+{% set zh_url = current_url %}
+{% else %}
+{# 当前是英文页（默认） #}
+{% set en_url = current_url %}
+{% set zh_url = current_url | replace('/asmysql/', '/asmysql/zh/') %}
+{# 处理首页特殊情况 #}
+{% if current_url.rstrip('/') == base_url %}
+{% set zh_url = base_url + '/zh/' %}
+{% endif %}
+{% endif %}
+
+{# 输出 hreflang 标签 #}
+<link rel="alternate" hreflang="en" href="{{ en_url }}" />
+<link rel="alternate" hreflang="zh-Hans" href="{{ zh_url }}" />
+<link rel="alternate" hreflang="x-default" href="{{ base_url }}/" />
+{% endif %}
+
+{# OG 标签增强（如果页面有标题和描述） #}
+{% if page and page.meta and page.meta.title %}
+<meta property="og:title" content="{{ page.meta.title }} - {{ config.site_name }}" />
+{% elif page and page.title %}
+<meta property="og:title" content="{{ page.title }} - {{ config.site_name }}" />
+{% endif %}
+
+{% if page and page.meta and page.meta.description %}
+<meta property="og:description" content="{{ page.meta.description }}" />
+{% elif config.site_description %}
+<meta property="og:description" content="{{ config.site_description }}" />
+{% endif %}
+
+{% if page and page.canonical_url %}
+<meta property="og:url" content="{{ page.canonical_url }}" />
+{% endif %}
+{% endblock %}
