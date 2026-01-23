@@ -19,3 +19,6 @@ uv.lock
 venv/
 venv*/
 release/
+# MkDocs cache
+mkdocs/**/.cache/
+mkdocs/**/site/

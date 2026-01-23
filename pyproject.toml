@@ -1,7 +1,7 @@
 [project]
 name = "asmysql"
-version = "2.0.0"
-description = "An Asynchronous MySQL Client Engine Using Aiomysql."
+version = "2.0.1"
+description = "AsMysql - Python asyncio async MySQL client/connection pool, built on top of aiomysql. Supports async queries, transactions, connection pool management, high performance, easy to use, production-ready."
 authors = [{ name = "vastxiao", email = "vastxiao@gmail.com" }]
 maintainers = [{ name = "vastxiao", email = "vastxiao@gmail.com" }]
 keywords = ["async", "asyncio", "mysql", "aiomysql"]
@@ -52,6 +52,7 @@ line-length = 120        # 每行最大长度
 [tool.uv]
 default-groups = ["dev"]
 
+
 [[tool.uv.index]]
 name = "ali"
 url = "https://mirrors.aliyun.com/pypi/simple/"
@@ -69,6 +70,7 @@ build-backend = "uv_build"
 [tool.uv.build-backend]
 module-root = ""
 source-include = ["README_zh.md"]
+source-exclude = ["asmysql/v3dev"]
 
 [[tool.uv.index]]
 name = "testpypi"
