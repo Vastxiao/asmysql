@@ -14,7 +14,7 @@
 
 ## Introduction
 
-asmysql is a library for using the MySQL asynchronous client, which is a wrapper for aiomysql.
+AsMysql - Python asyncio async MySQL client/connection pool, built on top of aiomysql. Supports async queries, transactions, connection pool management, high performance, easy to use, production-ready.
 
 ## Features
 
