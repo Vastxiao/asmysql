@@ -14,7 +14,7 @@
 
 ## 【简介】
 
-asmysql是封装aiomysql的mysql异步客户端使用库。
+AsMysql - 基于 aiomysql 构建的 Python asyncio 异步 MySQL 客户端/连接池。支持异步查询、事务、连接池管理，高性能、易用、生产就绪。
 
 ## 【特性】
 
