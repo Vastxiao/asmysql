@@ -1,6 +1,6 @@
 [project]
 name = "asmysql"
-version = "2.0.0"
+version = "2.0.1"
 description = "An Asynchronous MySQL Client Engine Using Aiomysql."
 authors = [{ name = "vastxiao", email = "vastxiao@gmail.com" }]
 maintainers = [{ name = "vastxiao", email = "vastxiao@gmail.com" }]
@@ -69,6 +69,7 @@ build-backend = "uv_build"
 [tool.uv.build-backend]
 module-root = ""
 source-include = ["README_zh.md"]
+source-exclude = ["asmysql/v3dev"]
 
 [[tool.uv.index]]
 name = "testpypi"
