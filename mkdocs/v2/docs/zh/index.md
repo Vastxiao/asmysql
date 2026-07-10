@@ -81,19 +81,18 @@ async def main():
         port=3306,
         user='root',
         password='password',
-        db='test'
     )
 
     # 连接数据库
     await engine.connect()
 
     # 执行查询
-    result = await engine.query("SELECT * FROM users WHERE id = %s", (1,))
-    user = await result.fetch_one(as_dict=True)
-    print(user)
+    async with engine.execute("SELECT user, host FROM mysql.user") as result:
+        async for item in result.iterate():
+            print(item)
 
     # 关闭连接
-    await engine.close()
+    await engine.disconnect()
 
 asyncio.run(main())
 ```
@@ -112,6 +111,7 @@ asyncio.run(main())
 - 支持连接池配置（最小/最大连接数）
 - 自动重连机制
 - 连接状态监控
+- **连接初始化 SET SQL（`init_sql`）**：每条新 TCP 连接首次使用时自动执行预设 SQL（适用于 ClickHouse SET 等场景）
 
 #### 3. 灵活的查询方式
 - 支持普通查询和流式查询

@@ -1,3 +1,4 @@
+import weakref
 from functools import lru_cache
 from typing import (
     AsyncContextManager,
@@ -51,6 +52,7 @@ class Engine:
     echo_sql_log: bool = False  # 是否打印sql语句日志
     stream: bool = False  # 是否使用流式返回结果
     result_class: type = tuple  # 返回结果类型
+    init_sql: Optional[str] = None  # 连接初始化时自动执行的 SQL（如 ClickHouse SET）
 
     @final
     def __init__(
@@ -70,6 +72,7 @@ class Engine:
         echo_sql_log: bool = None,
         stream: bool = None,
         result_class: type = None,
+        init_sql: str = None,
     ):
         """
         url: mysql://user:password@host:port/?charset=utf8mb4
@@ -95,6 +98,7 @@ class Engine:
             connect_timeout = int(connect_timeout_val) if connect_timeout_val is not None else connect_timeout
             auto_commit = True if query_params.get("auto_commit", [None])[0] else auto_commit
             echo_sql_log = True if query_params.get("echo_sql_log", [None])[0] else echo_sql_log
+            init_sql = query_params.get("init_sql", [init_sql])[0]
 
         self.host: Final[str] = host or self.host
         self.port: Final[int] = port or self.port
@@ -109,6 +113,7 @@ class Engine:
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
         self.stream: Final[bool] = stream if stream is not None else self.stream
         self.result_class: Final[type] = result_class if result_class is not None else self.result_class
+        self.init_sql: Final[Optional[str]] = init_sql if init_sql is not None else self.init_sql
 
         self.url: Final[str] = f"mysql://{self.host}:{self.port}/"
         self.__pool: Optional[Pool] = None
@@ -146,9 +151,31 @@ class Engine:
                     autocommit=self.auto_commit,
                     echo=self.echo_sql_log,
                 )
+                if self.init_sql:
+                    self._apply_pool_init_hook()
             except MySQLError as err:
                 raise ConnectionError(err_msg(err)) from None
         return self
+
+    def _apply_pool_init_hook(self) -> None:
+        """包装 pool.acquire()，使每条新 TCP 连接首次使用时自动执行 init_sql。"""
+        pool = self.__pool
+        original_acquire = pool.acquire
+        initialized: weakref.WeakSet = weakref.WeakSet()
+        init_sql = self.init_sql
+
+        async def _acquire_with_init(*args, **kwargs):
+            conn = await original_acquire(*args, **kwargs)
+            if conn not in initialized:
+                cursor = await conn.cursor()
+                try:
+                    await cursor.execute(init_sql)
+                finally:
+                    await cursor.close()
+                initialized.add(conn)
+            return conn
+
+        pool.acquire = _acquire_with_init
 
     @final
     @property

@@ -2,6 +2,21 @@
 
 This document records all changes in asmysql v2 version.
 
+## [v2.1.0](changelog/v2.1.0.md)
+
+### New Features
+
+- **Connection Init SQL (`init_sql`)**: Added `init_sql` parameter to automatically execute preset SQL on each new TCP connection's first use. Ideal for ClickHouse async insert configuration, MySQL session variable setup, and similar scenarios. Configurable via constructor or URL query parameter. `connect()` automatically wraps `pool.acquire()` with `WeakSet` tracking to avoid duplicate execution. Fully backward compatible.
+
+### Documentation
+
+- Fixed non-existent API usage in homepage examples (`engine.query()`, `fetch_one(as_dict=True)`, `engine.close()`)
+- Added `init_sql` documentation across `connection.md`, `api.md`, and `examples.md` (both Chinese and English versions)
+
+### Testing
+
+- Added `test_engine_init_sql.py` with 15 test cases covering `init_sql` core functionality and edge cases
+
 ## [v2.0.0](changelog/v2.0.0.md)
 
 ### Breaking Changes

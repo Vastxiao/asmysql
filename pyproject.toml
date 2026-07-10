@@ -1,6 +1,6 @@
 [project]
 name = "asmysql"
-version = "2.0.1"
+version = "2.1.0"
 description = "AsMysql - Python asyncio async MySQL client/connection pool, built on top of aiomysql. Supports async queries, transactions, connection pool management, high performance, easy to use, production-ready."
 authors = [{ name = "vastxiao", email = "vastxiao@gmail.com" }]
 maintainers = [{ name = "vastxiao", email = "vastxiao@gmail.com" }]
@@ -56,9 +56,7 @@ line-length = 120        # 每行最大长度
 testpaths = ["autopytest/"]
 addopts = "--ignore=autopytest/v3"
 asyncio_mode = "auto"
-markers = [
-    "integration: 需要真实 MySQL 数据库的集成测试（使用 '-m \"not integration\"' 跳过）",
-]
+markers = ["integration: 需要真实 MySQL 数据库的集成测试（使用 '-m \"not integration\"' 跳过）"]
 
 
 [tool.uv]

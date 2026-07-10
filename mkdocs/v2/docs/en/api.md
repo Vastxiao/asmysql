@@ -37,6 +37,7 @@ class Engine:
 | `echo_sql_log` | `bool` | `False` | Whether to print SQL logs |
 | `stream` | `bool` | `False` | Whether to use streaming result |
 | `result_class` | `type` | `tuple` | Result type |
+| `init_sql` | `Optional[str]` | `None` | SET SQL to auto-execute on each new TCP connection's first acquire (e.g. ClickHouse SET) |
 
 ### Constructor
 
@@ -58,6 +59,7 @@ def __init__(
     echo_sql_log: bool = None,
     stream: bool = None,
     result_class: type = None,
+    init_sql: str = None,
 ) -> None
 ```
 
@@ -77,6 +79,7 @@ def __init__(
 - `echo_sql_log` (bool, optional): Whether to print SQL logs
 - `stream` (bool, optional): Whether to use streaming result
 - `result_class` (type, optional): Result type
+- `init_sql` (str, optional): SET SQL to auto-execute on connection init, executed once per new TCP connection on first acquire
 
 **Examples**:
 
@@ -98,7 +101,7 @@ engine = Engine(
 
 #### connect()
 
-Connect to MySQL, establish TCP connection, initialize connection pool.
+Connect to MySQL, establish TCP connection, initialize connection pool. If `init_sql` is configured, `pool.acquire()` is automatically wrapped after pool creation so that each new TCP connection executes the init SQL on first use.
 
 ```python
 async def connect(self) -> Engine

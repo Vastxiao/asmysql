@@ -41,7 +41,8 @@ engine = Engine(
     auto_commit=True,
     echo_sql_log=False,
     stream=False,
-    result_class=tuple
+    result_class=tuple,
+    init_sql=None,  # Optional: SET SQL to auto-execute on connection init
 )
 ```
 
@@ -62,6 +63,7 @@ engine = Engine(
 | `echo_sql_log` | bool | `False` | Whether to print SQL logs |
 | `stream` | bool | `False` | Whether to use streaming result |
 | `result_class` | type | `tuple` | Result type |
+| `init_sql` | str | `None` | SET SQL to auto-execute on each new TCP connection's first acquire |
 
 ## Connect and Disconnect
 
@@ -126,5 +128,51 @@ print(f"Used connections: {status['pool_used']}")
 ```python
 # Release all idle connections in the pool
 await engine.release_connections()
+```
+
+## Connection Init SQL (init_sql)
+
+The `init_sql` parameter automatically executes preset SQL on each new TCP connection's first use. Ideal for setting session-level variables, such as ClickHouse async insert settings or MySQL session variables.
+
+### How It Works
+
+- After `connect()` creates the pool, `pool.acquire()` is automatically wrapped
+- Uses `WeakSet` to track initialized connections
+- Executes `init_sql` on first acquire of a new connection; skips on subsequent reuses
+- When a connection is recycled via `pool_recycle`, the new connection re-executes `init_sql`
+
+### ClickHouse Async Insert Configuration
+
+```python
+from asmysql import Engine
+
+engine = Engine(
+    host="192.168.62.195",
+    port=9004,
+    user="default",
+    password="",
+    init_sql=(
+        "SET async_insert = 1, wait_for_async_insert = 0, "
+        "async_insert_busy_timeout_ms = 1000, "
+        "max_execution_time = 30, max_memory_usage_for_user = 5368709120"
+    ),
+)
+await engine.connect()
+
+# All subsequent execute() calls automatically run SET on new connections
+async with engine.execute("INSERT INTO audit_log ...") as result:
+    pass
+```
+
+### MySQL Session Variables
+
+```python
+from asmysql import Engine
+
+engine = Engine(
+    url="mysql://root:pass@127.0.0.1:3306/",
+    init_sql="SET SESSION wait_timeout = 600, SESSION interactive_timeout = 600",
+)
+await engine.connect()
 ```
 

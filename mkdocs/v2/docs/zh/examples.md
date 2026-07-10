@@ -104,6 +104,52 @@ engine = Engine(
 )
 ```
 
+### 连接初始化 SQL（init_sql）
+
+适用于 ClickHouse 等需要在每条 TCP 连接上预设 session 变量的场景。`init_sql` 仅在连接首次使用时执行一次，后续复用连接时自动跳过。
+
+```python
+import asyncio
+from asmysql import Engine
+
+async def main():
+    # ClickHouse 异步插入配置
+    engine = Engine(
+        host="192.168.62.195",
+        port=9004,
+        user="default",
+        password="",
+        init_sql=(
+            "SET async_insert = 1, wait_for_async_insert = 0, "
+            "async_insert_busy_timeout_ms = 1000, "
+            "max_execution_time = 30"
+        ),
+    )
+    await engine.connect()
+    
+    # 后续所有 execute 自动对新连接执行 SET
+    async with engine.execute("INSERT INTO audit_log (ts, msg) VALUES (%s, %s)", ("2025-01-01", "hello")) as result:
+        if result.error:
+            print(f"插入失败: {result.error_msg}")
+    
+    await engine.disconnect()
+
+asyncio.run(main())
+```
+
+### MySQL Session 变量配置
+
+```python
+from asmysql import Engine
+
+# 通过关键字参数设置 init_sql
+engine = Engine(
+    url="mysql://root:pass@127.0.0.1:3306/",
+    init_sql="SET SESSION wait_timeout = 600, SESSION interactive_timeout = 600",
+)
+await engine.connect()
+```
+
 ## 查询操作 {#query-operations}
 
 ### 单条记录查询

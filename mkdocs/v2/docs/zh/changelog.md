@@ -2,6 +2,21 @@
 
 本文档记录 asmysql v2 版本的所有变更。
 
+## [v2.1.0](changelog/v2.1.0.md)
+
+### 新功能 (New Features)
+
+- **连接初始化 SQL（`init_sql`）**：新增 `init_sql` 参数，支持在每条新 TCP 连接首次使用时自动执行预设 SQL，适用于 ClickHouse 异步插入配置、MySQL Session 变量设置等场景。通过构造参数或 URL query 参数配置，`connect()` 后自动包装 `pool.acquire()`，使用 `WeakSet` 追踪已初始化连接避免重复执行。完全向后兼容。
+
+### 文档 (Documentation)
+
+- 修正首页示例代码中不存在的 API（`engine.query()`、`fetch_one(as_dict=True)`、`engine.close()`）
+- 在 `connection.md`、`api.md`、`examples.md` 中同步添加 `init_sql` 文档（中英文版本）
+
+### 测试 (Testing)
+
+- 新增 `test_engine_init_sql.py`，包含 15 个测试用例，覆盖 `init_sql` 核心功能与边界场景
+
 ## [v2.0.0](changelog/v2.0.0.md)
 
 ### 重大变更 (Breaking Changes)

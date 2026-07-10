@@ -104,6 +104,52 @@ engine = Engine(
 )
 ```
 
+### Connection Init SQL (init_sql)
+
+Ideal for ClickHouse and similar databases that require session variables on each TCP connection. `init_sql` is executed only once per new connection and automatically skipped on subsequent reuses.
+
+```python
+import asyncio
+from asmysql import Engine
+
+async def main():
+    # ClickHouse async insert configuration
+    engine = Engine(
+        host="192.168.62.195",
+        port=9004,
+        user="default",
+        password="",
+        init_sql=(
+            "SET async_insert = 1, wait_for_async_insert = 0, "
+            "async_insert_busy_timeout_ms = 1000, "
+            "max_execution_time = 30"
+        ),
+    )
+    await engine.connect()
+    
+    # All subsequent execute() calls auto-run SET on new connections
+    async with engine.execute("INSERT INTO audit_log (ts, msg) VALUES (%s, %s)", ("2025-01-01", "hello")) as result:
+        if result.error:
+            print(f"Insert failed: {result.error_msg}")
+    
+    await engine.disconnect()
+
+asyncio.run(main())
+```
+
+### MySQL Session Variable Configuration
+
+```python
+from asmysql import Engine
+
+# Set init_sql via keyword argument
+engine = Engine(
+    url="mysql://root:pass@127.0.0.1:3306/",
+    init_sql="SET SESSION wait_timeout = 600, SESSION interactive_timeout = 600",
+)
+await engine.connect()
+```
+
 ## Query Operations
 
 ### Single Record Query

@@ -37,6 +37,7 @@ class Engine:
 | `echo_sql_log` | `bool` | `False` | 是否打印 SQL 日志 |
 | `stream` | `bool` | `False` | 是否使用流式返回结果 |
 | `result_class` | `type` | `tuple` | 返回结果类型 |
+| `init_sql` | `Optional[str]` | `None` | 连接初始化时自动执行的 SET SQL（如 ClickHouse SET） |
 
 ### 构造函数
 
@@ -58,6 +59,7 @@ def __init__(
     echo_sql_log: bool = None,
     stream: bool = None,
     result_class: type = None,
+    init_sql: str = None,
 ) -> None
 ```
 
@@ -77,6 +79,7 @@ def __init__(
 - `echo_sql_log` (bool, optional): 是否打印 SQL 日志
 - `stream` (bool, optional): 是否使用流式返回结果
 - `result_class` (type, optional): 返回结果类型
+- `init_sql` (str, optional): 连接初始化时自动执行的 SET SQL，每条新 TCP 连接首次 acquire 时执行一次
 
 **示例**：
 
@@ -98,7 +101,7 @@ engine = Engine(
 
 #### connect()
 
-连接到 MySQL，建立 TCP 连接，初始化连接池。
+连接到 MySQL，建立 TCP 连接，初始化连接池。如果配置了 `init_sql`，连接池创建后会自动包装 `pool.acquire()`，使每条新 TCP 连接首次使用时执行初始化 SET SQL。
 
 ```python
 async def connect(self) -> Engine
