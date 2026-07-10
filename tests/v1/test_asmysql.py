@@ -1,12 +1,13 @@
 import asyncio
+
 from asmysql.v1 import AsMysql
 
 
 class TestAsMysql(AsMysql):
-    host = '192.168.62.195'
+    host = '192.168.3.12'
     port = 3306
     user = 'root'
-    password = 'xiao'
+    password = 'xpp'
     db = 'test'
 
     async def get_users(self):

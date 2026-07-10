@@ -9,6 +9,7 @@ wheels/
 *.egg-info
 *.ropeproject/
 *.spec
+.pytest_cache/
 # 包工具
 Pipfile.lock
 poetry.lock

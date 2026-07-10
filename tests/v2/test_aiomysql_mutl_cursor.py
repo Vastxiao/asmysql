@@ -6,11 +6,10 @@ import aiomysql
 async def create_pool():
     # noinspection PyUnresolvedReferences,SpellCheckingInspection
     pool = await aiomysql.create_pool(
-        # host='192.168.62.195', port=3306, user='root', password='xiao',
-        host="192.168.63.114",
+        host="192.168.63.111",
         port=3306,
-        user="4399smsuser",
-        password="4399it&trainDB$",
+        user="xuser",
+        password="xpasss",
         db="db_sms",
         minsize=3,
         maxsize=10,
