@@ -2,11 +2,23 @@
 主要测试v3同步版本AsMysql的使用。
 """
 
+import os
 import unittest
 
 from pydantic import BaseModel
 
 from asmysql.v3 import AsMysql, SyncEngine
+
+DEFAULT_TEST_URL = "mysql://root:password@127.0.0.1:3306/"
+
+
+def _get_test_url():
+    """获取集成测试用的 MySQL 连接 URL
+
+    优先读取环境变量 ASMYSQL_TEST_URL_SYNC，其次 ASMYSQL_TEST_URL，否则使用默认值。
+    注意：同步版默认连接无数据库名的 URL（查询系统表），与异步版不同。
+    """
+    return os.environ.get("ASMYSQL_TEST_URL_SYNC", os.environ.get("ASMYSQL_TEST_URL", DEFAULT_TEST_URL))
 
 
 class Mydata(BaseModel):
@@ -26,8 +38,8 @@ class TestSyncAsMysql(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """测试类前准备"""
-        # 注意：这里需要根据你的实际数据库配置修改连接信息
-        cls.engine = SyncEngine(url="mysql://root:password@127.0.0.1:3306/")
+        # 连接 URL 支持通过 ASMYSQL_TEST_URL_SYNC 或 ASMYSQL_TEST_URL 环境变量自定义
+        cls.engine = SyncEngine(url=_get_test_url())
         cls.engine.connect()
 
     @classmethod

@@ -28,7 +28,7 @@ from asmysql import Engine
 
 async def main():
     # Create engine
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     
     # Connect
     await engine.connect()
@@ -51,7 +51,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     
     async with engine:
         result = await engine.execute("SELECT 1 as value")
@@ -70,7 +70,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     
     print(f"Before connection: {engine.is_connected}")  # False
     
@@ -96,7 +96,7 @@ from asmysql import Engine
 
 # Configure connection pool
 engine = Engine(
-    url="mysql://root:pass@127.0.0.1:3306/test_db",
+    url="mysql://root:pass@127.0.0.1:3306/",
     min_pool_size=5,      # Minimum connections
     max_pool_size=50,     # Maximum connections
     pool_recycle=3600,    # Recycle idle connections after 1 hour
@@ -159,7 +159,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # Using tuple type (default)
@@ -193,7 +193,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # Get all records
@@ -218,7 +218,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # Using dictionary parameters
@@ -240,7 +240,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # Method 1: Using iterate() method
@@ -271,7 +271,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # Insert data
@@ -298,7 +298,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     result = await engine.execute(
@@ -324,7 +324,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     result = await engine.execute(
@@ -349,7 +349,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # Use execute_many for batch update
@@ -381,7 +381,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     result = await engine.execute(
@@ -410,7 +410,7 @@ from asmysql import Engine
 async def main():
     # Disable auto commit
     engine = Engine(
-        url="mysql://root:pass@127.0.0.1:3306/test_db",
+        url="mysql://root:pass@127.0.0.1:3306/",
         auto_commit=False
     )
     await engine.connect()
@@ -458,7 +458,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # Enable streaming query
@@ -494,7 +494,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # Regular query: All data loaded into memory
@@ -523,7 +523,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # Prepare batch data
@@ -557,7 +557,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # Batch data in dictionary format
@@ -597,7 +597,7 @@ class User(BaseModel):
     age: int = 0
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # Query and use custom model
@@ -646,7 +646,7 @@ class User:
         return f"User(id={self.id}, name={self.name}, email={self.email})"
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     result = await engine.execute(
@@ -671,7 +671,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     result = await engine.execute("SELECT * FROM non_existent_table")
@@ -719,7 +719,7 @@ async def get_user(engine: Engine, user_id: int):
     return await result.fetch_one()
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     user = await get_user(engine, 1)
@@ -826,7 +826,7 @@ class UserService(AsMysql):
         return result.error is None
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     user_service = UserService(engine)
@@ -864,7 +864,7 @@ from asmysql import Engine, AsMysql
 from contextlib import asynccontextmanager
 
 # Global engine
-engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

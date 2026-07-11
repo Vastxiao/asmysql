@@ -63,10 +63,17 @@ class Result(Generic[T]):
                 self.pool.release(conn)
 
     async def close(self):
-        conn = self.__cursor.connection
-        await self.__cursor.close()
-        if conn:
-            self.pool.release(conn)
+        cursor, self.__cursor = self.__cursor, None
+        if cursor is None:
+            return
+        conn = cursor.connection
+        try:
+            await cursor.close()
+        except Exception:
+            pass
+        finally:
+            if conn:
+                self.pool.release(conn)
 
     async def __aenter__(self):
         self.__conn_autoclose = False
@@ -95,7 +102,6 @@ class Result(Generic[T]):
             if data is not None:
                 return data
             else:
-                await self.close()
                 raise StopAsyncIteration
 
     async def __call__(self):
@@ -106,6 +112,7 @@ class Result(Generic[T]):
         if self.__executed:
             return self
         cursor_class = _get_cursor_class(result_class=self._result_class, stream=self.stream)
+        conn = None
         try:
             # noinspection PyUnresolvedReferences
             conn = await self.pool.acquire()
@@ -117,8 +124,10 @@ class Result(Generic[T]):
             if self.commit:
                 await self.__cursor.connection.commit()
         except MySQLError as err:
-            await self.__cursor.close()
-            self.pool.release(self.__cursor.connection)
+            if self.__cursor is not None:
+                await self.__cursor.close()
+            if conn is not None:
+                self.pool.release(conn)
             self.__error = err
         finally:
             self.__executed = True
@@ -214,7 +223,7 @@ class Result(Generic[T]):
         :param close: 是否自动关闭游标连接
                       注意：如果设置不关闭游标连接，必须自己调用 Result.close() 释放连接(否则连接池可能有问题)。
         """
-        if close is None:
+        if close is not None:
             self.__conn_autoclose = close
 
         _data: list[T] = []

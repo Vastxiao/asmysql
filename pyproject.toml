@@ -54,7 +54,7 @@ line-length = 120        # 每行最大长度
 
 [tool.pytest.ini_options]
 testpaths = ["autopytest/"]
-addopts = "--ignore=autopytest/v3"
+addopts = "--ignore=autopytest/v3 -p autopytest.v2._plugin"
 asyncio_mode = "auto"
 markers = ["integration: 需要真实 MySQL 数据库的集成测试（使用 '-m \"not integration\"' 跳过）"]
 

@@ -1,8 +1,19 @@
+import os
 from unittest import IsolatedAsyncioTestCase
 
 from pydantic import BaseModel
 
 from asmysql.v3 import AsMysql, AsyncEngine
+
+DEFAULT_TEST_URL = "mysql://root:password@localhost:3306/test_db"
+
+
+def _get_test_url():
+    """获取集成测试用的 MySQL 连接 URL
+
+    优先读取环境变量 ASMYSQL_TEST_URL，否则使用默认值。
+    """
+    return os.environ.get("ASMYSQL_TEST_URL", DEFAULT_TEST_URL)
 
 
 class User(BaseModel):
@@ -22,8 +33,8 @@ class TestAsMysql(IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
         """测试前准备"""
-        # 使用测试数据库连接
-        self.engine = AsyncEngine("mysql://root:password@localhost:3306/test_db")
+        # 使用测试数据库连接（支持通过 ASMYSQL_TEST_URL 环境变量自定义）
+        self.engine = AsyncEngine(_get_test_url())
         await self.engine.connect()
         self.asmysql = AsMysql(self.engine)
 

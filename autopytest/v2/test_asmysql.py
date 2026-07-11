@@ -3,12 +3,16 @@
 
 """集成测试 — 需要真实 MySQL 数据库"""
 
+from urllib.parse import quote
+
 import pytest
 from pydantic import BaseModel
 
 from asmysql.v2 import AsMysql, Engine
 
 pytestmark = pytest.mark.integration
+
+_TEST_DB = "asmysql_test"
 
 
 class User(BaseModel):
@@ -24,15 +28,32 @@ class Product(BaseModel):
 
 
 @pytest.fixture
-async def engine():
-    """创建并连接 Engine，测试结束后断开连接"""
-    eng = Engine("mysql://root:password@localhost:3306/test_db")
+async def engine(mysql_url):
+    """创建并连接 Engine，测试结束后断开连接
+
+    连接 URL 通过 mysql_url fixture 获取（支持 --mysql-url 命令行参数或 ASMYSQL_TEST_URL 环境变量）。
+    Engine v2 不支持 db 参数，因此通过 init_sql 在每条连接上自动执行 USE 选择测试数据库。
+    """
+    # 1. 创建测试数据库
+    setup_eng = Engine(mysql_url)
     try:
-        await eng.connect()
+        await setup_eng.connect()
     except ConnectionError:
         pytest.skip("MySQL 数据库不可用，跳过集成测试")
+    await setup_eng.execute(f"CREATE DATABASE IF NOT EXISTS `{_TEST_DB}`")
+    await setup_eng.disconnect()
+
+    # 2. 创建带 init_sql 的 Engine（每条连接自动 USE 测试库）
+    eng = Engine(mysql_url + "?init_sql=" + quote(f"USE `{_TEST_DB}`"))
+    await eng.connect()
     yield eng
     await eng.disconnect()
+
+    # 3. 清理测试数据库
+    cleanup_eng = Engine(mysql_url)
+    await cleanup_eng.connect()
+    await cleanup_eng.execute(f"DROP DATABASE IF EXISTS `{_TEST_DB}`")
+    await cleanup_eng.disconnect()
 
 
 @pytest.fixture

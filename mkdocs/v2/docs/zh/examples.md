@@ -28,7 +28,7 @@ from asmysql import Engine
 
 async def main():
     # 创建引擎
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     
     # 连接
     await engine.connect()
@@ -51,7 +51,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     
     async with engine:
         result = await engine.execute("SELECT 1 as value")
@@ -70,7 +70,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     
     print(f"连接前: {engine.is_connected}")  # False
     
@@ -96,7 +96,7 @@ from asmysql import Engine
 
 # 配置连接池
 engine = Engine(
-    url="mysql://root:pass@127.0.0.1:3306/test_db",
+    url="mysql://root:pass@127.0.0.1:3306/",
     min_pool_size=5,      # 最小连接数
     max_pool_size=50,     # 最大连接数
     pool_recycle=3600,    # 1 小时回收空闲连接
@@ -159,7 +159,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 使用 tuple 类型（默认）
@@ -193,7 +193,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 获取所有记录
@@ -218,7 +218,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 使用字典参数
@@ -240,7 +240,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 方式一：使用 iterate() 方法
@@ -271,7 +271,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 插入数据
@@ -298,7 +298,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     result = await engine.execute(
@@ -324,7 +324,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     result = await engine.execute(
@@ -349,7 +349,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 使用 execute_many 批量更新
@@ -381,7 +381,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     result = await engine.execute(
@@ -410,7 +410,7 @@ from asmysql import Engine
 async def main():
     # 关闭自动提交
     engine = Engine(
-        url="mysql://root:pass@127.0.0.1:3306/test_db",
+        url="mysql://root:pass@127.0.0.1:3306/",
         auto_commit=False
     )
     await engine.connect()
@@ -458,7 +458,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 启用流式查询
@@ -494,7 +494,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 普通查询：所有数据加载到内存
@@ -523,7 +523,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 准备批量数据
@@ -557,7 +557,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 使用字典格式的批量数据
@@ -597,7 +597,7 @@ class User(BaseModel):
     age: int = 0
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 查询并使用自定义模型
@@ -646,7 +646,7 @@ class User:
         return f"User(id={self.id}, name={self.name}, email={self.email})"
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     result = await engine.execute(
@@ -671,7 +671,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     result = await engine.execute("SELECT * FROM non_existent_table")
@@ -719,7 +719,7 @@ async def get_user(engine: Engine, user_id: int):
     return await result.fetch_one()
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     user = await get_user(engine, 1)
@@ -826,7 +826,7 @@ class UserService(AsMysql):
         return result.error is None
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     user_service = UserService(engine)
@@ -864,7 +864,7 @@ from asmysql import Engine, AsMysql
 from contextlib import asynccontextmanager
 
 # 全局引擎
-engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

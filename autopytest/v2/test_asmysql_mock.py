@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, Mock
 
 from pydantic import BaseModel
 
-from asmysql.v2 import AsMysql, Engine, Result
+from asmysql.v2 import AsMysql
 
 
 class User(BaseModel):
@@ -29,7 +29,7 @@ def test_asmysql_creation(asmysql, mock_engine):
     """测试 AsMysql 实例创建"""
     assert isinstance(asmysql, AsMysql)
     assert asmysql.client == mock_engine
-    assert str(asmysql) == "AsMysql=mysql://localhost:3306/test_db"
+    assert str(asmysql) == "AsMysql=mysql://localhost:3306/"
     assert "AsMysql" in repr(asmysql)
 
 

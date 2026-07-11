@@ -14,7 +14,7 @@ from asmysql.v2 import AsMysql, Engine, Result
 def mock_engine():
     """创建一个 Mock 的 Engine 实例"""
     engine = Mock(spec=Engine)
-    engine.url = "mysql://localhost:3306/test_db"
+    engine.url = "mysql://localhost:3306/"
     engine.host = "localhost"
     engine.port = 3306
     return engine
