@@ -1,8 +1,10 @@
-from functools import lru_cache
+from functools import cached_property
 from typing import Final, Generic, Optional, Sequence, TypeVar, Union
 
 from aiomysql import Cursor, DictCursor, Pool, SSCursor, SSDictCursor
 from pymysql.err import MySQLError
+
+from ._error import err_msg
 
 T = TypeVar("T")
 
@@ -50,19 +52,27 @@ class Result(Generic[T]):
     def error(self):
         return self.__error
 
-    @lru_cache
     def __repr__(self):
         return f"<{self.__class__.__name__}: {self.query}>"
 
     def __del__(self):
-        if self.error:
-            return
-        if self.__cursor:
-            conn = self.__cursor.connection
-            if conn:
-                self.pool.release(conn)
+        """GC 时的安全网：尽量释放未关闭的连接。
+
+        注意：__del__ 是同步方法，无法 await cursor.close()。
+        正常使用时应通过 async with / async for / iterate() / close() 显式释放。
+        """
+        try:
+            if self.error:
+                return
+            if self.__cursor:
+                conn = self.__cursor.connection
+                if conn and self.pool:
+                    self.pool.release(conn)
+        except Exception:
+            pass
 
     async def close(self):
+        """关闭游标并释放连接回连接池。可安全重复调用。"""
         cursor, self.__cursor = self.__cursor, None
         if cursor is None:
             return
@@ -72,7 +82,7 @@ class Result(Generic[T]):
         except Exception:
             pass
         finally:
-            if conn:
+            if conn and self.pool:
                 self.pool.release(conn)
 
     async def __aenter__(self):
@@ -81,16 +91,29 @@ class Result(Generic[T]):
         return self
 
     async def __aexit__(self, exc_type, exc_value, exc_tb):
-        if self.error:
-            return
         await self.close()
 
-    def __aiter__(self):
-        """支持 async for item in result 语法"""
+    async def __aiter__(self):
+        """支持 async for item in result 语法。
+
+        使用 async generator + try/finally 确保即使 break 也能正确释放连接。
+        """
         self.__conn_autoclose = False
-        return self
+        try:
+            await self.__call__()
+            if self.error:
+                return
+            while True:
+                data = await self.fetch_one(close=False)
+                if data is not None:
+                    yield data
+                else:
+                    break
+        finally:
+            await self.close()
 
     async def __anext__(self):
+        """保留以兼容直接调用 __anext__ 的场景。推荐使用 async for 或 iterate()。"""
         await self.__call__()
         """支持 async for item in result 语法"""
         if self.error:
@@ -123,12 +146,16 @@ class Result(Generic[T]):
                 await self.__cursor.execute(self.query, self.values)
             if self.commit:
                 await self.__cursor.connection.commit()
-        except MySQLError as err:
+        except Exception as err:
             if self.__cursor is not None:
                 await self.__cursor.close()
+                self.__cursor = None
             if conn is not None:
                 self.pool.release(conn)
-            self.__error = err
+            if isinstance(err, MySQLError):
+                self.__error = err
+            else:
+                raise
         finally:
             self.__executed = True
         return self
@@ -139,8 +166,7 @@ class Result(Generic[T]):
         """
         return self.__call__().__await__()
 
-    @property
-    @lru_cache
+    @cached_property
     def error_no(self):
         """获取错误码
 
@@ -149,14 +175,13 @@ class Result(Generic[T]):
         __err_no: int = self.error.args[0] if self.error else 0
         return __err_no
 
-    @property
-    @lru_cache
+    @cached_property
     def error_msg(self):
         """获取错误信息
 
         如果没有错误则返回空字符串
         """
-        __err_msg: str = self.error.args[1] if self.error else ""
+        __err_msg: str = err_msg(self.error) if self.error else ""
         return __err_msg
 
     @property
@@ -171,6 +196,8 @@ class Result(Generic[T]):
             return None
         if self.stream:
             return None
+        if self.__cursor is None:
+            return None
         return self.__cursor.rowcount
 
     @property
@@ -182,7 +209,9 @@ class Result(Generic[T]):
         如果没插入insert数据，则返回None
         如果mysql报错，则返回None
         """
-        return self.__cursor.lastrowid if not self.error else None
+        if self.error or self.__cursor is None:
+            return None
+        return self.__cursor.lastrowid
 
     @property
     def row_number(self):
@@ -190,7 +219,9 @@ class Result(Generic[T]):
         获取当前游标的位置:
         用于返回当前游标在结果集中的行索引（从0开始），若无法确定索引则返回 None
         """
-        return self.__cursor.rownumber if not self.error else None
+        if self.error or self.__cursor is None:
+            return None
+        return self.__cursor.rownumber
 
     async def fetch_one(self, close: bool = None):
         """获取一条记录
@@ -206,7 +237,8 @@ class Result(Generic[T]):
         # noinspection PyUnresolvedReferences
         data = await self.__cursor.fetchone()
         if data is None:
-            await self.close()
+            if self.__conn_autoclose:
+                await self.close()
             return None
         if self._result_class is not tuple and self._result_class is not dict:
             _data: T = self._result_class(**data)
@@ -251,7 +283,6 @@ class Result(Generic[T]):
         data: list = await self.__cursor.fetchall()
         if self._result_class is not tuple and self._result_class is not dict:
             _data: list[T] = [self._result_class(**item) for item in data]
-            return _data
         else:
             _data: list[T] = data
         await self.close()
@@ -269,7 +300,7 @@ class Result(Generic[T]):
                 while True:
                     # noinspection PyUnresolvedReferences
                     data = await self.__cursor.fetchone()
-                    if data:
+                    if data is not None:
                         if self._result_class is not tuple and self._result_class is not dict:
                             _data: T = self._result_class(**data)
                         else:

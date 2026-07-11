@@ -1,5 +1,5 @@
+import asyncio
 import weakref
-from functools import lru_cache
 from typing import (
     AsyncContextManager,
     AsyncGenerator,
@@ -96,19 +96,23 @@ class Engine:
             pool_recycle = float(pool_recycle_val) if pool_recycle_val is not None else pool_recycle
             connect_timeout_val = query_params.get("connect_timeout", [connect_timeout])[0]
             connect_timeout = int(connect_timeout_val) if connect_timeout_val is not None else connect_timeout
-            auto_commit = True if query_params.get("auto_commit", [None])[0] else auto_commit
-            echo_sql_log = True if query_params.get("echo_sql_log", [None])[0] else echo_sql_log
+            auto_commit_val = query_params.get("auto_commit", [None])[0]
+            if auto_commit_val is not None:
+                auto_commit = auto_commit_val.lower() in ("true", "1", "yes")
+            echo_sql_log_val = query_params.get("echo_sql_log", [None])[0]
+            if echo_sql_log_val is not None:
+                echo_sql_log = echo_sql_log_val.lower() in ("true", "1", "yes")
             init_sql = query_params.get("init_sql", [init_sql])[0]
 
-        self.host: Final[str] = host or self.host
-        self.port: Final[int] = port or self.port
-        self.user: Final[str] = user or self.user
-        self.password: Final[str] = password or self.password
-        self.charset: Final[str] = charset or self.charset
-        self.min_pool_size: Final[int] = min_pool_size or self.min_pool_size
+        self.host: Final[str] = host if host is not None else self.host
+        self.port: Final[int] = port if port is not None else self.port
+        self.user: Final[str] = user if user is not None else self.user
+        self.password: Final[str] = password if password is not None else self.password
+        self.charset: Final[str] = charset if charset is not None else self.charset
+        self.min_pool_size: Final[int] = min_pool_size if min_pool_size is not None else self.min_pool_size
         self.max_pool_size: Final[int] = max_pool_size if max_pool_size is not None else self.max_pool_size
-        self.pool_recycle: Final[float] = pool_recycle or self.pool_recycle
-        self.connect_timeout: Final[int] = connect_timeout or self.connect_timeout
+        self.pool_recycle: Final[float] = pool_recycle if pool_recycle is not None else self.pool_recycle
+        self.connect_timeout: Final[int] = connect_timeout if connect_timeout is not None else self.connect_timeout
         self.auto_commit: Final[bool] = auto_commit if auto_commit is not None else self.auto_commit
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
         self.stream: Final[bool] = stream if stream is not None else self.stream
@@ -117,12 +121,11 @@ class Engine:
 
         self.url: Final[str] = f"mysql://{self.host}:{self.port}/"
         self.__pool: Optional[Pool] = None
+        self._connect_lock: Final[asyncio.Lock] = asyncio.Lock()
 
-    @lru_cache
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.url}>"
 
-    @lru_cache
     def __str__(self):
         return f"{self.__class__.__name__}={self.url}"
 
@@ -135,26 +138,27 @@ class Engine:
     @final
     async def connect(self):
         """连接到mysql,建立TCP链接，初始化连接池。"""
-        if not self.__pool:
-            try:
-                # noinspection PyUnresolvedReferences
-                self.__pool = await create_pool(
-                    host=self.host,
-                    port=self.port,
-                    user=self.user,
-                    password=self.password,
-                    charset=self.charset,
-                    minsize=self.min_pool_size,
-                    maxsize=self.max_pool_size,
-                    pool_recycle=self.pool_recycle,
-                    connect_timeout=self.connect_timeout,
-                    autocommit=self.auto_commit,
-                    echo=self.echo_sql_log,
-                )
-                if self.init_sql:
-                    self._apply_pool_init_hook()
-            except MySQLError as err:
-                raise ConnectionError(err_msg(err)) from None
+        async with self._connect_lock:
+            if not self.__pool:
+                try:
+                    # noinspection PyUnresolvedReferences
+                    self.__pool = await create_pool(
+                        host=self.host,
+                        port=self.port,
+                        user=self.user,
+                        password=self.password,
+                        charset=self.charset,
+                        minsize=self.min_pool_size,
+                        maxsize=self.max_pool_size,
+                        pool_recycle=self.pool_recycle,
+                        connect_timeout=self.connect_timeout,
+                        autocommit=self.auto_commit,
+                        echo=self.echo_sql_log,
+                    )
+                    if self.init_sql:
+                        self._apply_pool_init_hook()
+                except MySQLError as err:
+                    raise ConnectionError(err_msg(err)) from None
         return self
 
     def _apply_pool_init_hook(self) -> None:
@@ -167,12 +171,16 @@ class Engine:
         async def _acquire_with_init(*args, **kwargs):
             conn = await original_acquire(*args, **kwargs)
             if conn not in initialized:
-                cursor = await conn.cursor()
                 try:
-                    await cursor.execute(init_sql)
-                finally:
-                    await cursor.close()
-                initialized.add(conn)
+                    cursor = await conn.cursor()
+                    try:
+                        await cursor.execute(init_sql)
+                    finally:
+                        await cursor.close()
+                    initialized.add(conn)
+                except Exception:
+                    pool.release(conn)
+                    raise
             return conn
 
         pool.acquire = _acquire_with_init
@@ -203,15 +211,17 @@ class Engine:
     @final
     async def disconnect(self):
         """等待所有连接释放，并正常关闭mysql连接"""
-        if self.__pool and not self.__pool.closed:
-            self.__pool.close()
-            await self.__pool.wait_closed()
-            self.__pool = None
+        async with self._connect_lock:
+            pool, self.__pool = self.__pool, None
+            if pool and not pool.closed:
+                pool.close()
+                await pool.wait_closed()
 
     @final
     async def release_connections(self):
         """释放连接池中所有空闲的连接"""
-        await self.__pool.clear()
+        if self.__pool:
+            await self.__pool.clear()
 
     @final
     @property
@@ -275,8 +285,8 @@ class Engine:
         _stream = stream if stream is not None else self.stream
         result_class = result_class if result_class is not None else self.result_class
 
-        return Result[type[T]](
-            pool=self.__pool,
+        return Result[T](
+            pool=self.pool,
             query=query,
             values=values,
             execute_many=False,
@@ -332,8 +342,8 @@ class Engine:
         _stream = stream if stream is not None else self.stream
         result_class = result_class if result_class is not None else self.result_class
 
-        return Result[type[T]](
-            pool=self.__pool,
+        return Result[T](
+            pool=self.pool,
             query=query,
             values=values,
             execute_many=True,

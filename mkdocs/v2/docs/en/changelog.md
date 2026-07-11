@@ -8,6 +8,13 @@ This document records all changes in asmysql v2 version.
 
 - **Connection Init SQL (`init_sql`)**: Added `init_sql` parameter to automatically execute preset SQL on each new TCP connection's first use. Ideal for ClickHouse async insert configuration, MySQL session variable setup, and similar scenarios. Configurable via constructor or URL query parameter. `connect()` automatically wraps `pool.acquire()` with `WeakSet` tracking to avoid duplicate execution. Fully backward compatible.
 
+### Bug Fixes
+
+- Fixed 6 critical/high-severity resource leaks: `fetch_all()` custom result type leak, double release after query error, `init_sql` failure leak, `async for` + `break` leak, non-`MySQLError` exception leak, `__del__` safety net crash
+- Fixed 5 logic errors: `auto_commit`/`echo_sql_log` URL parsing, `or` operator overriding falsy values, `connect()`/`disconnect()` race conditions, `commit` default inconsistency, custom exception classes
+- Fixed 9 medium/low-severity issues: `execute()` pool null passing, `release_connections()` null check, `@lru_cache` memory leak, `Result` generic parameter, property access crashes
+- Added `AsMysqlError`/`ConnectionError`/`QueryError` custom exception hierarchy, exported `EngineStatus` TypedDict
+
 ### Documentation
 
 - Fixed non-existent API usage in homepage examples (`engine.query()`, `fetch_one(as_dict=True)`, `engine.close()`)
@@ -16,6 +23,7 @@ This document records all changes in asmysql v2 version.
 ### Testing
 
 - Added `test_engine_init_sql.py` with 15 test cases covering `init_sql` core functionality and edge cases
+- Added `test_bugfixes.py` with 19 mock test cases covering all fixed connection leaks, race conditions, and parsing errors
 
 ## [v2.0.0](changelog/v2.0.0.md)
 

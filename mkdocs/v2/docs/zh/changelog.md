@@ -8,6 +8,13 @@
 
 - **连接初始化 SQL（`init_sql`）**：新增 `init_sql` 参数，支持在每条新 TCP 连接首次使用时自动执行预设 SQL，适用于 ClickHouse 异步插入配置、MySQL Session 变量设置等场景。通过构造参数或 URL query 参数配置，`connect()` 后自动包装 `pool.acquire()`，使用 `WeakSet` 追踪已初始化连接避免重复执行。完全向后兼容。
 
+### 缺陷修复 (Bug Fixes)
+
+- 修复 `fetch_all()` 自定义结果类型连接泄漏、查询错误后双重释放、`init_sql` 失败连接泄漏、`async for` + `break` 连接泄漏、非 `MySQLError` 异常连接泄漏、`__del__` 安全网崩溃等 6 个致命/高危资源泄漏问题
+- 修复 `auto_commit`/`echo_sql_log` URL 参数解析、`or` 运算符覆盖 falsy 值、`connect()`/`disconnect()` 并发竞态、`commit` 默认值不一致、自定义异常类等 5 个逻辑错误
+- 修复 `execute()` pool 空值传递、`release_connections()` 空值检查、`@lru_cache` 内存泄漏、`Result` 泛型参数、属性访问崩溃等 9 个中低危问题
+- 新增 `AsMysqlError`/`ConnectionError`/`QueryError` 自定义异常层级，导出 `EngineStatus` TypedDict
+
 ### 文档 (Documentation)
 
 - 修正首页示例代码中不存在的 API（`engine.query()`、`fetch_one(as_dict=True)`、`engine.close()`）
@@ -16,6 +23,7 @@
 ### 测试 (Testing)
 
 - 新增 `test_engine_init_sql.py`，包含 15 个测试用例，覆盖 `init_sql` 核心功能与边界场景
+- 新增 `test_bugfixes.py`，包含 19 个 Mock 测试用例，覆盖所有已修复的连接泄漏、竞态条件和解析错误
 
 ## [v2.0.0](changelog/v2.0.0.md)
 
