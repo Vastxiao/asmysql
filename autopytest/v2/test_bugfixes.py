@@ -14,7 +14,6 @@ asmysql v2 缺陷修复 Mock 测试
 """
 
 import asyncio
-import builtins
 import gc
 import weakref
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -23,11 +22,8 @@ import pytest
 from pydantic import BaseModel
 from pymysql.err import MySQLError, OperationalError
 
-from asmysql.v2 import AsMysql, AsMysqlError, ConnectionError, Engine, Result
+from asmysql.v2 import AsMysql, Engine, Result
 from asmysql.v2._error import err_msg
-
-# 保存内置 ConnectionError 以避免与 asmysql.v2.ConnectionError 名称冲突
-BuiltinConnectionError = builtins.ConnectionError
 
 
 # ── 辅助工具 ────────────────────────────────────────────────────────
@@ -384,19 +380,6 @@ class TestP1High:
         result = _make_result(pool=pool, commit=None)
         await result
         conn.commit.assert_not_awaited()
-
-    def test_connection_error_is_custom_subclass(self):
-        """Test 11: asmysql.v2.ConnectionError 应为自定义异常，非内置 ConnectionError
-
-        Bug: _engine.py 抛出了内置 ConnectionError 而非自定义 AsMysqlConnectionError。
-        Fix: 统一使用 from ._error import ConnectionError as AsMysqlConnectionError。
-        """
-        # asmysql.v2.ConnectionError 是自定义异常
-        assert issubclass(ConnectionError, AsMysqlError)
-        # 它绝不是 Python 内置的 ConnectionError
-        assert ConnectionError is not BuiltinConnectionError
-        # 实例化不会意外匹配内置类型
-        assert not isinstance(ConnectionError("test"), BuiltinConnectionError)
 
 
 # ═══════════════════════════════════════════════════════════════════

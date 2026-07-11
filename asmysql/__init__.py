@@ -1,12 +1,9 @@
 from .v2 import (
     AsMysql,
-    AsMysqlError,
     AsyncEngine,
     AsyncResult,
-    ConnectionError,
     Engine,
     EngineStatus,
-    QueryError,
     Result,
 )
 
@@ -17,7 +14,4 @@ __all__ = [
     "Result",
     "AsyncEngine",
     "AsyncResult",
-    "AsMysqlError",
-    "ConnectionError",
-    "QueryError",
 ]
