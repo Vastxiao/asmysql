@@ -22,9 +22,8 @@ import pytest
 from pydantic import BaseModel
 from pymysql.err import MySQLError, OperationalError
 
-from asmysql.v2 import AsMysql, Engine, Result
+from asmysql.v2 import Engine, Result
 from asmysql.v2._error import err_msg
-
 
 # ── 辅助工具 ────────────────────────────────────────────────────────
 
@@ -149,7 +148,7 @@ class TestP0Critical:
         assert pool.release.call_count == 1
 
     async def test_init_hook_releases_connection_on_init_sql_failure(self):
-        """Test 3: _apply_pool_init_hook 中 init_sql 失败时必须释放连接
+        """Test 3: Result.__call__ 中 init_sql 失败时必须释放连接
 
         Bug: cursor.execute(init_sql) 失败时，连接从未释放回连接池。
         Fix: 在 except 块中调用 pool.release(conn) 后再 raise。
@@ -162,10 +161,12 @@ class TestP0Critical:
             engine = Engine(host="127.0.0.1", port=3306, init_sql="BAD SQL")
             await engine.connect()
 
-        with pytest.raises(OperationalError):
-            await engine.pool.acquire()
+        result = await engine.execute("SELECT 1")
 
-        # 核心断言：连接被释放
+        # 核心断言：错误被记录在 result 中
+        assert result.error is not None
+        assert result.error_no == 1064
+        # 连接被释放
         pool.release.assert_called_with(conn)
         # cursor 也应被关闭
         cursor.close.assert_awaited_once()

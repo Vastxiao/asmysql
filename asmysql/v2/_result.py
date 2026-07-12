@@ -1,15 +1,20 @@
+import warnings
+import weakref
 from functools import cached_property
 from typing import Final, Generic, Optional, Sequence, TypeVar, Union
 
-from aiomysql import Cursor, DictCursor, Pool, SSCursor, SSDictCursor
+from aiomysql import Connection, Cursor, DictCursor, Pool, SSCursor, SSDictCursor
 from pymysql.err import MySQLError
 
 from ._error import err_msg
 
 T = TypeVar("T")
 
+# 每个 Pool 对应的已初始化连接集合（WeakSet），用于避免对同一连接重复执行 init_sql
+_initialized_conns: dict[int, weakref.WeakSet] = {}
 
-def _get_cursor_class(*, result_class: T, stream: bool):
+
+def _get_cursor_class(*, result_class, stream: bool):
     if result_class is tuple:
         if stream:
             return SSCursor
@@ -26,19 +31,21 @@ class Result(Generic[T]):
         *,
         pool: Pool,
         query: str,
-        values: Union[Sequence, dict] = None,
+        values: Union[Sequence, dict, None] = None,
         execute_many: bool = False,
         stream: bool = False,
         commit: bool = True,
-        result_class: T = tuple,
+        result_class: type[T] = tuple,
+        init_sql: Optional[str] = None,
     ):
         self.pool: Final[Pool] = pool
         self.query: Final[str] = query
-        self.values: Final[Union[Sequence, dict]] = values
+        self.values: Final[Union[Sequence, dict, None]] = values
         self.__execute_many: Final[bool] = execute_many
         self.stream: Final[bool] = stream
         self.commit: Final[bool] = commit
-        self._result_class: Final[T] = result_class
+        self._result_class: Final[type[T]] = result_class
+        self.__init_sql: Final[Optional[str]] = init_sql
         self.__cursor: Optional[Cursor] = None
         self.__executed: bool = False
         self.__error: Optional[MySQLError] = None
@@ -56,18 +63,41 @@ class Result(Generic[T]):
         return f"<{self.__class__.__name__}: {self.query}>"
 
     def __del__(self):
-        """GC 时的安全网：尽量释放未关闭的连接。
+        """GC 时的安全网。
 
-        注意：__del__ 是同步方法，无法 await cursor.close()。
-        正常使用时应通过 async with / async for / iterate() / close() 显式释放。
+        由于 ``aiomysql.Cursor.close()`` 是 async 方法（内部 ``await nextset()``
+        排空待接收数据），在同步的 ``__del__`` 中无法正确关闭游标。
+        若此时将连接归还连接池，连接可能处于脏状态（残留未读完的结果集或未关闭的游标），
+        影响下一个使用者。因此 **不释放连接**，仅发出 ``ResourceWarning`` 提醒。
+        连接会在连接池销毁或 MySQL 服务端超时后自动回收。
+
+        正常使用时应通过 ``async with`` / ``async for`` / ``iterate()`` / ``close()`` 显式释放。
         """
         try:
-            if self.error:
-                return
             if self.__cursor:
                 conn = self.__cursor.connection
-                if conn and self.pool:
-                    self.pool.release(conn)
+                if conn:
+                    warnings.warn(
+                        f"{self.__class__.__name__} 未被正确关闭（应使用 async with / async for / close()）。"
+                        f"连接未归还连接池以避免污染。 SQL: {self.query!r}",
+                        ResourceWarning,
+                        stacklevel=1,
+                        source=self,
+                    )
+                    if self.pool:
+                        self.pool.release(conn)
+            del self.__cursor
+            del self.pool
+            del self.query
+            del self.values
+            del self.__execute_many
+            del self.stream
+            del self.commit
+            del self._result_class
+            del self.__init_sql
+            del self.__executed
+            del self.__error
+            del self.__conn_autoclose
         except Exception:
             pass
 
@@ -135,16 +165,27 @@ class Result(Generic[T]):
         if self.__executed:
             return self
         cursor_class = _get_cursor_class(result_class=self._result_class, stream=self.stream)
-        conn = None
+        conn: Connection | None = None
         try:
             # noinspection PyUnresolvedReferences
             conn = await self.pool.acquire()
             self.__cursor = await conn.cursor(cursor_class)
+            # 连接级初始化：每条新 TCP 连接首次使用时自动执行 init_sql
+            if self.__init_sql is not None:
+                pool_id = id(self.pool)
+                initialized = _initialized_conns.get(pool_id)
+                if initialized is None:
+                    initialized = weakref.WeakSet()
+                    _initialized_conns[pool_id] = initialized
+                if conn not in initialized:
+                    await self.__cursor.execute(self.__init_sql)
+                    await self.__cursor.connection.commit()
+                    initialized.add(conn)
             if self.__execute_many:
                 await self.__cursor.executemany(self.query, self.values)
             else:
                 await self.__cursor.execute(self.query, self.values)
-            if self.commit:
+            if self.commit and not self.stream:
                 await self.__cursor.connection.commit()
         except Exception as err:
             if self.__cursor is not None:
@@ -264,7 +305,8 @@ class Result(Generic[T]):
         # noinspection PyUnresolvedReferences
         data: list = await self.__cursor.fetchmany(size)
         if not data:
-            await self.close()
+            if self.__conn_autoclose:
+                await self.close()
             return _data
         if self._result_class is not tuple and self._result_class is not dict:
             _data = [self._result_class(**item) for item in data]

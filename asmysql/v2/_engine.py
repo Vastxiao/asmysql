@@ -1,5 +1,4 @@
 import asyncio
-import weakref
 from typing import (
     AsyncContextManager,
     AsyncGenerator,
@@ -52,7 +51,7 @@ class Engine:
     echo_sql_log: bool = False  # 是否打印sql语句日志
     stream: bool = False  # 是否使用流式返回结果
     result_class: type = tuple  # 返回结果类型
-    init_sql: Optional[str] = None  # 连接初始化时自动执行的 SQL（如 ClickHouse SET）
+    init_sql: Optional[str] = None  # 连接初始化时自动执行的 SQL（如 SET）
 
     @final
     def __init__(
@@ -155,36 +154,9 @@ class Engine:
                         autocommit=self.auto_commit,
                         echo=self.echo_sql_log,
                     )
-                    if self.init_sql:
-                        self._apply_pool_init_hook()
                 except MySQLError as err:
                     raise ConnectionError(err_msg(err)) from None
         return self
-
-    def _apply_pool_init_hook(self) -> None:
-        """包装 pool.acquire()，使每条新 TCP 连接首次使用时自动执行 init_sql。"""
-        pool = self.__pool
-        assert pool is not None
-        original_acquire = pool.acquire
-        initialized: weakref.WeakSet = weakref.WeakSet()
-        init_sql = self.init_sql
-
-        async def _acquire_with_init(*args, **kwargs):
-            conn = await original_acquire(*args, **kwargs)
-            if conn not in initialized:
-                try:
-                    cursor = await conn.cursor()
-                    try:
-                        await cursor.execute(init_sql)
-                    finally:
-                        await cursor.close()
-                    initialized.add(conn)
-                except Exception:
-                    pool.release(conn)
-                    raise
-            return conn
-
-        pool.acquire = _acquire_with_init  # type: ignore
 
     @final
     @property
@@ -297,6 +269,7 @@ class Engine:
             stream=_stream,
             commit=_commit,
             result_class=_result_class,
+            init_sql=self.init_sql,
         )
 
     @overload
@@ -355,4 +328,5 @@ class Engine:
             stream=_stream,
             commit=_commit,
             result_class=result_class,
+            init_sql=self.init_sql,
         )

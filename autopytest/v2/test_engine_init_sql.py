@@ -8,12 +8,11 @@ Engine.init_sql 连接级初始化 SQL 功能测试
 1. init_sql 默认值为 None（向后兼容）
 2. init_sql 可通过构造参数设置
 3. init_sql 可通过 URL query 参数解析
-4. connect() 创建池后自动包装 pool.acquire()
-5. 新连接首次 acquire 时自动执行 init_sql
-6. 同一连接后续 acquire 不重复执行（WeakSet 追踪）
-7. 多条连接各自独立初始化
-8. init_sql 执行失败时异常向上抛出
-9. 不传 init_sql 时 connect() 不包装 acquire（向后兼容）
+4. execute() 时新连接首次使用时自动执行 init_sql
+5. 同一连接后续 execute 不重复执行（WeakSet 追踪）
+6. 多条连接各自独立初始化
+7. init_sql 执行失败时错误记录在 Result 中
+8. 不传 init_sql 时 execute() 正常执行（向后兼容）
 """
 
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -58,7 +57,33 @@ def test_init_sql_none_kwarg_keeps_default():
     assert engine.init_sql is None
 
 
-# ── 异步测试：connect() 与 _apply_pool_init_hook ─────────────────
+# ── 辅助工具 ──────────────────────────────────────────────────────
+
+
+def _make_mock_cursor():
+    """创建模拟的 aiomysql Cursor"""
+    cursor = MagicMock()
+    cursor.execute = AsyncMock()
+    cursor.executemany = AsyncMock()
+    cursor.fetchall = AsyncMock(return_value=[])
+    cursor.fetchone = AsyncMock(return_value=None)
+    cursor.fetchmany = AsyncMock(return_value=[])
+    cursor.close = AsyncMock()
+    cursor.rowcount = 0
+    cursor.lastrowid = None
+    cursor.rownumber = None
+    return cursor
+
+
+def _make_mock_conn():
+    """创建模拟的 aiomysql Connection"""
+    cursor = _make_mock_cursor()
+    conn = MagicMock()
+    cursor.connection = conn
+    conn.cursor = AsyncMock(return_value=cursor)
+    conn.commit = AsyncMock()
+    conn.rollback = AsyncMock()
+    return conn, cursor
 
 
 def _make_mock_pool():
@@ -77,14 +102,7 @@ def _make_mock_pool():
     return pool
 
 
-def _make_mock_conn():
-    """创建模拟的 aiomysql Connection"""
-    conn = MagicMock()
-    cursor = AsyncMock()
-    cursor.execute = AsyncMock()
-    cursor.close = AsyncMock()
-    conn.cursor = AsyncMock(return_value=cursor)
-    return conn, cursor
+# ── 异步测试：execute() 中的 init_sql 行为 ─────────────────────────
 
 
 @pytest.fixture
@@ -92,32 +110,22 @@ def mock_pool():
     return _make_mock_pool()
 
 
-async def test_connect_without_init_sql_does_not_wrap_acquire(mock_pool):
-    """不传 init_sql 时，connect() 不包装 pool.acquire"""
-    original_acquire = mock_pool.acquire
+async def test_connect_without_init_sql_does_not_affect_execute(mock_pool):
+    """不传 init_sql 时，execute() 正常执行，不执行初始化 SQL"""
+    conn, cursor = _make_mock_conn()
+    mock_pool.acquire = AsyncMock(return_value=conn)
 
     with patch("asmysql.v2._engine.create_pool", new=AsyncMock(return_value=mock_pool)):
         engine = Engine(host="127.0.0.1", port=3306)
         await engine.connect()
 
-    # acquire 仍然是原始方法，未被替换
-    assert engine.pool.acquire is original_acquire
+    result = await engine.execute("SELECT 1")
+    # cursor.execute 只被调用了一次（业务 SQL），没有额外的 init_sql
+    assert cursor.execute.await_count == 1
 
 
-async def test_connect_with_init_sql_wraps_acquire(mock_pool):
-    """传入 init_sql 时，connect() 包装 pool.acquire"""
-    original_acquire = mock_pool.acquire
-
-    with patch("asmysql.v2._engine.create_pool", new=AsyncMock(return_value=mock_pool)):
-        engine = Engine(host="127.0.0.1", port=3306, init_sql="SET foo = 1")
-        await engine.connect()
-
-    # acquire 已被替换为 _acquire_with_init
-    assert engine.pool.acquire is not original_acquire
-
-
-async def test_new_connection_gets_init_sql_on_first_acquire(mock_pool):
-    """新连接首次 acquire 时自动执行 init_sql"""
+async def test_new_connection_gets_init_sql_on_first_execute(mock_pool):
+    """新连接首次 execute 时自动执行 init_sql"""
     conn, cursor = _make_mock_conn()
     mock_pool.acquire = AsyncMock(return_value=conn)
 
@@ -127,18 +135,17 @@ async def test_new_connection_gets_init_sql_on_first_acquire(mock_pool):
         engine = Engine(host="127.0.0.1", port=3306, init_sql=init_sql)
         await engine.connect()
 
-    # 通过包装后的 acquire 获取连接
-    acquired_conn = await engine.pool.acquire()
+    # 第一次 execute：应先执行 init_sql，再执行业务 SQL
+    result = await engine.execute("SELECT 1")
 
-    # 验证: 创建了 cursor 并执行了 init_sql
-    conn.cursor.assert_awaited_once()
-    cursor.execute.assert_awaited_once_with(init_sql)
-    cursor.close.assert_awaited_once()
-    assert acquired_conn is conn
+    # cursor.execute 被调用了 2 次：init_sql + 业务 SQL
+    assert cursor.execute.await_count == 2
+    # 第一次调用是 init_sql
+    cursor.execute.assert_any_await(init_sql)
 
 
-async def test_same_connection_skips_init_sql_on_subsequent_acquire(mock_pool):
-    """同一连接后续 acquire 不重复执行 init_sql（WeakSet 追踪）"""
+async def test_same_connection_skips_init_sql_on_subsequent_execute(mock_pool):
+    """同一连接后续 execute 不重复执行 init_sql（WeakSet 追踪）"""
     conn, cursor = _make_mock_conn()
     mock_pool.acquire = AsyncMock(return_value=conn)
 
@@ -148,19 +155,17 @@ async def test_same_connection_skips_init_sql_on_subsequent_acquire(mock_pool):
         engine = Engine(host="127.0.0.1", port=3306, init_sql=init_sql)
         await engine.connect()
 
-    # 第一次 acquire：执行 init_sql
-    await engine.pool.acquire()
-    assert cursor.execute.await_count == 1
+    # 第一次 execute：init_sql + 业务 SQL = 2 次
+    await engine.execute("SELECT 1")
+    assert cursor.execute.await_count == 2
 
-    # 第二次 acquire 同一连接：不重复执行
-    await engine.pool.acquire()
-    assert cursor.execute.await_count == 1
+    # 第二次 execute：只有业务 SQL = 1 次（累计 3 次）
+    await engine.execute("SELECT 2")
+    assert cursor.execute.await_count == 3
 
-    # 第三次 acquire：仍然不重复
-    await engine.pool.acquire()
-    assert cursor.execute.await_count == 1
-
-
+    # 第三次 execute：只有业务 SQL = 1 次（累计 4 次）
+    await engine.execute("SELECT 3")
+    assert cursor.execute.await_count == 4
 async def test_multiple_connections_each_initialized_once(mock_pool):
     """多条连接各自独立初始化一次"""
     conn1, cursor1 = _make_mock_conn()
@@ -176,25 +181,25 @@ async def test_multiple_connections_each_initialized_once(mock_pool):
         engine = Engine(host="127.0.0.1", port=3306, init_sql=init_sql)
         await engine.connect()
 
-    # conn1 首次 acquire → 初始化
-    await engine.pool.acquire()
-    assert cursor1.execute.await_count == 1
+    # conn1 首次 execute → init_sql + 业务 SQL
+    await engine.execute("SELECT 1")
+    assert cursor1.execute.await_count == 2
 
-    # conn2 首次 acquire → 初始化
-    await engine.pool.acquire()
-    assert cursor2.execute.await_count == 1
+    # conn2 首次 execute → init_sql + 业务 SQL
+    await engine.execute("SELECT 2")
+    assert cursor2.execute.await_count == 2
 
-    # conn1 再次 acquire → 跳过
-    await engine.pool.acquire()
-    assert cursor1.execute.await_count == 1
+    # conn1 再次 execute → 只有业务 SQL
+    await engine.execute("SELECT 3")
+    assert cursor1.execute.await_count == 3
 
-    # conn2 再次 acquire → 跳过
-    await engine.pool.acquire()
-    assert cursor2.execute.await_count == 1
+    # conn2 再次 execute → 只有业务 SQL
+    await engine.execute("SELECT 4")
+    assert cursor2.execute.await_count == 3
 
 
-async def test_init_sql_error_propagates(mock_pool):
-    """init_sql 执行失败时异常向上抛出"""
+async def test_init_sql_error_recorded_in_result(mock_pool):
+    """init_sql 执行失败时错误记录在 Result 中，连接被释放"""
     from pymysql.err import OperationalError
 
     conn, cursor = _make_mock_conn()
@@ -205,10 +210,16 @@ async def test_init_sql_error_propagates(mock_pool):
         engine = Engine(host="127.0.0.1", port=3306, init_sql="INVALID SQL")
         await engine.connect()
 
-    with pytest.raises(OperationalError, match="Syntax error"):
-        await engine.pool.acquire()
+    result = await engine.execute("SELECT 1")
 
-    # cursor 应已关闭（finally 块执行）
+    # 错误应被记录在 result 中
+    assert result.error is not None
+    assert result.error_no == 1064
+
+    # 连接应被释放回连接池
+    mock_pool.release.assert_called_with(conn)
+
+    # init_sql 的 cursor 应已关闭（finally 块执行）
     cursor.close.assert_awaited_once()
 
 
@@ -222,7 +233,7 @@ async def test_weakset_allows_reinit_after_connection_gc(mock_pool):
     conn1, cursor1 = _make_mock_conn()
     conn2, cursor2 = _make_mock_conn()
 
-    # 使用 side_effect 列表，让 original_acquire 依次返回 conn1 → conn2
+    # 使用 side_effect 列表，让 acquire 依次返回 conn1 → conn2
     mock_pool.acquire = AsyncMock(side_effect=[conn1, conn2])
 
     init_sql = "SET foo = 1"
@@ -231,18 +242,18 @@ async def test_weakset_allows_reinit_after_connection_gc(mock_pool):
         engine = Engine(host="127.0.0.1", port=3306, init_sql=init_sql)
         await engine.connect()
 
-    # conn1 首次 acquire → 初始化
-    await engine.pool.acquire()
-    assert cursor1.execute.await_count == 1
+    # conn1 首次 execute → init_sql + 业务 SQL
+    await engine.execute("SELECT 1")
+    assert cursor1.execute.await_count == 2
 
     # 模拟连接被回收：删除 conn1 引用，强制 GC
     del conn1
     del cursor1
     gc.collect()
 
-    # conn2 是全新的 Connection 对象（不在 WeakSet 中），应重新初始化
-    await engine.pool.acquire()
-    assert cursor2.execute.await_count == 1
+    # conn2 是全新的 Connection 对象（不在 WeakSet 中），应重新执行 init_sql
+    await engine.execute("SELECT 2")
+    assert cursor2.execute.await_count == 2
 
 
 async def test_disconnect_clears_pool(mock_pool):
@@ -259,20 +270,15 @@ async def test_disconnect_clears_pool(mock_pool):
 
 
 async def test_connect_idempotent(mock_pool):
-    """多次调用 connect() 不会重复创建池或重复包装"""
-    original_acquire = mock_pool.acquire  # noqa: F841
-
+    """多次调用 connect() 不会重复创建池"""
     with patch("asmysql.v2._engine.create_pool", new=AsyncMock(return_value=mock_pool)) as mock_create:
         engine = Engine(host="127.0.0.1", port=3306, init_sql="SET foo = 1")
         await engine.connect()
-        wrapped_acquire = engine.pool.acquire
 
         # 再次调用 connect()
         await engine.connect()
         # create_pool 只被调用一次
         mock_create.assert_awaited_once()
-        # acquire 包装不会叠加（因为 __pool 已存在，if not self.__pool 守卫生效）
-        assert engine.pool.acquire is wrapped_acquire
 
 
 async def test_init_sql_with_url_integration(mock_pool):
@@ -288,5 +294,7 @@ async def test_init_sql_with_url_integration(mock_pool):
         assert engine.init_sql == init_sql
         await engine.connect()
 
-    await engine.pool.acquire()
-    cursor.execute.assert_awaited_once_with(init_sql)
+    await engine.execute("SELECT 1")
+    # init_sql + 业务 SQL = 2 次
+    assert cursor.execute.await_count == 2
+    cursor.execute.assert_any_await(init_sql)
