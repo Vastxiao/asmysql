@@ -44,7 +44,6 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.21",
 ]
-#test = ["sqlmodel>=0.0.24"]
 
 [tool.ruff] # 复用之前的 Ruff 配置（uv lint 会读取）
 select = ["E", "F", "I"] # PEP8 错误、语法错误、导入排序
@@ -54,7 +53,8 @@ line-length = 120        # 每行最大长度
 
 [tool.pytest.ini_options]
 testpaths = ["autopytest/"]
-addopts = "--ignore=autopytest/v3 -p autopytest.v2._plugin"
+# addopts = "--ignore=autopytest/v3 -p autopytest.v2._plugin"
+addopts = "-p autopytest.v2._plugin"
 asyncio_mode = "auto"
 markers = ["integration: 需要真实 MySQL 数据库的集成测试（使用 '-m \"not integration\"' 跳过）"]
 
