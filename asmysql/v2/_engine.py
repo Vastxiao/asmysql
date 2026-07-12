@@ -57,22 +57,22 @@ class Engine:
     @final
     def __init__(
         self,
-        url: str = None,
+        url: Optional[str] = None,
         *,
-        host: str = None,
-        port: int = None,
-        user: str = None,
-        password: str = None,
-        charset: str = None,
-        min_pool_size: int = None,
-        max_pool_size: int = None,
-        pool_recycle: float = None,
-        connect_timeout: int = None,
-        auto_commit: bool = None,
-        echo_sql_log: bool = None,
-        stream: bool = None,
-        result_class: type = None,
-        init_sql: str = None,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+        charset: Optional[str] = None,
+        min_pool_size: Optional[int] = None,
+        max_pool_size: Optional[int] = None,
+        pool_recycle: Optional[float] = None,
+        connect_timeout: Optional[int] = None,
+        auto_commit: Optional[bool] = None,
+        echo_sql_log: Optional[bool] = None,
+        stream: Optional[bool] = None,
+        result_class: Optional[type] = None,
+        init_sql: Optional[str] = None,
     ):
         """
         url: mysql://user:password@host:port/?charset=utf8mb4
@@ -84,8 +84,8 @@ class Engine:
             query_params = parse.parse_qs(parsed.query)
             host = parsed.hostname or host
             port = parsed.port or port
-            user = parsed.username or user
-            password = parsed.password or password
+            user = parse.unquote(parsed.username) if parsed.username else user
+            password = parse.unquote(parsed.password) if parsed.password else password
             charset = query_params.get("charset", [charset])[0]
             # 修复参数解析逻辑，避免None值传递给int()函数
             min_pool_size_val = query_params.get("min_pool_size", [min_pool_size])[0]
@@ -150,7 +150,7 @@ class Engine:
                         charset=self.charset,
                         minsize=self.min_pool_size,
                         maxsize=self.max_pool_size,
-                        pool_recycle=self.pool_recycle,
+                        pool_recycle=self.pool_recycle,  # type: ignore
                         connect_timeout=self.connect_timeout,
                         autocommit=self.auto_commit,
                         echo=self.echo_sql_log,
@@ -164,6 +164,7 @@ class Engine:
     def _apply_pool_init_hook(self) -> None:
         """包装 pool.acquire()，使每条新 TCP 连接首次使用时自动执行 init_sql。"""
         pool = self.__pool
+        assert pool is not None
         original_acquire = pool.acquire
         initialized: weakref.WeakSet = weakref.WeakSet()
         init_sql = self.init_sql
@@ -183,7 +184,7 @@ class Engine:
                     raise
             return conn
 
-        pool.acquire = _acquire_with_init
+        pool.acquire = _acquire_with_init  # type: ignore
 
     @final
     @property
@@ -191,7 +192,7 @@ class Engine:
         """返回数据库连接池状态"""
         _status: EngineStatus = {
             "address": self.url,
-            "connected": True if self.is_connected else False,
+            "connected": self.is_connected,
             "pool_minsize": self.__pool.minsize if self.__pool else None,
             "pool_maxsize": self.__pool.maxsize if self.__pool else None,
             "pool_size": self.__pool.size if self.__pool else None,
@@ -227,7 +228,7 @@ class Engine:
     @property
     def is_connected(self):
         """数据库是否已连接"""
-        return True if self.__pool else False
+        return self.__pool is not None
 
     @final
     @property
@@ -242,33 +243,33 @@ class Engine:
     def execute(
         self,
         query: str,
-        values: Union[Sequence, dict] = None,
+        values: Optional[Union[Sequence, dict]] = None,
         *,
-        stream: bool = None,
+        stream: Optional[bool] = None,
         result_class: type[tuple] = tuple,
-        commit: bool = None,
+        commit: Optional[bool] = None,
     ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
 
     @overload
     def execute(
         self,
         query: str,
-        values: Union[Sequence, dict] = None,
+        values: Union[Sequence, dict] | None = None,
         *,
-        stream: bool = None,
+        stream: Optional[bool] = None,
         result_class: type[T],
-        commit: bool = None,
+        commit: Optional[bool] = None,
     ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
 
     @final
     def execute(
         self,
         query: str,
-        values: Union[Sequence, dict] = None,
+        values: Optional[Union[Sequence, dict]] = None,
         *,
-        stream: bool = None,
-        result_class: type[T] = None,
-        commit: bool = None,
+        stream: Optional[bool] = None,
+        result_class: Optional[type[T]] = None,
+        commit: Optional[bool] = None,
     ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
         """
         Execute a SQL statement and return a Result object
@@ -283,7 +284,10 @@ class Engine:
         :param commit: whether to commit the transaction, default is auto
         """
         _stream = stream if stream is not None else self.stream
-        result_class = result_class if result_class is not None else self.result_class
+        _result_class: type = self.result_class
+        if result_class is not None:
+            _result_class = result_class
+        _commit = commit if commit is not None else self.auto_commit
 
         return Result[T](
             pool=self.pool,
@@ -291,8 +295,8 @@ class Engine:
             values=values,
             execute_many=False,
             stream=_stream,
-            commit=commit,
-            result_class=result_class,
+            commit=_commit,
+            result_class=_result_class,
         )
 
     @overload
@@ -301,9 +305,9 @@ class Engine:
         query: str,
         values: Sequence[Union[Sequence, dict]],
         *,
-        stream: bool = None,
+        stream: Optional[bool] = None,
         result_class: type[tuple] = tuple,
-        commit: bool = None,
+        commit: Optional[bool] = None,
     ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
 
     @overload
@@ -312,9 +316,9 @@ class Engine:
         query: str,
         values: Sequence[Union[Sequence, dict]],
         *,
-        stream: bool = None,
+        stream: Optional[bool] = None,
         result_class: type[T],
-        commit: bool = None,
+        commit: Optional[bool] = None,
     ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
 
     @final
@@ -323,9 +327,9 @@ class Engine:
         query: str,
         values: Sequence[Union[Sequence, dict]],
         *,
-        stream: bool = None,
-        result_class: type[T] = None,
-        commit: bool = None,
+        stream: Optional[bool] = None,
+        result_class: Optional[type[T]] = None,
+        commit: Optional[bool] = None,
     ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
         """
         Execute a SQL statement and return a Result object
@@ -341,6 +345,7 @@ class Engine:
         """
         _stream = stream if stream is not None else self.stream
         result_class = result_class if result_class is not None else self.result_class
+        _commit = commit if commit is not None else self.auto_commit
 
         return Result[T](
             pool=self.pool,
@@ -348,6 +353,6 @@ class Engine:
             values=values,
             execute_many=True,
             stream=_stream,
-            commit=commit,
+            commit=_commit,
             result_class=result_class,
         )
