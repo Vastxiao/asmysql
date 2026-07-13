@@ -118,7 +118,7 @@ class Engine:
         self.result_class: Final[type] = result_class if result_class is not None else self.result_class
         self.init_sql: Final[Optional[str]] = init_sql if init_sql is not None else self.init_sql
 
-        self.url: Final[str] = f"mysql://{self.host}:{self.port}/"
+        self.url: Final[str] = f"mysql://{self.user}@{self.host}:{self.port}/"
         self.__pool: Optional[Pool] = None
         self._connect_lock: Final[asyncio.Lock] = asyncio.Lock()
 

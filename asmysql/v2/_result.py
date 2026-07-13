@@ -67,29 +67,13 @@ class Result(Generic[T]):
         """GC 时的安全网。"""
         try:
             if self.__cursor:
-                conn = self.__cursor.connection
-                if conn:
-                    warnings.warn(
-                        f"{self.__class__.__name__} 未被正确关闭（应使用 async with / async for / close()）。"
-                        f"连接未归还连接池以避免污染。 SQL: {self.query!r}",
-                        ResourceWarning,
-                        stacklevel=1,
-                        source=self,
-                    )
-                    if self.pool:
-                        self.pool.release(conn)
-            # del self.__cursor
-            # del self.pool
-            # del self.query
-            # del self.values
-            # del self.__execute_many
-            # del self.stream
-            # del self.commit
-            # del self._result_class
-            # del self.__init_sql
-            # del self.__executed
-            # del self.__error
-            # del self.__conn_autoclose
+                warnings.warn(
+                    f"{self.__class__.__name__} 未被正确关闭（应使用 async with / async for / close()）。"
+                    f"连接未归还连接池以避免污染。 SQL: {self.query!r}",
+                    ResourceWarning,
+                    stacklevel=1,
+                    source=self,
+                )
         except Exception:
             pass
 
@@ -182,7 +166,10 @@ class Result(Generic[T]):
                 await self.__cursor.connection.commit()
         except Exception as err:
             if self.__cursor is not None:
-                await self.__cursor.close()
+                try:
+                    await self.__cursor.close()
+                except Exception:
+                    pass
                 self.__cursor = None
             if conn is not None:
                 self.pool.release(conn)
@@ -266,7 +253,7 @@ class Result(Generic[T]):
         """
         if close is not None:
             self.__conn_autoclose = close
-        if self.error:
+        if self.error or self.__cursor is None:
             return None
         # noinspection PyUnresolvedReferences
         data = await self.__cursor.fetchone()
@@ -293,7 +280,7 @@ class Result(Generic[T]):
             self.__conn_autoclose = close
 
         _data: list[T] = []
-        if self.error:
+        if self.error or self.__cursor is None:
             return _data
         # noinspection PyUnresolvedReferences
         data: list = await self.__cursor.fetchmany(size)
@@ -325,7 +312,7 @@ class Result(Generic[T]):
 
     async def iterate(self):
         """异步生成器遍历所有记录"""
-        if self.error:
+        if self.error or self.__cursor is None:
             # 有错误则不迭代
             return
             # 直接return等价于以下代码:
