@@ -104,7 +104,6 @@ v3dev 新增 v2 API 的同步镜像：
 ## 关键约定
 
 - `@final` 装饰器用于禁止重写的方法（尤其是 `Engine.__init__`、`connect`、`disconnect`、`execute` 等）
-- `@lru_cache` 应用于 `__repr__` 和 `__str__` 以提升性能
 - 源码中统一使用中文 docstring
 - `typing.Final` 用于标注 `__init__` 中赋值的实例属性
 - `Engine` 所有配置属性均有类级别默认值，也可通过 URL 查询参数传入

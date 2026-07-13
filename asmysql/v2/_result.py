@@ -10,8 +10,9 @@ from ._error import err_msg
 
 T = TypeVar("T")
 
-# 每个 Pool 对应的已初始化连接集合（WeakSet），用于避免对同一连接重复执行 init_sql
-_initialized_conns: dict[int, weakref.WeakSet] = {}
+# 每个 Pool 对应的已初始化连接集合（WeakSet），用于避免对同一连接重复执行 init_sql。
+# 使用 WeakKeyDictionary 以 Pool 对象为 key，当 Pool 被 GC 时条目自动清理。
+_initialized_conns: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
 
 
 def _get_cursor_class(*, result_class, stream: bool):
@@ -63,16 +64,7 @@ class Result(Generic[T]):
         return f"<{self.__class__.__name__}: {self.query}>"
 
     def __del__(self):
-        """GC 时的安全网。
-
-        由于 ``aiomysql.Cursor.close()`` 是 async 方法（内部 ``await nextset()``
-        排空待接收数据），在同步的 ``__del__`` 中无法正确关闭游标。
-        若此时将连接归还连接池，连接可能处于脏状态（残留未读完的结果集或未关闭的游标），
-        影响下一个使用者。因此 **不释放连接**，仅发出 ``ResourceWarning`` 提醒。
-        连接会在连接池销毁或 MySQL 服务端超时后自动回收。
-
-        正常使用时应通过 ``async with`` / ``async for`` / ``iterate()`` / ``close()`` 显式释放。
-        """
+        """GC 时的安全网。"""
         try:
             if self.__cursor:
                 conn = self.__cursor.connection
@@ -151,10 +143,11 @@ class Result(Generic[T]):
             raise StopAsyncIteration
         else:
             # noinspection PyUnresolvedReferences
-            data = await self.fetch_one()
+            data = await self.fetch_one(close=False)
             if data is not None:
                 return data
             else:
+                await self.close()
                 raise StopAsyncIteration
 
     async def __call__(self):
@@ -171,12 +164,11 @@ class Result(Generic[T]):
             conn = await self.pool.acquire()
             self.__cursor = await conn.cursor(cursor_class)
             # 连接级初始化：每条新 TCP 连接首次使用时自动执行 init_sql
-            if self.__init_sql is not None:
-                pool_id = id(self.pool)
-                initialized = _initialized_conns.get(pool_id)
+            if self.__init_sql:
+                initialized = _initialized_conns.get(self.pool)
                 if initialized is None:
                     initialized = weakref.WeakSet()
-                    _initialized_conns[pool_id] = initialized
+                    _initialized_conns[self.pool] = initialized
                 if conn not in initialized:
                     await self.__cursor.execute(self.__init_sql)
                     await self.__cursor.connection.commit()
@@ -185,6 +177,7 @@ class Result(Generic[T]):
                 await self.__cursor.executemany(self.query, self.values)
             else:
                 await self.__cursor.execute(self.query, self.values)
+            # 对于 stream 模式，不自动提交（steam下commit后流会获取不到数据）
             if self.commit and not self.stream:
                 await self.__cursor.connection.commit()
         except Exception as err:
@@ -264,7 +257,7 @@ class Result(Generic[T]):
             return None
         return self.__cursor.rownumber
 
-    async def fetch_one(self, close: bool = None):
+    async def fetch_one(self, close: Optional[bool] = None):
         """获取一条记录
 
         :param close: 是否自动关闭游标连接
@@ -289,7 +282,7 @@ class Result(Generic[T]):
             await self.close()
         return _data
 
-    async def fetch_many(self, size: int = None, close: bool = None):
+    async def fetch_many(self, size: int = None, close: Optional[bool] = None):
         """获取多条记录
 
         :param size: 获取记录的数量
