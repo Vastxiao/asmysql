@@ -78,18 +78,18 @@ class Result(Generic[T]):
                     )
                     if self.pool:
                         self.pool.release(conn)
-            del self.__cursor
-            del self.pool
-            del self.query
-            del self.values
-            del self.__execute_many
-            del self.stream
-            del self.commit
-            del self._result_class
-            del self.__init_sql
-            del self.__executed
-            del self.__error
-            del self.__conn_autoclose
+            # del self.__cursor
+            # del self.pool
+            # del self.query
+            # del self.values
+            # del self.__execute_many
+            # del self.stream
+            # del self.commit
+            # del self._result_class
+            # del self.__init_sql
+            # del self.__executed
+            # del self.__error
+            # del self.__conn_autoclose
         except Exception:
             pass
 
