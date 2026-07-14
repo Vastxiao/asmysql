@@ -47,9 +47,7 @@ class Engine:
     max_pool_size: int = 10
     pool_recycle: float = -1  # 空闲TCP连接回收等待时间（秒）
     connect_timeout: int = 5  # 连接超时时间（秒）
-    auto_commit: bool = True
     echo_sql_log: bool = False  # 是否打印sql语句日志
-    stream: bool = False  # 是否使用流式返回结果
     result_class: type = tuple  # 返回结果类型
     init_sql: Optional[str] = None  # 连接初始化时自动执行的 SQL（如 SET）
 
@@ -67,9 +65,7 @@ class Engine:
         max_pool_size: Optional[int] = None,
         pool_recycle: Optional[float] = None,
         connect_timeout: Optional[int] = None,
-        auto_commit: Optional[bool] = None,
         echo_sql_log: Optional[bool] = None,
-        stream: Optional[bool] = None,
         result_class: Optional[type] = None,
         init_sql: Optional[str] = None,
     ):
@@ -95,9 +91,6 @@ class Engine:
             pool_recycle = float(pool_recycle_val) if pool_recycle_val is not None else pool_recycle
             connect_timeout_val = query_params.get("connect_timeout", [connect_timeout])[0]
             connect_timeout = int(connect_timeout_val) if connect_timeout_val is not None else connect_timeout
-            auto_commit_val = query_params.get("auto_commit", [None])[0]
-            if auto_commit_val is not None:
-                auto_commit = auto_commit_val.lower() in ("true", "1", "yes")
             echo_sql_log_val = query_params.get("echo_sql_log", [None])[0]
             if echo_sql_log_val is not None:
                 echo_sql_log = echo_sql_log_val.lower() in ("true", "1", "yes")
@@ -112,9 +105,7 @@ class Engine:
         self.max_pool_size: Final[int] = max_pool_size if max_pool_size is not None else self.max_pool_size
         self.pool_recycle: Final[float] = pool_recycle if pool_recycle is not None else self.pool_recycle
         self.connect_timeout: Final[int] = connect_timeout if connect_timeout is not None else self.connect_timeout
-        self.auto_commit: Final[bool] = auto_commit if auto_commit is not None else self.auto_commit
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
-        self.stream: Final[bool] = stream if stream is not None else self.stream
         self.result_class: Final[type] = result_class if result_class is not None else self.result_class
         self.init_sql: Final[Optional[str]] = init_sql if init_sql is not None else self.init_sql
 
@@ -151,7 +142,7 @@ class Engine:
                         maxsize=self.max_pool_size,
                         pool_recycle=self.pool_recycle,  # type: ignore
                         connect_timeout=self.connect_timeout,
-                        autocommit=self.auto_commit,
+                        autocommit=False,
                         echo=self.echo_sql_log,
                     )
                 except MySQLError as err:
@@ -255,19 +246,17 @@ class Engine:
         :param result_class: the class to use for the result
         :param commit: whether to commit the transaction, default is auto
         """
-        _stream = stream if stream is not None else self.stream
         _result_class: type = self.result_class
         if result_class is not None:
             _result_class = result_class
-        _commit = commit if commit is not None else self.auto_commit
 
         return Result[T](
             pool=self.pool,
             query=query,
             values=values,
             execute_many=False,
-            stream=_stream,
-            commit=_commit,
+            stream=stream,
+            commit=commit,
             result_class=_result_class,
             init_sql=self.init_sql,
         )
@@ -316,17 +305,15 @@ class Engine:
         :param result_class: the class to use for the result
         :param commit: whether to commit the transaction, default is auto
         """
-        _stream = stream if stream is not None else self.stream
         result_class = result_class if result_class is not None else self.result_class
-        _commit = commit if commit is not None else self.auto_commit
 
         return Result[T](
             pool=self.pool,
             query=query,
             values=values,
             execute_many=True,
-            stream=_stream,
-            commit=_commit,
+            stream=stream,
+            commit=commit,
             result_class=result_class,
             init_sql=self.init_sql,
         )

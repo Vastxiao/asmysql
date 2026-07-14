@@ -34,8 +34,8 @@ class Result(Generic[T]):
         query: str,
         values: Union[Sequence, dict, None] = None,
         execute_many: bool = False,
-        stream: bool = False,
-        commit: bool = True,
+        stream: Optional[bool] = None,
+        commit: Optional[bool] = None,
         result_class: type[T] = tuple,
         init_sql: Optional[str] = None,
     ):
@@ -43,8 +43,8 @@ class Result(Generic[T]):
         self.query: Final[str] = query
         self.values: Final[Union[Sequence, dict, None]] = values
         self.__execute_many: Final[bool] = execute_many
-        self.stream: Final[bool] = stream
-        self.commit: Final[bool] = commit
+        self.stream: Final[bool] = stream if stream is not None else False
+        self.commit: Final[bool] = commit if commit is not None else True
         self._result_class: Final[type[T]] = result_class
         self.__init_sql: Final[Optional[str]] = init_sql
         self.__cursor: Optional[Cursor] = None

@@ -51,7 +51,6 @@ uv publish --index testpypi --username __token__
 
 - **v1**（`asmysql/v1/`）：旧版兼容。单一 `AsMysql` 类同时承担连接管理与业务逻辑，通过 `CursorClient` 执行 SQL。导入方式：`from asmysql.v1 import AsMysql`。
 - **v2**（`asmysql/v2/`）：**当前生产版本**（顶层 `asmysql` 包的导出目标）。将职责分离为 `Engine`（连接池 + 执行）和 `AsMysql`（业务逻辑封装）。导入方式：`from asmysql import Engine, AsMysql`。
-- **v3dev**（`asmysql/v3dev/`）：**开发中，已从构建排除**（`pyproject.toml` 中 `source-exclude`）。在异步基础上新增同步支持，基于 `pymysql` 实现自定义连接池（`_sync_pool.py`）。导入别名为 `AsyncEngine` / `SyncEngine`。
 
 ### v2 核心设计模式
 
@@ -71,14 +70,6 @@ uv publish --index testpypi --username __token__
 - 泛型参数 `T`：`tuple`（默认，使用 `Cursor` / `SSCursor`）、`dict`（使用 `DictCursor` / `SSDictCursor`）、或任意支持 `**kwargs` 构造的类（如 Pydantic `BaseModel`）
 - 游标类型根据 `result_class` 和 `stream` 标志自动选择
 - 数据耗尽或显式调用 `close()` 后自动释放连接回连接池
-
-### v3dev 同步引擎
-
-v3dev 新增 v2 API 的同步镜像：
-- `_sync_pool.py`：基于 `pymysql` 的线程安全自定义连接池（仿照 `aiomysql.Pool` API）
-- `_sync_engine.py`：使用自定义连接池的同步 `Engine`；`execute()` 返回同步 `Result`
-- `_sync_result.py`：使用 `with` / `for` 替代 `async with` / `async for` 的同步版本
-- `_asmysql.py`：泛型支持 `EngineType`（同步或异步引擎）
 
 ## 测试
 

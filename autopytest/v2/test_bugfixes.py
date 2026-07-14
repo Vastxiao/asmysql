@@ -268,40 +268,6 @@ class TestP0Critical:
 class TestP1High:
     """高优先级缺陷：URL 参数解析、falsy 值、并发、异常类"""
 
-    def test_auto_commit_false_from_url(self):
-        """Test 7a: ?auto_commit=false 应解析为 False
-
-        Bug: 旧版用 bool(query_param) 判断，任何非空字符串均为 True。
-        Fix: 使用 val.lower() in ("true", "1", "yes") 做显式白名单判断。
-        """
-        engine = Engine(url="mysql://user:pass@host:3306/?auto_commit=false")
-        assert engine.auto_commit is False
-
-    def test_auto_commit_0_from_url(self):
-        """Test 7b: ?auto_commit=0 → False"""
-        engine = Engine(url="mysql://user:pass@host:3306/?auto_commit=0")
-        assert engine.auto_commit is False
-
-    def test_auto_commit_true_from_url(self):
-        """Test 7c: ?auto_commit=true → True"""
-        engine = Engine(url="mysql://user:pass@host:3306/?auto_commit=true")
-        assert engine.auto_commit is True
-
-    def test_auto_commit_1_from_url(self):
-        """Test 7d: ?auto_commit=1 → True"""
-        engine = Engine(url="mysql://user:pass@host:3306/?auto_commit=1")
-        assert engine.auto_commit is True
-
-    def test_auto_commit_yes_from_url(self):
-        """Test 7e: ?auto_commit=yes → True"""
-        engine = Engine(url="mysql://user:pass@host:3306/?auto_commit=yes")
-        assert engine.auto_commit is True
-
-    def test_auto_commit_no_from_url(self):
-        """Test 7f: ?auto_commit=no → False"""
-        engine = Engine(url="mysql://user:pass@host:3306/?auto_commit=no")
-        assert engine.auto_commit is False
-
     def test_min_pool_size_zero_not_overridden(self):
         """Test 8a: min_pool_size=0 不应被默认值 1 覆盖
 
@@ -368,19 +334,18 @@ class TestP1High:
         await result
         conn.commit.assert_awaited_once()
 
-    async def test_result_commit_none_does_not_call_connection_commit(self):
-        """Test 10b: commit=None 时不调用 connection.commit()（依赖 pool autocommit）
+    async def test_result_commit_none_defaults_to_true(self):
+        """Test 10b: commit=None 时默认为 True，执行 connection.commit()
 
         当 Engine.execute() 不传 commit 时，Result 的 commit=None。
-        当前行为：None 被视为 falsy，不执行 connection.commit()。
-        连接依赖 aiomysql pool 的 autocommit 设置。
+        新行为：None 默认为 True，执行 connection.commit()。
         """
         conn, cursor = _make_mock_conn()
         pool = _make_mock_pool(conn)
 
         result = _make_result(pool=pool, commit=None)
         await result
-        conn.commit.assert_not_awaited()
+        conn.commit.assert_awaited_once()
 
 
 # ═══════════════════════════════════════════════════════════════════
