@@ -1,7 +1,7 @@
 import warnings
 import weakref
 from functools import cached_property
-from typing import Final, Generic, Optional, Sequence, TypeVar, Union
+from typing import Final, Generic, Optional, Sequence, TypeVar, Union, cast
 
 from aiomysql import Connection, Cursor, DictCursor, Pool, SSCursor, SSDictCursor
 from pymysql.err import MySQLError
@@ -51,6 +51,9 @@ class Result(Generic[T]):
         self.__executed: bool = False
         self.__error: Optional[MySQLError] = None
         self.__conn_autoclose: bool = True
+        # 缓存 rowcount / lastrowid，以便在游标关闭后仍可访问
+        self.__rowcount: Optional[int] = None
+        self.__lastrowid: Optional[int] = None
 
     # @property
     # def cursor(self):
@@ -145,8 +148,8 @@ class Result(Generic[T]):
         conn: Connection | None = None
         try:
             # noinspection PyUnresolvedReferences
-            conn = await self.pool.acquire()
-            self.__cursor = await conn.cursor(cursor_class)
+            conn = cast(Connection, await self.pool.acquire())
+            self.__cursor = cast(Cursor, await conn.cursor(cursor_class))
             # 连接级初始化：每条新 TCP 连接首次使用时自动执行 init_sql
             if self.__init_sql:
                 initialized = _initialized_conns.get(self.pool)
@@ -155,7 +158,7 @@ class Result(Generic[T]):
                     _initialized_conns[self.pool] = initialized
                 if conn not in initialized:
                     await self.__cursor.execute(self.__init_sql)
-                    await self.__cursor.connection.commit()
+                    await self.__cursor.connection.commit()  # type: ignore
                     initialized.add(conn)
             if self.__execute_many:
                 await self.__cursor.executemany(self.query, self.values)
@@ -163,7 +166,19 @@ class Result(Generic[T]):
                 await self.__cursor.execute(self.query, self.values)
             # 对于 stream 模式，不自动提交（steam下commit后流会获取不到数据）
             if self.commit and not self.stream:
-                await self.__cursor.connection.commit()
+                await self.__cursor.connection.commit()  # type: ignore
+            # 非流式模式下，如果语句不返回结果集（DDL/INSERT/UPDATE 等），
+            # 自动关闭游标并释放连接回连接池，避免连接泄漏。
+            # cursor.description 为 None 表示该语句无结果集可供获取。
+            if not self.stream and self.__cursor.description is None:
+                # 缓存 rowcount / lastrowid，以便游标关闭后仍可访问
+                self.__rowcount = self.__cursor.rowcount
+                self.__lastrowid = self.__cursor.lastrowid
+                conn_to_release = conn
+                await self.__cursor.close()
+                self.__cursor = None
+                self.pool.release(conn_to_release)
+                conn = None  # 防止 except 块重复释放
         except Exception as err:
             if self.__cursor is not None:
                 try:
@@ -217,8 +232,9 @@ class Result(Generic[T]):
             return None
         if self.stream:
             return None
+        # 游标已关闭时使用缓存值（DDL/DML 语句执行后会自动释放连接）
         if self.__cursor is None:
-            return None
+            return self.__rowcount
         return self.__cursor.rowcount
 
     @property
@@ -230,8 +246,11 @@ class Result(Generic[T]):
         如果没插入insert数据，则返回None
         如果mysql报错，则返回None
         """
-        if self.error or self.__cursor is None:
+        if self.error:
             return None
+        # 游标已关闭时使用缓存值（DDL/DML 语句执行后会自动释放连接）
+        if self.__cursor is None:
+            return self.__lastrowid
         return self.__cursor.lastrowid
 
     @property
@@ -269,7 +288,7 @@ class Result(Generic[T]):
             await self.close()
         return _data
 
-    async def fetch_many(self, size: int = None, close: Optional[bool] = None):
+    async def fetch_many(self, size: Optional[int] = None, close: Optional[bool] = None):
         """获取多条记录
 
         :param size: 获取记录的数量
@@ -299,7 +318,7 @@ class Result(Generic[T]):
     async def fetch_all(self):
         """获取所有记录"""
         _data: list[T] = []
-        if self.error:
+        if self.error or self.__cursor is None:
             return _data
         # noinspection PyUnresolvedReferences
         data: list = await self.__cursor.fetchall()
