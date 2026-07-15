@@ -1,6 +1,5 @@
 import warnings
 import weakref
-from functools import cached_property
 from typing import Final, Generic, Optional, Sequence, TypeVar, Union, cast
 
 from aiomysql import Connection, Cursor, DictCursor, Pool, SSCursor, SSDictCursor
@@ -202,7 +201,6 @@ class Result(Generic[T]):
         """
         return self.__call__().__await__()
 
-    @cached_property
     def error_no(self):
         """获取错误码
 
@@ -211,7 +209,6 @@ class Result(Generic[T]):
         __err_no: int = self.error.args[0] if self.error else 0
         return __err_no
 
-    @cached_property
     def error_msg(self):
         """获取错误信息
 

@@ -14,11 +14,6 @@ cd asmysql
 pip install .
 ```
 
-## Requirements
-
-- Python >= 3.9
-- aiomysql[rsa] >= 0.3.2
-
 ## Verify Installation
 
 After installation, you can verify the installation by trying to import the main classes:
