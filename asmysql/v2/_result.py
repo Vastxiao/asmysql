@@ -9,8 +9,9 @@ from ._error import err_msg
 
 T = TypeVar("T")
 
-# 每个 Pool 对应的已初始化连接集合（WeakSet），用于避免对同一连接重复执行 init_sql。
+# 每个 Pool 对应的已初始化连接 ID 集合，用于避免对同一连接重复执行 init_sql。
 # 使用 WeakKeyDictionary 以 Pool 对象为 key，当 Pool 被 GC 时条目自动清理。
+# value 为普通 set[int]（存储 id(conn)），避免因 WeakSet 对池中连接的强引用累积。
 _initialized_conns: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
 
 
@@ -50,7 +51,7 @@ class Result(Generic[T]):
         self.__executed: bool = False
         self.__error: Optional[MySQLError] = None
         self.__conn_autoclose: bool = True
-        # 缓存 rowcount / lastrowid，以便在游标关闭后仍可访问
+        # 缓存 rowcount / lastrowid，仅在无结果集语句（DDL/INSERT/UPDATE）时使用
         self.__rowcount: Optional[int] = None
         self.__lastrowid: Optional[int] = None
 
@@ -68,6 +69,9 @@ class Result(Generic[T]):
     def __del__(self):
         """GC 时的安全网。"""
         try:
+            # 风险点 5：清理 error 引用，允许大异常对象被 GC
+            self.__error = None
+
             if self.__cursor:
                 warnings.warn(
                     f"{self.__class__.__name__} 未被正确关闭（应使用 async with / async for / close()）。"
@@ -128,8 +132,12 @@ class Result(Generic[T]):
             # 有错误则不迭代
             raise StopAsyncIteration
         else:
-            # noinspection PyUnresolvedReferences
-            data = await self.fetch_one(close=False)
+            try:
+                # noinspection PyUnresolvedReferences
+                data = await self.fetch_one(close=False)
+            except BaseException:
+                await self.close()
+                raise
             if data is not None:
                 return data
             else:
@@ -153,12 +161,13 @@ class Result(Generic[T]):
             if self.__init_sql:
                 initialized = _initialized_conns.get(self.pool)
                 if initialized is None:
-                    initialized = weakref.WeakSet()
+                    initialized = set()
                     _initialized_conns[self.pool] = initialized
-                if conn not in initialized:
+                conn_id = id(conn)
+                if conn_id not in initialized:
                     await self.__cursor.execute(self.__init_sql)
                     await self.__cursor.connection.commit()  # type: ignore
-                    initialized.add(conn)
+                    initialized.add(conn_id)
             if self.__execute_many:
                 await self.__cursor.executemany(self.query, self.values)
             else:
@@ -166,10 +175,9 @@ class Result(Generic[T]):
             # 对于 stream 模式，不自动提交（steam下commit后流会获取不到数据）
             if self.commit and not self.stream:
                 await self.__cursor.connection.commit()  # type: ignore
-            # 非流式模式下，如果语句不返回结果集（DDL/INSERT/UPDATE 等），
+            # cursor.description 为 None 表示该语句无结果集（DDL/INSERT/UPDATE 等），
             # 自动关闭游标并释放连接回连接池，避免连接泄漏。
-            # cursor.description 为 None 表示该语句无结果集可供获取。
-            if not self.stream and self.__cursor.description is None:
+            if self.__cursor.description is None:
                 # 缓存 rowcount / lastrowid，以便游标关闭后仍可访问
                 self.__rowcount = self.__cursor.rowcount
                 self.__lastrowid = self.__cursor.lastrowid
@@ -195,12 +203,7 @@ class Result(Generic[T]):
             self.__executed = True
         return self
 
-    def __await__(self):
-        """
-        支持 result = await execute(...) 用法
-        """
-        return self.__call__().__await__()
-
+    @property
     def error_no(self):
         """获取错误码
 
@@ -209,6 +212,7 @@ class Result(Generic[T]):
         __err_no: int = self.error.args[0] if self.error else 0
         return __err_no
 
+    @property
     def error_msg(self):
         """获取错误信息
 
@@ -329,22 +333,18 @@ class Result(Generic[T]):
     async def iterate(self):
         """异步生成器遍历所有记录"""
         if self.error or self.__cursor is None:
-            # 有错误则不迭代
             return
-            # 直接return等价于以下代码:
-            # raise StopAsyncIteration
-        else:
-            try:
-                while True:
-                    # noinspection PyUnresolvedReferences
-                    data = await self.__cursor.fetchone()
-                    if data is not None:
-                        if self._result_class is not tuple and self._result_class is not dict:
-                            _data: T = self._result_class(**data)
-                        else:
-                            _data: T = data
-                        yield _data
+        try:
+            while True:
+                # noinspection PyUnresolvedReferences
+                data = await self.__cursor.fetchone()
+                if data is not None:
+                    if self._result_class is not tuple and self._result_class is not dict:
+                        _data: T = self._result_class(**data)
                     else:
-                        break
-            finally:
-                await self.close()
+                        _data: T = data
+                    yield _data
+                else:
+                    break
+        finally:
+            await self.close()

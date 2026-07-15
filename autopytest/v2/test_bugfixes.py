@@ -112,14 +112,14 @@ class TestP0Critical:
         pool = _make_mock_pool(conn)
 
         result = _make_result(pool=pool, commit=False, result_class=CustomModel)
-        await result  # 执行 SQL
 
-        models = await result.fetch_all()
+        async with result as r:
+            models = await r.fetch_all()
 
-        assert len(models) == 2
-        assert isinstance(models[0], CustomModel)
-        assert models[0].name == "Alice"
-        assert models[1].id == 2
+            assert len(models) == 2
+            assert isinstance(models[0], CustomModel)
+            assert models[0].name == "Alice"
+            assert models[1].id == 2
         # 核心断言：连接必须被释放
         pool.release.assert_called_once_with(conn)
 
@@ -136,14 +136,16 @@ class TestP0Critical:
         pool = _make_mock_pool(conn)
 
         result = _make_result(pool=pool, commit=False)
-        await result  # SQL 失败，存储 error 并释放连接
 
-        assert result.error is not None
+        async with result as r:
+            pass  # SQL 失败，存储 error 并释放连接
+
+        assert r.error is not None
         # 此时 pool.release 已调用一次
         assert pool.release.call_count == 1
 
         # 再次 close()：应当安全且幂等
-        await result.close()
+        await r.close()
         # 核心断言：连接仅被释放一次
         assert pool.release.call_count == 1
 
@@ -161,11 +163,10 @@ class TestP0Critical:
             engine = Engine(host="127.0.0.1", port=3306, init_sql="BAD SQL")
             await engine.connect()
 
-        result = await engine.execute("SELECT 1")
-
-        # 核心断言：错误被记录在 result 中
-        assert result.error is not None
-        assert result.error_no == 1064
+        async with engine.execute("SELECT 1") as result:
+            # 核心断言：错误被记录在 result 中
+            assert result.error is not None
+            assert result.error_no == 1064
         # 连接被释放
         pool.release.assert_called_with(conn)
         # cursor 也应被关闭
@@ -229,7 +230,8 @@ class TestP0Critical:
         result = _make_result(pool=pool, commit=False)
 
         with pytest.raises(OSError, match="Connection reset"):
-            await result
+            async with result:
+                pass
 
         # 核心断言：非 MySQLError 异常也要释放连接
         pool.release.assert_called_once_with(conn)
@@ -331,7 +333,8 @@ class TestP1High:
         pool = _make_mock_pool(conn)
 
         result = _make_result(pool=pool, commit=True)
-        await result
+        async with result:
+            pass
         conn.commit.assert_awaited_once()
 
     async def test_result_commit_none_defaults_to_true(self):
@@ -344,7 +347,8 @@ class TestP1High:
         pool = _make_mock_pool(conn)
 
         result = _make_result(pool=pool, commit=None)
-        await result
+        async with result:
+            pass
         conn.commit.assert_awaited_once()
 
 
@@ -429,62 +433,58 @@ class TestP2Medium:
         """
         conn, cursor = _make_mock_conn()
         cursor.rowcount = 42
+        cursor.description = (("col",),)  # 模拟有结果集
         pool = _make_mock_pool(conn)
 
         result = _make_result(pool=pool, commit=False)
-        await result
-        assert result.row_count == 42
+        async with result as r:
+            assert r.row_count == 42
 
-        await result.close()
         # 核心断言：close 后不报错
-        assert result.row_count is None
+        assert r.row_count is None
 
     async def test_last_rowid_after_close_returns_none(self):
         """Test 15b: close() 后 last_rowid 应返回 None"""
         conn, cursor = _make_mock_conn()
         cursor.lastrowid = 99
+        cursor.description = (("col",),)
         pool = _make_mock_pool(conn)
 
         result = _make_result(pool=pool, commit=False)
-        await result
-        assert result.last_rowid == 99
+        async with result as r:
+            assert r.last_rowid == 99
 
-        await result.close()
-        assert result.last_rowid is None
+        assert r.last_rowid is None
 
     async def test_row_number_after_close_returns_none(self):
         """Test 15c: close() 后 row_number 应返回 None"""
         conn, cursor = _make_mock_conn()
         cursor.rownumber = 5
+        cursor.description = (("col",),)
         pool = _make_mock_pool(conn)
 
         result = _make_result(pool=pool, commit=False)
-        await result
-        assert result.row_number == 5
+        async with result as r:
+            assert r.row_number == 5
 
-        await result.close()
-        assert result.row_number is None
+        assert r.row_number is None
 
     async def test_fetch_one_close_false_does_not_release_on_exhaustion(self):
-        """Test 16: fetch_one(close=False) 数据耗尽时不释放连接
+        """Test 16: fetch_one(close=False) 数据耗尽时不自动释放连接
 
         Bug: fetch_one() 数据为空时总是调用 close()，忽略 close=False 参数。
         Fix: 使用 __conn_autoclose 标志，仅当其为 True 时才自动关闭。
         """
         conn, cursor = _make_mock_conn()
         cursor.fetchone = AsyncMock(return_value=None)
+        cursor.description = (("col",),)  # 模拟有结果集
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False)
-        await result  # 执行 SQL
-
-        data = await result.fetch_one(close=False)
-        assert data is None
-        # 核心断言：连接未被释放
-        pool.release.assert_not_called()
-
-        # 手动清理
-        await result.close()
+        async with _make_result(pool=pool, commit=False) as result:
+            data = await result.fetch_one(close=False)
+            assert data is None
+            # 核心断言：连接未被释放（fetch_one 耗尽但 close=False）
+            pool.release.assert_not_called()
 
     async def test_error_msg_uses_err_msg_formatter(self):
         """Test 17: error_msg 应使用 err_msg() 格式化，而非直接访问 args[1]
@@ -534,11 +534,10 @@ class TestP2Medium:
         pool = _make_mock_pool(conn)
 
         result = _make_result(pool=pool, commit=False)
-        await result  # 执行 SQL
-
-        collected = []
-        async for item in result.iterate():
-            collected.append(item)
+        async with result as r:
+            collected = []
+            async for item in r.iterate():
+                collected.append(item)
 
         # 核心断言：空元组也应被 yield
         assert len(collected) == 3
@@ -583,9 +582,9 @@ class TestP2Medium:
         pool = _make_mock_pool(conn)
 
         result = _make_result(pool=pool, commit=False)
-        await result
+        async with result:
+            pass  # 执行 SQL
 
-        await result.close()
         assert pool.release.call_count == 1
 
         await result.close()
@@ -601,9 +600,8 @@ class TestP2Medium:
         pool = _make_mock_pool(conn)
 
         result = _make_result(pool=pool, commit=False, result_class=tuple)
-        await result
-
-        rows = await result.fetch_all()
+        async with result as r:
+            rows = await r.fetch_all()
         assert len(rows) == 2
         assert rows[0] == (1, "a")
         pool.release.assert_called_with(conn)
@@ -615,9 +613,8 @@ class TestP2Medium:
         pool = _make_mock_pool(conn)
 
         result = _make_result(pool=pool, commit=False, result_class=dict)
-        await result
-
-        rows = await result.fetch_all()
+        async with result as r:
+            rows = await r.fetch_all()
         assert len(rows) == 2
         assert rows[0] == {"id": 1}
         pool.release.assert_called_with(conn)

@@ -119,7 +119,8 @@ async def test_connect_without_init_sql_does_not_affect_execute(mock_pool):
         engine = Engine(host="127.0.0.1", port=3306)
         await engine.connect()
 
-    result = await engine.execute("SELECT 1")
+    async with engine.execute("SELECT 1") as result:
+        pass
     # cursor.execute 只被调用了一次（业务 SQL），没有额外的 init_sql
     assert cursor.execute.await_count == 1
 
@@ -136,7 +137,8 @@ async def test_new_connection_gets_init_sql_on_first_execute(mock_pool):
         await engine.connect()
 
     # 第一次 execute：应先执行 init_sql，再执行业务 SQL
-    result = await engine.execute("SELECT 1")
+    async with engine.execute("SELECT 1") as result:
+        pass
 
     # cursor.execute 被调用了 2 次：init_sql + 业务 SQL
     assert cursor.execute.await_count == 2
@@ -156,15 +158,18 @@ async def test_same_connection_skips_init_sql_on_subsequent_execute(mock_pool):
         await engine.connect()
 
     # 第一次 execute：init_sql + 业务 SQL = 2 次
-    await engine.execute("SELECT 1")
+    async with engine.execute("SELECT 1"):
+        pass
     assert cursor.execute.await_count == 2
 
     # 第二次 execute：只有业务 SQL = 1 次（累计 3 次）
-    await engine.execute("SELECT 2")
+    async with engine.execute("SELECT 2"):
+        pass
     assert cursor.execute.await_count == 3
 
     # 第三次 execute：只有业务 SQL = 1 次（累计 4 次）
-    await engine.execute("SELECT 3")
+    async with engine.execute("SELECT 3"):
+        pass
     assert cursor.execute.await_count == 4
 async def test_multiple_connections_each_initialized_once(mock_pool):
     """多条连接各自独立初始化一次"""
@@ -182,19 +187,23 @@ async def test_multiple_connections_each_initialized_once(mock_pool):
         await engine.connect()
 
     # conn1 首次 execute → init_sql + 业务 SQL
-    await engine.execute("SELECT 1")
+    async with engine.execute("SELECT 1"):
+        pass
     assert cursor1.execute.await_count == 2
 
     # conn2 首次 execute → init_sql + 业务 SQL
-    await engine.execute("SELECT 2")
+    async with engine.execute("SELECT 2"):
+        pass
     assert cursor2.execute.await_count == 2
 
     # conn1 再次 execute → 只有业务 SQL
-    await engine.execute("SELECT 3")
+    async with engine.execute("SELECT 3"):
+        pass
     assert cursor1.execute.await_count == 3
 
     # conn2 再次 execute → 只有业务 SQL
-    await engine.execute("SELECT 4")
+    async with engine.execute("SELECT 4"):
+        pass
     assert cursor2.execute.await_count == 3
 
 
@@ -210,11 +219,10 @@ async def test_init_sql_error_recorded_in_result(mock_pool):
         engine = Engine(host="127.0.0.1", port=3306, init_sql="INVALID SQL")
         await engine.connect()
 
-    result = await engine.execute("SELECT 1")
-
-    # 错误应被记录在 result 中
-    assert result.error is not None
-    assert result.error_no == 1064
+    async with engine.execute("SELECT 1") as result:
+        # 错误应被记录在 result 中
+        assert result.error is not None
+        assert result.error_no == 1064
 
     # 连接应被释放回连接池
     mock_pool.release.assert_called_with(conn)
@@ -243,7 +251,8 @@ async def test_weakset_allows_reinit_after_connection_gc(mock_pool):
         await engine.connect()
 
     # conn1 首次 execute → init_sql + 业务 SQL
-    await engine.execute("SELECT 1")
+    async with engine.execute("SELECT 1"):
+        pass
     assert cursor1.execute.await_count == 2
 
     # 模拟连接被回收：删除 conn1 引用，强制 GC
@@ -251,8 +260,9 @@ async def test_weakset_allows_reinit_after_connection_gc(mock_pool):
     del cursor1
     gc.collect()
 
-    # conn2 是全新的 Connection 对象（不在 WeakSet 中），应重新执行 init_sql
-    await engine.execute("SELECT 2")
+    # conn2 是全新的 Connection 对象（不在已初始化集合中），应重新执行 init_sql
+    async with engine.execute("SELECT 2"):
+        pass
     assert cursor2.execute.await_count == 2
 
 
@@ -294,7 +304,8 @@ async def test_init_sql_with_url_integration(mock_pool):
         assert engine.init_sql == init_sql
         await engine.connect()
 
-    await engine.execute("SELECT 1")
+    async with engine.execute("SELECT 1"):
+        pass
     # init_sql + 业务 SQL = 2 次
     assert cursor.execute.await_count == 2
     cursor.execute.assert_any_await(init_sql)

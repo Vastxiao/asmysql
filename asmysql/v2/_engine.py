@@ -2,7 +2,6 @@ import asyncio
 from typing import (
     AsyncContextManager,
     AsyncGenerator,
-    Awaitable,
     Final,
     Optional,
     Sequence,
@@ -111,7 +110,14 @@ class Engine:
 
         self.url: Final[str] = f"mysql://{self.user}@{self.host}:{self.port}/"
         self.__pool: Optional[Pool] = None
-        self._connect_lock: Final[asyncio.Lock] = asyncio.Lock()
+        # 延迟创建 asyncio.Lock，避免跨事件循环使用问题
+        self._connect_lock: Optional[asyncio.Lock] = None
+
+    def _get_connect_lock(self) -> asyncio.Lock:
+        """获取连接锁，延迟创建以绑定当前事件循环。"""
+        if self._connect_lock is None:
+            self._connect_lock = asyncio.Lock()
+        return self._connect_lock
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.url}>"
@@ -128,7 +134,7 @@ class Engine:
     @final
     async def connect(self):
         """连接到mysql,建立TCP链接，初始化连接池。"""
-        async with self._connect_lock:
+        async with self._get_connect_lock():
             if not self.__pool:
                 try:
                     # noinspection PyUnresolvedReferences
@@ -175,7 +181,7 @@ class Engine:
     @final
     async def disconnect(self):
         """等待所有连接释放，并正常关闭mysql连接"""
-        async with self._connect_lock:
+        async with self._get_connect_lock():
             pool, self.__pool = self.__pool, None
             if pool and not pool.closed:
                 pool.close()
@@ -211,7 +217,7 @@ class Engine:
         stream: Optional[bool] = None,
         result_class: type[tuple] = tuple,
         commit: Optional[bool] = None,
-    ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
+    ) -> Union[AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
 
     @overload
     def execute(
@@ -222,7 +228,7 @@ class Engine:
         stream: Optional[bool] = None,
         result_class: type[T],
         commit: Optional[bool] = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
+    ) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
 
     @final
     def execute(
@@ -233,12 +239,12 @@ class Engine:
         stream: Optional[bool] = None,
         result_class: Optional[type[T]] = None,
         commit: Optional[bool] = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
+    ) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
-        1. result = await execute(...)
-        2. async with execute(...) as result:
+        1. async with execute(...) as result:
+        2. async for item in execute(...):
 
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
@@ -270,7 +276,7 @@ class Engine:
         stream: Optional[bool] = None,
         result_class: type[tuple] = tuple,
         commit: Optional[bool] = None,
-    ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
+    ) -> Union[AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
 
     @overload
     def execute_many(
@@ -281,7 +287,7 @@ class Engine:
         stream: Optional[bool] = None,
         result_class: type[T],
         commit: Optional[bool] = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
+    ) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
 
     @final
     def execute_many(
@@ -292,12 +298,12 @@ class Engine:
         stream: Optional[bool] = None,
         result_class: Optional[type[T]] = None,
         commit: Optional[bool] = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
+    ) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
-        1. result = await execute_many(...)
-        2. async with execute_many(...) as result:
+        1. async with execute_many(...) as result:
+        2. async for item in execute_many(...):
 
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
