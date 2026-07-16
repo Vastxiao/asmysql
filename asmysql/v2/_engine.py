@@ -216,7 +216,6 @@ class Engine:
         *,
         stream: Optional[bool] = None,
         result_class: type[tuple] = tuple,
-        commit: Optional[bool] = None,
     ) -> Union[AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
 
     @overload
@@ -227,7 +226,6 @@ class Engine:
         *,
         stream: Optional[bool] = None,
         result_class: type[T],
-        commit: Optional[bool] = None,
     ) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
 
     @final
@@ -238,7 +236,6 @@ class Engine:
         *,
         stream: Optional[bool] = None,
         result_class: Optional[type[T]] = None,
-        commit: Optional[bool] = None,
     ) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
         """
         Execute a SQL statement and return a Result object
@@ -250,7 +247,6 @@ class Engine:
         :param values: parameters, can be a tuple or dictionary
         :param stream: whether to stream the result
         :param result_class: the class to use for the result
-        :param commit: whether to commit the transaction, default is auto
         """
         _result_class: type = self.result_class
         if result_class is not None:
@@ -262,7 +258,6 @@ class Engine:
             values=values,
             execute_many=False,
             stream=stream,
-            commit=commit,
             result_class=_result_class,
             init_sql=self.init_sql,
         )
@@ -275,7 +270,6 @@ class Engine:
         *,
         stream: Optional[bool] = None,
         result_class: type[tuple] = tuple,
-        commit: Optional[bool] = None,
     ) -> Union[AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
 
     @overload
@@ -286,7 +280,6 @@ class Engine:
         *,
         stream: Optional[bool] = None,
         result_class: type[T],
-        commit: Optional[bool] = None,
     ) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
 
     @final
@@ -297,7 +290,6 @@ class Engine:
         *,
         stream: Optional[bool] = None,
         result_class: Optional[type[T]] = None,
-        commit: Optional[bool] = None,
     ) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
         """
         Execute a SQL statement and return a Result object
@@ -309,7 +301,6 @@ class Engine:
         :param values: parameters, can be a tuple or dictionary
         :param stream: whether to stream the result
         :param result_class: the class to use for the result
-        :param commit: whether to commit the transaction, default is auto
         """
         result_class = result_class if result_class is not None else self.result_class
 
@@ -319,7 +310,6 @@ class Engine:
             values=values,
             execute_many=True,
             stream=stream,
-            commit=commit,
             result_class=result_class,
             init_sql=self.init_sql,
         )

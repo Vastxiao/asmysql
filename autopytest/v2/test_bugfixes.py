@@ -85,7 +85,6 @@ def _make_result(**kwargs):
         values=None,
         execute_many=False,
         stream=False,
-        commit=True,
         result_class=tuple,
     )
     defaults.update(kwargs)
@@ -111,7 +110,7 @@ class TestP0Critical:
         cursor.fetchall = AsyncMock(return_value=[{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}])
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False, result_class=CustomModel)
+        result = _make_result(pool=pool, result_class=CustomModel)
 
         async with result as r:
             models = await r.fetch_all()
@@ -135,7 +134,7 @@ class TestP0Critical:
         cursor.execute = AsyncMock(side_effect=MySQLError(1064, "SQL syntax error"))
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False)
+        result = _make_result(pool=pool)
 
         async with result as r:
             pass  # SQL 失败，存储 error 并释放连接
@@ -200,7 +199,7 @@ class TestP0Critical:
         cursor.fetchone = mock_fetchone
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False)
+        result = _make_result(pool=pool)
 
         # 获取迭代器并显式管理生命周期
         it = result.__aiter__()
@@ -227,7 +226,7 @@ class TestP0Critical:
         conn.cursor = AsyncMock(side_effect=OSError("Connection reset by peer"))
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False)
+        result = _make_result(pool=pool)
 
         with pytest.raises(OSError, match="Connection reset"):
             async with result:
@@ -243,7 +242,7 @@ class TestP0Critical:
              会抛 AttributeError，导致 GC 警告甚至崩溃。
         Fix: 整个 __del__ 包裹在 try/except Exception: pass 中。
         """
-        result = _make_result(pool=MagicMock(), commit=False)
+        result = _make_result(pool=MagicMock())
         # 手动将 pool 置 None
         result.pool = None
         # 不应抛出
@@ -322,34 +321,40 @@ class TestP1High:
         assert create_call_count == 1
         assert engine.is_connected
 
-    async def test_result_commit_true_triggers_connection_commit(self):
-        """Test 10a: commit=True 时 cursor.connection.commit() 必须被调用
+    async def test_write_sql_auto_commits(self):
+        """写操作 SQL（INSERT/UPDATE/DELETE 等）在非 stream 模式下自动 commit
 
-        Bug: Engine.execute() 传递 commit=None，Result 中 if self.commit:
-             对 None 求值为 False，导致 commit() 永不被调用。
-        Fix: Result 的 commit 逻辑需要正确处理 None（auto）/True/False 三态。
+        新行为：Result 根据 SQL 语句首关键词自动判断是否需要 commit，
+        无需外部传入 commit 参数。
         """
         conn, cursor = _make_mock_conn()
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=True)
+        result = _make_result(pool=pool, query="INSERT INTO t VALUES (1)")
         async with result:
             pass
         conn.commit.assert_awaited_once()
 
-    async def test_result_commit_none_defaults_to_true(self):
-        """Test 10b: commit=None 时默认为 True，执行 connection.commit()
+    async def test_read_sql_does_not_commit(self):
+        """读操作 SQL（SELECT）不自动 commit"""
+        conn, cursor = _make_mock_conn()
+        cursor.description = (("col",),)  # 模拟有结果集
+        pool = _make_mock_pool(conn)
 
-        当 Engine.execute() 不传 commit 时，Result 的 commit=None。
-        新行为：None 默认为 True，执行 connection.commit()。
-        """
+        result = _make_result(pool=pool, query="SELECT 1")
+        async with result:
+            pass
+        conn.commit.assert_not_awaited()
+
+    async def test_stream_mode_does_not_commit(self):
+        """stream 模式下即使是写操作 SQL 也不 commit"""
         conn, cursor = _make_mock_conn()
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=None)
+        result = _make_result(pool=pool, query="INSERT INTO t VALUES (1)", stream=True)
         async with result:
             pass
-        conn.commit.assert_awaited_once()
+        conn.commit.assert_not_awaited()
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -416,7 +421,7 @@ class TestP2Medium:
         pool = _make_mock_pool()
         refs = []
         for i in range(10):
-            result = _make_result(pool=pool, query=f"SELECT {i}", commit=False)
+            result = _make_result(pool=pool, query=f"SELECT {i}")
             refs.append(weakref.ref(result))
 
         del result
@@ -436,7 +441,7 @@ class TestP2Medium:
         cursor.description = (("col",),)  # 模拟有结果集
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False)
+        result = _make_result(pool=pool)
         async with result as r:
             assert r.row_count == 42
 
@@ -450,7 +455,7 @@ class TestP2Medium:
         cursor.description = (("col",),)
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False)
+        result = _make_result(pool=pool)
         async with result as r:
             assert r.last_rowid == 99
 
@@ -463,27 +468,27 @@ class TestP2Medium:
         cursor.description = (("col",),)
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False)
+        result = _make_result(pool=pool)
         async with result as r:
             assert r.row_number == 5
 
         assert r.row_number is None
 
-    async def test_fetch_one_close_false_does_not_release_on_exhaustion(self):
-        """Test 16: fetch_one(close=False) 数据耗尽时不自动释放连接
+    async def test_fetch_one_does_not_release_on_exhaustion(self):
+        """Test 16: fetch_one() 数据耗尽时不自动释放连接
 
-        Bug: fetch_one() 数据为空时总是调用 close()，忽略 close=False 参数。
-        Fix: 使用 __conn_autoclose 标志，仅当其为 True 时才自动关闭。
+        连接生命周期由 async with 统一管理，fetch_one 本身不负责关闭连接。
+        即使数据耗尽（返回 None），连接也仅在 async with 退出时释放。
         """
         conn, cursor = _make_mock_conn()
         cursor.fetchone = AsyncMock(return_value=None)
         cursor.description = (("col",),)  # 模拟有结果集
         pool = _make_mock_pool(conn)
 
-        async with _make_result(pool=pool, commit=False) as result:
-            data = await result.fetch_one(close=False)
+        async with _make_result(pool=pool) as result:
+            data = await result.fetch_one()
             assert data is None
-            # 核心断言：连接未被释放（fetch_one 耗尽但 close=False）
+            # 核心断言：连接未被释放（fetch_one 耗尽，但连接由 async with 管理）
             pool.release.assert_not_called()
 
     async def test_error_msg_uses_err_msg_formatter(self):
@@ -495,7 +500,7 @@ class TestP2Medium:
         pool = _make_mock_pool()
         error = MySQLError(1045, "Access denied for user")
 
-        result = _make_result(pool=pool, commit=False)
+        result = _make_result(pool=pool)
         # 通过 name-mangled 属性设置 error
         result._Result__error = error
 
@@ -508,7 +513,7 @@ class TestP2Medium:
     async def test_error_msg_empty_when_no_error(self):
         """Test 17b: 无错误时 error_msg 应返回空字符串"""
         pool = _make_mock_pool()
-        result = _make_result(pool=pool, commit=False)
+        result = _make_result(pool=pool)
         assert result.error_msg == ""
 
     async def test_iterate_yields_empty_tuples(self):
@@ -533,7 +538,7 @@ class TestP2Medium:
         cursor.fetchone = mock_fetchone
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False)
+        result = _make_result(pool=pool)
         async with result as r:
             collected = []
             async for item in r.iterate():
@@ -550,7 +555,7 @@ class TestP2Medium:
         conn, cursor = _make_mock_conn()
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False)
+        result = _make_result(pool=pool)
 
         async with result as r:
             assert r is result
@@ -568,7 +573,7 @@ class TestP2Medium:
         cursor.execute = AsyncMock(side_effect=MySQLError(1064, "Syntax error"))
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False)
+        result = _make_result(pool=pool)
 
         async with result as r:
             assert r.error is not None
@@ -581,7 +586,7 @@ class TestP2Medium:
         conn, cursor = _make_mock_conn()
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False)
+        result = _make_result(pool=pool)
         async with result:
             pass  # 执行 SQL
 
@@ -599,7 +604,7 @@ class TestP2Medium:
         cursor.fetchall = AsyncMock(return_value=[(1, "a"), (2, "b")])
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False, result_class=tuple)
+        result = _make_result(pool=pool, result_class=tuple)
         async with result as r:
             rows = await r.fetch_all()
         assert len(rows) == 2
@@ -612,7 +617,7 @@ class TestP2Medium:
         cursor.fetchall = AsyncMock(return_value=[{"id": 1}, {"id": 2}])
         pool = _make_mock_pool(conn)
 
-        result = _make_result(pool=pool, commit=False, result_class=dict)
+        result = _make_result(pool=pool, result_class=dict)
         async with result as r:
             rows = await r.fetch_all()
         assert len(rows) == 2

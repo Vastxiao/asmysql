@@ -1,3 +1,4 @@
+import re
 import warnings
 import weakref
 from typing import Final, Generic, Optional, Sequence, TypeVar, Union, cast
@@ -8,6 +9,20 @@ from pymysql.err import MySQLError
 from ._error import err_msg
 
 T = TypeVar("T")
+
+# 写操作 SQL 关键词集合，用于自动判断是否需要 commit
+_WRITE_KEYWORDS = frozenset({
+    "INSERT", "UPDATE", "DELETE", "REPLACE",
+    "CREATE", "ALTER", "DROP", "TRUNCATE", "RENAME",
+    "GRANT", "REVOKE", "LOCK", "UNLOCK",
+    "SET", "LOAD", "CALL",
+})
+
+# 匹配 SQL 语句首关键词的正则（跳过前导空白和注释）
+_SQL_FIRST_KEYWORD_RE = re.compile(
+    r"\s*(?:/\*.*?\*/\s*)*(?:--[^\n]*\n\s*)*(`?)(\w+)\1?",
+    re.DOTALL,
+)
 
 # 每个 Pool 对应的已初始化连接 ID 集合，用于避免对同一连接重复执行 init_sql。
 # 使用 WeakKeyDictionary 以 Pool 对象为 key，当 Pool 被 GC 时条目自动清理。
@@ -35,7 +50,6 @@ class Result(Generic[T]):
         values: Union[Sequence, dict, None] = None,
         execute_many: bool = False,
         stream: Optional[bool] = None,
-        commit: Optional[bool] = None,
         result_class: type[T] = tuple,
         init_sql: Optional[str] = None,
     ):
@@ -44,13 +58,11 @@ class Result(Generic[T]):
         self.values: Final[Union[Sequence, dict, None]] = values
         self.__execute_many: Final[bool] = execute_many
         self.stream: Final[bool] = stream if stream is not None else False
-        self.commit: Final[bool] = commit if commit is not None else True
         self._result_class: Final[type[T]] = result_class
         self.__init_sql: Final[Optional[str]] = init_sql
         self.__cursor: Optional[Cursor] = None
         self.__executed: bool = False
         self.__error: Optional[MySQLError] = None
-        self.__conn_autoclose: bool = True
         # 缓存 rowcount / lastrowid，仅在无结果集语句（DDL/INSERT/UPDATE）时使用
         self.__rowcount: Optional[int] = None
         self.__lastrowid: Optional[int] = None
@@ -83,6 +95,14 @@ class Result(Generic[T]):
         except Exception:
             pass
 
+    def _should_commit(self) -> bool:
+        """根据 SQL 语句首关键词判断是否为写操作，决定是否需要自动 commit。"""
+        match = _SQL_FIRST_KEYWORD_RE.match(self.query)
+        if match is None:
+            return False
+        keyword = match.group(2).upper()
+        return keyword in _WRITE_KEYWORDS
+
     async def close(self):
         """关闭游标并释放连接回连接池。可安全重复调用。"""
         cursor, self.__cursor = self.__cursor, None
@@ -98,7 +118,6 @@ class Result(Generic[T]):
                 self.pool.release(conn)
 
     async def __aenter__(self):
-        self.__conn_autoclose = False
         await self.__call__()
         return self
 
@@ -110,13 +129,12 @@ class Result(Generic[T]):
 
         使用 async generator + try/finally 确保即使 break 也能正确释放连接。
         """
-        self.__conn_autoclose = False
         try:
             await self.__call__()
             if self.error:
                 return
             while True:
-                data = await self.fetch_one(close=False)
+                data = await self.fetch_one()
                 if data is not None:
                     yield data
                 else:
@@ -134,10 +152,10 @@ class Result(Generic[T]):
         else:
             try:
                 # noinspection PyUnresolvedReferences
-                data = await self.fetch_one(close=False)
+                data = await self.fetch_one()
             except BaseException:
                 await self.close()
-                raise
+                raise StopAsyncIteration
             if data is not None:
                 return data
             else:
@@ -172,8 +190,9 @@ class Result(Generic[T]):
                 await self.__cursor.executemany(self.query, self.values)
             else:
                 await self.__cursor.execute(self.query, self.values)
-            # 对于 stream 模式，不自动提交（steam下commit后流会获取不到数据）
-            if self.commit and not self.stream:
+            # 对于 stream 模式，不自动提交（stream 下 commit 后流会获取不到数据）
+            # 非 stream 模式下，根据 SQL 语句类型自动判断是否需要 commit
+            if not self.stream and self._should_commit():
                 await self.__cursor.connection.commit()  # type: ignore
             # cursor.description 为 None 表示该语句无结果集（DDL/INSERT/UPDATE 等），
             # 自动关闭游标并释放连接回连接池，避免连接泄漏。
@@ -264,56 +283,41 @@ class Result(Generic[T]):
             return None
         return self.__cursor.rownumber
 
-    async def fetch_one(self, close: Optional[bool] = None):
+    async def fetch_one(self) -> Optional[T]:
         """获取一条记录
 
-        :param close: 是否自动关闭游标连接
-                      注意：如果设置不关闭游标连接，必须自己调用 Result.close() 释放连接(否则连接池可能有问题)。
+        连接生命周期由 async with / async for 统一管理，无需手动关闭。
         :return: 返回一条记录，如果没有数据则返回None
         """
-        if close is not None:
-            self.__conn_autoclose = close
         if self.error or self.__cursor is None:
             return None
         # noinspection PyUnresolvedReferences
         data = await self.__cursor.fetchone()
         if data is None:
-            if self.__conn_autoclose:
-                await self.close()
             return None
         if self._result_class is not tuple and self._result_class is not dict:
             _data: T = self._result_class(**data)
         else:
             _data: T = data
-        if self.__conn_autoclose:
-            await self.close()
         return _data
 
-    async def fetch_many(self, size: Optional[int] = None, close: Optional[bool] = None):
+    async def fetch_many(self, size: Optional[int] = None) -> list[T]:
         """获取多条记录
 
+        连接生命周期由 async with / async for 统一管理，无需手动关闭。
         :param size: 获取记录的数量
-        :param close: 是否自动关闭游标连接
-                      注意：如果设置不关闭游标连接，必须自己调用 Result.close() 释放连接(否则连接池可能有问题)。
         """
-        if close is not None:
-            self.__conn_autoclose = close
-
         _data: list[T] = []
         if self.error or self.__cursor is None:
             return _data
         # noinspection PyUnresolvedReferences
         data: list = await self.__cursor.fetchmany(size)
         if not data:
-            if self.__conn_autoclose:
-                await self.close()
             return _data
         if self._result_class is not tuple and self._result_class is not dict:
             _data = [self._result_class(**item) for item in data]
         else:
             _data = data
-        if self.__conn_autoclose:
-            await self.close()
         return _data
 
     async def fetch_all(self):
