@@ -33,11 +33,9 @@ class Engine:
 | `max_pool_size` | `int` | `10` | Maximum connection pool size |
 | `pool_recycle` | `float` | `-1` | Idle connection recycle time (seconds), -1 means no recycle |
 | `connect_timeout` | `int` | `5` | Connection timeout (seconds) |
-| `auto_commit` | `bool` | `True` | Whether to auto-commit transactions |
 | `echo_sql_log` | `bool` | `False` | Whether to print SQL logs |
-| `stream` | `bool` | `False` | Whether to use streaming result |
 | `result_class` | `type` | `tuple` | Result type |
-| `init_sql` | `Optional[str]` | `None` | SET SQL to auto-execute on each new TCP connection's first acquire (e.g. ClickHouse SET) |
+| `init_sql` | `Optional[str]` | `None` | SET SQL to auto-execute on each new TCP connection's first use (e.g. ClickHouse SET) |
 
 ### Constructor
 
@@ -55,9 +53,7 @@ def __init__(
     max_pool_size: int = None,
     pool_recycle: float = None,
     connect_timeout: int = None,
-    auto_commit: bool = None,
     echo_sql_log: bool = None,
-    stream: bool = None,
     result_class: type = None,
     init_sql: str = None,
 ) -> None
@@ -75,11 +71,9 @@ def __init__(
 - `max_pool_size` (int, optional): Maximum connection pool size
 - `pool_recycle` (float, optional): Idle connection recycle time (seconds)
 - `connect_timeout` (int, optional): Connection timeout (seconds)
-- `auto_commit` (bool, optional): Whether to auto-commit transactions
 - `echo_sql_log` (bool, optional): Whether to print SQL logs
-- `stream` (bool, optional): Whether to use streaming result
 - `result_class` (type, optional): Result type
-- `init_sql` (str, optional): SET SQL to auto-execute on connection init, executed once per new TCP connection on first acquire
+- `init_sql` (str, optional): SET SQL to auto-execute on connection init, executed once per new TCP connection on first use
 
 **Examples**:
 
@@ -101,7 +95,7 @@ engine = Engine(
 
 #### connect()
 
-Connect to MySQL, establish TCP connection, initialize connection pool. If `init_sql` is configured, `pool.acquire()` is automatically wrapped after pool creation so that each new TCP connection executes the init SQL on first use.
+Connect to MySQL, establish TCP connection, initialize connection pool. If `init_sql` is configured, each new TCP connection will automatically execute the init SQL on first use.
 
 ```python
 async def connect(self) -> Engine
@@ -155,8 +149,7 @@ def execute(
     *,
     stream: bool = None,
     result_class: type[T] = None,
-    commit: bool = None,
-) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]
+) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]
 ```
 
 **Parameter Description**:
@@ -165,7 +158,6 @@ def execute(
 - `values` (Union[Sequence, dict], optional): Parameters, can be tuple or dict
 - `stream` (bool, optional): Whether to stream results, defaults to `self.stream`
 - `result_class` (type, optional): Result type, defaults to `self.result_class`
-- `commit` (bool, optional): Whether to commit transaction, defaults to `self.auto_commit`
 
 **Return Value**: Returns `Result` object, supports the following usages:
 
@@ -201,8 +193,7 @@ def execute_many(
     *,
     stream: bool = None,
     result_class: type[T] = None,
-    commit: bool = None,
-) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]
+) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]
 ```
 
 **Parameter Description**:
@@ -211,7 +202,6 @@ def execute_many(
 - `values` (Sequence[Union[Sequence, dict]]): Parameter list, each element can be tuple or dict
 - `stream` (bool, optional): Whether to stream results
 - `result_class` (type, optional): Result type
-- `commit` (bool, optional): Whether to commit transaction
 
 **Return Value**: Returns `Result` object
 
@@ -426,8 +416,8 @@ def __init__(
     values: Union[Sequence, dict] = None,
     execute_many: bool = False,
     stream: bool = False,
-    commit: bool = True,
     result_class: T = tuple,
+    init_sql: str = None,
 ) -> None
 ```
 
@@ -438,8 +428,8 @@ def __init__(
 - `values` (Union[Sequence, dict], optional): Parameters
 - `execute_many` (bool): Whether batch execution
 - `stream` (bool): Whether streaming result
-- `commit` (bool): Whether to commit transaction
 - `result_class` (type): Result type
+- `init_sql` (str, optional): SET SQL to auto-execute on connection init
 
 ### Methods
 
@@ -448,12 +438,8 @@ def __init__(
 Get a single record.
 
 ```python
-async def fetch_one(self, close: bool = None) -> Optional[T]
+async def fetch_one(self) -> Optional[T]
 ```
-
-**Parameter Description**:
-
-- `close` (bool, optional): Whether to automatically close cursor connection. If set to `False`, must manually call `Result.close()` to release connection
 
 **Return Value**: Returns a single record, returns `None` if no data
 
@@ -471,13 +457,12 @@ if user:
 Get multiple records.
 
 ```python
-async def fetch_many(self, size: int = None, close: bool = None) -> list[T]
+async def fetch_many(self, size: int = None) -> list[T]
 ```
 
 **Parameter Description**:
 
 - `size` (int, optional): Number of records to fetch, defaults to all available records
-- `close` (bool, optional): Whether to automatically close cursor connection
 
 **Return Value**: Returns list of records
 
@@ -539,7 +524,7 @@ async def close(self) -> None
 
 ```python
 result = await engine.execute("SELECT * FROM users")
-data = await result.fetch_one(close=False)
+data = await result.fetch_one()
 # ... other operations
 await result.close()  # Manual close
 ```
@@ -659,11 +644,10 @@ def row_number(self) -> Optional[int]
 
 ```python
 result = await engine.execute("SELECT * FROM users")
-while True:
-    row = await result.fetch_one(close=False)
-    if not row:
-        break
+row = await result.fetch_one()
+while row:
     print(f"Current position: {result.row_number}")
+    row = await result.fetch_one()
 ```
 
 ### Special Methods

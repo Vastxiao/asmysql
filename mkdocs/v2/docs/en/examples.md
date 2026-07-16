@@ -401,48 +401,57 @@ asyncio.run(main())
 
 ## Transaction Processing
 
-### Basic Transaction
+### Auto-Commit Mechanism
+
+v2 uses an SQL statement type-based auto-commit mechanism. Write operations (INSERT, UPDATE, DELETE, etc.) are automatically committed after execution, while read operations (SELECT) do not trigger a commit.
 
 ```python
 import asyncio
 from asmysql import Engine
 
 async def main():
-    # Disable auto commit
-    engine = Engine(
-        url="mysql://root:pass@127.0.0.1:3306/",
-        auto_commit=False
-    )
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    try:
-        # Insert user
-        result1 = await engine.execute(
-            "INSERT INTO users (name, email) VALUES (%s, %s)",
-            ("张三", "zhangsan@example.com"),
-            commit=False
-        )
-        if result1.error:
-            raise Exception(result1.error_msg)
-        
-        user_id = result1.last_rowid
-        
-        # Insert user profile
-        result2 = await engine.execute(
-            "INSERT INTO user_profiles (user_id, bio) VALUES (%s, %s)",
-            (user_id, "这是张三的个人简介"),
-            commit=False
-        )
-        if result2.error:
-            raise Exception(result2.error_msg)
-        
-        # Manual commit (need to access connection object)
-        # Note: Transaction management in v2 requires manual control
-        # This is a simplified example, actual usage requires more fine-grained control
-        
-    except Exception as e:
-        print(f"Transaction failed: {e}")
-        # Rollback operations need manual handling
+    # Write operations auto-commit, no manual control needed
+    result1 = await engine.execute(
+        "INSERT INTO users (name, email) VALUES (%s, %s)",
+        ("张三", "zhangsan@example.com")
+    )
+    if result1.error:
+        print(f"Insert failed: {result1.error_msg}")
+    else:
+        print(f"Insert successful, ID: {result1.last_rowid}")
+    
+    # Read operations do not trigger COMMIT
+    async with engine.execute("SELECT * FROM users") as result:
+        data = await result.fetch_all()
+        print(f"Queried {len(data)} records")
+    
+    await engine.disconnect()
+
+asyncio.run(main())
+```
+
+### Stream Mode Does Not Auto-Commit
+
+In `stream=True` mode, even write operations are not auto-committed because COMMIT would interrupt the stream.
+
+```python
+import asyncio
+from asmysql import Engine
+
+async def main():
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
+    await engine.connect()
+    
+    # Streaming queries do not auto-commit
+    result = await engine.execute(
+        "SELECT * FROM large_table",
+        stream=True
+    )
+    async for row in result:
+        process(row)
     
     await engine.disconnect()
 

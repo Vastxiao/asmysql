@@ -33,9 +33,7 @@ class Engine:
 | `max_pool_size` | `int` | `10` | 连接池最大连接数 |
 | `pool_recycle` | `float` | `-1` | 空闲连接回收时间（秒），-1 表示不回收 |
 | `connect_timeout` | `int` | `5` | 连接超时时间（秒） |
-| `auto_commit` | `bool` | `True` | 是否自动提交事务 |
 | `echo_sql_log` | `bool` | `False` | 是否打印 SQL 日志 |
-| `stream` | `bool` | `False` | 是否使用流式返回结果 |
 | `result_class` | `type` | `tuple` | 返回结果类型 |
 | `init_sql` | `Optional[str]` | `None` | 连接初始化时自动执行的 SET SQL（如 ClickHouse SET） |
 
@@ -55,9 +53,7 @@ def __init__(
     max_pool_size: int = None,
     pool_recycle: float = None,
     connect_timeout: int = None,
-    auto_commit: bool = None,
     echo_sql_log: bool = None,
-    stream: bool = None,
     result_class: type = None,
     init_sql: str = None,
 ) -> None
@@ -75,11 +71,9 @@ def __init__(
 - `max_pool_size` (int, optional): 连接池最大连接数
 - `pool_recycle` (float, optional): 空闲连接回收时间（秒）
 - `connect_timeout` (int, optional): 连接超时时间（秒）
-- `auto_commit` (bool, optional): 是否自动提交事务
 - `echo_sql_log` (bool, optional): 是否打印 SQL 日志
-- `stream` (bool, optional): 是否使用流式返回结果
 - `result_class` (type, optional): 返回结果类型
-- `init_sql` (str, optional): 连接初始化时自动执行的 SET SQL，每条新 TCP 连接首次 acquire 时执行一次
+- `init_sql` (str, optional): 连接初始化时自动执行的 SET SQL，每条新 TCP 连接首次使用时执行一次
 
 **示例**：
 
@@ -101,7 +95,7 @@ engine = Engine(
 
 #### connect()
 
-连接到 MySQL，建立 TCP 连接，初始化连接池。如果配置了 `init_sql`，连接池创建后会自动包装 `pool.acquire()`，使每条新 TCP 连接首次使用时执行初始化 SET SQL。
+连接到 MySQL，建立 TCP 连接，初始化连接池。如果配置了 `init_sql`，每条新 TCP 连接首次执行 SQL 时会自动执行初始化 SET SQL。
 
 ```python
 async def connect(self) -> Engine
@@ -155,8 +149,7 @@ def execute(
     *,
     stream: bool = None,
     result_class: type[T] = None,
-    commit: bool = None,
-) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]
+) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]
 ```
 
 **参数说明**：
@@ -165,7 +158,6 @@ def execute(
 - `values` (Union[Sequence, dict], optional): 参数，可以是元组或字典
 - `stream` (bool, optional): 是否流式返回结果，默认使用 `self.stream`
 - `result_class` (type, optional): 结果类型，默认使用 `self.result_class`
-- `commit` (bool, optional): 是否提交事务，默认使用 `self.auto_commit`
 
 **返回值**：返回 `Result` 对象，支持以下用法：
 
@@ -201,8 +193,7 @@ def execute_many(
     *,
     stream: bool = None,
     result_class: type[T] = None,
-    commit: bool = None,
-) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]
+) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]
 ```
 
 **参数说明**：
@@ -211,7 +202,6 @@ def execute_many(
 - `values` (Sequence[Union[Sequence, dict]]): 参数列表，每个元素可以是元组或字典
 - `stream` (bool, optional): 是否流式返回结果
 - `result_class` (type, optional): 结果类型
-- `commit` (bool, optional): 是否提交事务
 
 **返回值**：返回 `Result` 对象
 
@@ -426,8 +416,8 @@ def __init__(
     values: Union[Sequence, dict] = None,
     execute_many: bool = False,
     stream: bool = False,
-    commit: bool = True,
     result_class: T = tuple,
+    init_sql: str = None,
 ) -> None
 ```
 
@@ -438,8 +428,8 @@ def __init__(
 - `values` (Union[Sequence, dict], optional): 参数
 - `execute_many` (bool): 是否批量执行
 - `stream` (bool): 是否流式返回
-- `commit` (bool): 是否提交事务
 - `result_class` (type): 结果类型
+- `init_sql` (str, optional): 连接初始化时自动执行的 SET SQL
 
 ### 方法
 
@@ -448,12 +438,8 @@ def __init__(
 获取一条记录。
 
 ```python
-async def fetch_one(self, close: bool = None) -> Optional[T]
+async def fetch_one(self) -> Optional[T]
 ```
-
-**参数说明**：
-
-- `close` (bool, optional): 是否自动关闭游标连接。如果设置为 `False`，必须手动调用 `Result.close()` 释放连接
 
 **返回值**：返回一条记录，如果没有数据则返回 `None`
 
@@ -471,13 +457,12 @@ if user:
 获取多条记录。
 
 ```python
-async def fetch_many(self, size: int = None, close: bool = None) -> list[T]
+async def fetch_many(self, size: int = None) -> list[T]
 ```
 
 **参数说明**：
 
 - `size` (int, optional): 获取记录的数量，默认获取所有可用记录
-- `close` (bool, optional): 是否自动关闭游标连接
 
 **返回值**：返回记录列表
 
@@ -539,7 +524,7 @@ async def close(self) -> None
 
 ```python
 result = await engine.execute("SELECT * FROM users")
-data = await result.fetch_one(close=False)
+data = await result.fetch_one()
 # ... 其他操作
 await result.close()  # 手动关闭
 ```
@@ -659,11 +644,10 @@ def row_number(self) -> Optional[int]
 
 ```python
 result = await engine.execute("SELECT * FROM users")
-while True:
-    row = await result.fetch_one(close=False)
-    if not row:
-        break
+row = await result.fetch_one()
+while row:
     print(f"当前位置: {result.row_number}")
+    row = await result.fetch_one()
 ```
 
 ### 特殊方法

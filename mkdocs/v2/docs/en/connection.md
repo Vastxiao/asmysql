@@ -18,7 +18,6 @@ engine = Engine(
     "&max_pool_size=20"
     "&pool_recycle=3600"
     "&connect_timeout=10"
-    "&auto_commit=true"
     "&echo_sql_log=false"
 )
 ```
@@ -38,9 +37,7 @@ engine = Engine(
     max_pool_size=10,
     pool_recycle=-1,
     connect_timeout=5,
-    auto_commit=True,
     echo_sql_log=False,
-    stream=False,
     result_class=tuple,
     init_sql=None,  # Optional: SET SQL to auto-execute on connection init
 )
@@ -59,11 +56,9 @@ engine = Engine(
 | `max_pool_size` | int | `10` | Maximum connection pool size |
 | `pool_recycle` | float | `-1` | Idle connection recycle time (seconds), -1 means no recycle |
 | `connect_timeout` | int | `5` | Connection timeout (seconds) |
-| `auto_commit` | bool | `True` | Whether to auto-commit transactions |
 | `echo_sql_log` | bool | `False` | Whether to print SQL logs |
-| `stream` | bool | `False` | Whether to use streaming result |
 | `result_class` | type | `tuple` | Result type |
-| `init_sql` | str | `None` | SET SQL to auto-execute on each new TCP connection's first acquire |
+| `init_sql` | str | `None` | SET SQL to auto-execute on each new TCP connection's first use |
 
 ## Connect and Disconnect
 
@@ -136,9 +131,9 @@ The `init_sql` parameter automatically executes preset SQL on each new TCP conne
 
 ### How It Works
 
-- After `connect()` creates the pool, `pool.acquire()` is automatically wrapped
-- Uses `WeakSet` to track initialized connections
-- Executes `init_sql` on first acquire of a new connection; skips on subsequent reuses
+- `init_sql` execution is implemented in `Result.__call__()`, not at `connect()` stage
+- Uses `weakref.WeakKeyDictionary` with Pool as key to track initialized connection IDs
+- Executes `init_sql` on first SQL execution of a new connection; skips on subsequent reuses
 - When a connection is recycled via `pool_recycle`, the new connection re-executes `init_sql`
 
 ### ClickHouse Async Insert Configuration

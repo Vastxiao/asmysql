@@ -401,48 +401,57 @@ asyncio.run(main())
 
 ## 事务处理 {#transaction-processing}
 
-### 基本事务
+### 自动提交机制
+
+v2 版本采用基于 SQL 语句类型的自动提交机制。写操作（INSERT、UPDATE、DELETE 等）执行后会自动提交，读操作（SELECT）不会触发提交。
 
 ```python
 import asyncio
 from asmysql import Engine
 
 async def main():
-    # 关闭自动提交
-    engine = Engine(
-        url="mysql://root:pass@127.0.0.1:3306/",
-        auto_commit=False
-    )
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    try:
-        # 插入用户
-        result1 = await engine.execute(
-            "INSERT INTO users (name, email) VALUES (%s, %s)",
-            ("张三", "zhangsan@example.com"),
-            commit=False
-        )
-        if result1.error:
-            raise Exception(result1.error_msg)
-        
-        user_id = result1.last_rowid
-        
-        # 插入用户详情
-        result2 = await engine.execute(
-            "INSERT INTO user_profiles (user_id, bio) VALUES (%s, %s)",
-            (user_id, "这是张三的个人简介"),
-            commit=False
-        )
-        if result2.error:
-            raise Exception(result2.error_msg)
-        
-        # 手动提交（需要访问连接对象）
-        # 注意：v2 版本的事务管理需要手动控制
-        # 这里简化示例，实际使用时需要更精细的控制
-        
-    except Exception as e:
-        print(f"事务失败: {e}")
-        # 回滚操作需要手动处理
+    # 写操作自动提交，无需手动控制
+    result1 = await engine.execute(
+        "INSERT INTO users (name, email) VALUES (%s, %s)",
+        ("张三", "zhangsan@example.com")
+    )
+    if result1.error:
+        print(f"插入失败: {result1.error_msg}")
+    else:
+        print(f"插入成功，ID: {result1.last_rowid}")
+    
+    # 读操作不会触发 COMMIT
+    async with engine.execute("SELECT * FROM users") as result:
+        data = await result.fetch_all()
+        print(f"查询到 {len(data)} 条记录")
+    
+    await engine.disconnect()
+
+asyncio.run(main())
+```
+
+### 流式模式不自动提交
+
+在 `stream=True` 模式下，即使是写操作也不会自动提交，因为 COMMIT 会导致流中断。
+
+```python
+import asyncio
+from asmysql import Engine
+
+async def main():
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
+    await engine.connect()
+    
+    # 流式查询不会自动提交
+    result = await engine.execute(
+        "SELECT * FROM large_table",
+        stream=True
+    )
+    async for row in result:
+        process(row)
     
     await engine.disconnect()
 
