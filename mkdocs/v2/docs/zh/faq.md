@@ -20,21 +20,23 @@ A:
 A: 使用 `result_class` 参数，支持 `tuple`、`dict` 或自定义模型类：
 
 ```python
-result = await engine.execute(
+async with engine.execute(
     "SELECT * FROM users",
     result_class=dict  # 或自定义模型类
-)
+) as result:
+    users = await result.fetch_all()
 ```
 
 ## Q: 如何处理事务？
 
-A: 设置 `auto_commit=False` 并手动管理：
+A: v2 版本采用基于 SQL 语句类型的自动提交机制：
 
 ```python
-engine = Engine(url="...", auto_commit=False)
+engine = Engine(url="...")
 await engine.connect()
 
-# 注意：v2 版本的事务管理需要手动控制连接
+# 写操作（INSERT/UPDATE/DELETE 等）会自动提交
+# 读操作（SELECT）不会触发提交
 ```
 
 ## Q: 错误信息如何获取？
@@ -42,10 +44,10 @@ await engine.connect()
 A: 通过 `result.error`、`result.error_no` 和 `result.error_msg` 属性：
 
 ```python
-result = await engine.execute("SELECT * FROM invalid_table")
-if result.error:
-    print(f"错误码: {result.error_no}")
-    print(f"错误信息: {result.error_msg}")
+async with engine.execute("SELECT * FROM invalid_table") as result:
+    if result.error:
+        print(f"错误码: {result.error_no}")
+        print(f"错误信息: {result.error_msg}")
 ```
 
 ## Q: 如何批量插入数据？
@@ -54,10 +56,11 @@ A: 使用 `execute_many()` 方法：
 
 ```python
 data = [("张三", "zhangsan@example.com"), ("李四", "lisi@example.com")]
-result = await engine.execute_many(
+async with engine.execute_many(
     "INSERT INTO users (name, email) VALUES (%s, %s)",
     data
-)
+) as result:
+    print(f"插入了 {result.row_count} 条记录")
 ```
 
 ## Q: 如何在不同模块间共享 Engine 实例？

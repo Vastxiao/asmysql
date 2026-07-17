@@ -161,18 +161,17 @@ def execute(
 
 **Return Value**: Returns `Result` object, supports the following usages:
 
-1. `result = await engine.execute(...)`
-2. `async with engine.execute(...) as result:`
-3. `async for item in engine.execute(...):`
+1. `async with engine.execute(...) as result:`
+2. `async for item in engine.execute(...):`
 
 **Examples**:
 
 ```python
-# Method 1: await
-result = await engine.execute("SELECT * FROM users WHERE id = %s", (1,))
-data = await result.fetch_one()
+# Method 1: context manager
+async with engine.execute("SELECT * FROM users WHERE id = %s", (1,)) as result:
+    data = await result.fetch_one()
 
-# Method 2: context manager
+# Method 2: context manager + fetch_all
 async with engine.execute("SELECT * FROM users") as result:
     data = await result.fetch_all()
 
@@ -212,10 +211,11 @@ data = [
     ("张三", "zhangsan@example.com"),
     ("李四", "lisi@example.com")
 ]
-result = await engine.execute_many(
+async with engine.execute_many(
     "INSERT INTO users (name, email) VALUES (%s, %s)",
     data
-)
+) as result:
+    print(f"Inserted {result.row_count} records")
 ```
 
 ### Attributes
@@ -307,8 +307,8 @@ async def __aexit__(self, exc_type, exc_value, exc_tb) -> None
 
 ```python
 async with engine:
-    result = await engine.execute("SELECT * FROM users")
-    data = await result.fetch_all()
+    async with engine.execute("SELECT * FROM users") as result:
+        data = await result.fetch_all()
 ```
 
 #### __await__()
@@ -390,8 +390,8 @@ def client(self) -> Engine
 ```python
 class UserService(AsMysql):
     async def get_users(self):
-        result = await self.client.execute("SELECT * FROM users")
-        return await result.fetch_all()
+        async with self.client.execute("SELECT * FROM users") as result:
+            return await result.fetch_all()
 ```
 
 ## Result Class
@@ -446,10 +446,10 @@ async def fetch_one(self) -> Optional[T]
 **Example**:
 
 ```python
-result = await engine.execute("SELECT * FROM users WHERE id = %s", (1,))
-user = await result.fetch_one()
-if user:
-    print(user)
+async with engine.execute("SELECT * FROM users WHERE id = %s", (1,)) as result:
+    user = await result.fetch_one()
+    if user:
+        print(user)
 ```
 
 #### fetch_many()
@@ -469,8 +469,8 @@ async def fetch_many(self, size: int = None) -> list[T]
 **Example**:
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-users = await result.fetch_many(10)  # Get 10 records
+async with engine.execute("SELECT * FROM users") as result:
+    users = await result.fetch_many(10)  # Get 10 records
 ```
 
 #### fetch_all()
@@ -488,8 +488,8 @@ async def fetch_all(self) -> list[T]
 **Example**:
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-all_users = await result.fetch_all()
+async with engine.execute("SELECT * FROM users") as result:
+    all_users = await result.fetch_all()
 ```
 
 #### iterate()
@@ -507,9 +507,9 @@ async def iterate(self) -> AsyncGenerator[T, None]
 **Example**:
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-async for user in result.iterate():
-    print(user)
+async with engine.execute("SELECT * FROM users") as result:
+    async for user in result.iterate():
+        print(user)
 ```
 
 #### close()
@@ -523,10 +523,10 @@ async def close(self) -> None
 **Example**:
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-data = await result.fetch_one()
-# ... other operations
-await result.close()  # Manual close
+async with engine.execute("SELECT * FROM users") as result:
+    data = await result.fetch_one()
+    # ... other operations
+# Automatically closed on exiting async with
 ```
 
 ### Attributes
@@ -545,9 +545,9 @@ def error(self) -> Optional[MySQLError]
 **Example**:
 
 ```python
-result = await engine.execute("SELECT * FROM invalid_table")
-if result.error:
-    print(f"Error: {result.error}")
+async with engine.execute("SELECT * FROM invalid_table") as result:
+    if result.error:
+        print(f"Error: {result.error}")
 ```
 
 #### error_no
@@ -603,8 +603,8 @@ def row_count(self) -> Optional[int]
 **Example**:
 
 ```python
-result = await engine.execute("INSERT INTO users (name) VALUES (%s)", ("张三",))
-print(f"Inserted {result.row_count} records")
+async with engine.execute("INSERT INTO users (name) VALUES (%s)", ("张三",)) as result:
+    print(f"Inserted {result.row_count} records")
 ```
 
 #### last_rowid
@@ -623,8 +623,8 @@ def last_rowid(self) -> Optional[int]
 **Example**:
 
 ```python
-result = await engine.execute("INSERT INTO users (name) VALUES (%s)", ("张三",))
-print(f"Newly inserted ID: {result.last_rowid}")
+async with engine.execute("INSERT INTO users (name) VALUES (%s)", ("张三",)) as result:
+    print(f"Newly inserted ID: {result.last_rowid}")
 ```
 
 #### row_number
@@ -643,11 +643,11 @@ def row_number(self) -> Optional[int]
 **Example**:
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-row = await result.fetch_one()
-while row:
-    print(f"Current position: {result.row_number}")
+async with engine.execute("SELECT * FROM users") as result:
     row = await result.fetch_one()
+    while row:
+        print(f"Current position: {result.row_number}")
+        row = await result.fetch_one()
 ```
 
 ### Special Methods
@@ -680,9 +680,9 @@ async def __anext__(self) -> T
 **Example**:
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-async for user in result:
-    print(user)
+async with engine.execute("SELECT * FROM users") as result:
+    async for user in result:
+        print(user)
 ```
 
 #### __await__()
@@ -696,8 +696,8 @@ def __await__(self) -> Generator[Any, None, Result[T]]
 **Example**:
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-# Equivalent to executing SQL query
+async with engine.execute("SELECT * FROM users") as result:
+    pass  # SQL query has been executed
 ```
 
 #### __call__()
@@ -712,8 +712,8 @@ async def __call__(self) -> Result[T]
 
 ```python
 result = engine.execute("SELECT * FROM users")
-await result()  # Execute query
-data = await result.fetch_all()
+async with result:
+    data = await result.fetch_all()
 ```
 
 ## Type Definitions

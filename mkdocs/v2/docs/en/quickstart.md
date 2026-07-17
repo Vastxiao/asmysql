@@ -42,12 +42,12 @@ engine = Engine(url="mysql://root:pass@127.0.0.1:3306/?charset=utf8mb4")
 # Write business logic class
 class UserService(AsMysql):
     async def get_all_users(self):
-        result = await self.client.execute("SELECT user, host FROM mysql.user")
-        if result.error:
-            print(f"Error code: {result.error_no}, Error message: {result.error_msg}")
-        else:
-            async for item in result.iterate():
-                print(item)
+        async with self.client.execute("SELECT user, host FROM mysql.user") as result:
+            if result.error:
+                print(f"Error code: {result.error_no}, Error message: {result.error_msg}")
+            else:
+                async for item in result.iterate():
+                    print(item)
 
 async def main():
     # Connect to MySQL
@@ -70,4 +70,3 @@ asyncio.run(main())
 - Learn about [Connection Management](connection.md) for detailed configuration
 - Learn about [Query Operations](query.md) for various usage patterns
 - Check out [Usage Examples](examples.md) for more example code
-

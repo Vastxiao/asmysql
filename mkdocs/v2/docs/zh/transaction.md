@@ -15,10 +15,10 @@ v2 版本采用基于 SQL 语句类型的自动提交机制。`Result` 内部通
 
 ```python
 # 写操作自动提交，无需手动控制
-result = await engine.execute(
+async with engine.execute(
     "INSERT INTO users (name) VALUES (%s)", ("张三",)
-)
-# 执行完毕后自动 COMMIT
+) as result:
+    pass  # 执行完毕后自动 COMMIT
 ```
 
 ### 读操作不提交
@@ -37,12 +37,12 @@ async with engine.execute("SELECT * FROM users") as result:
 
 ```python
 # 流式查询不会自动提交
-result = await engine.execute(
+async with engine.execute(
     "SELECT * FROM large_table",
     stream=True
-)
-async for row in result:
-    process(row)
+) as result:
+    async for row in result:
+        process(row)
 ```
 
 ## 连接池配置

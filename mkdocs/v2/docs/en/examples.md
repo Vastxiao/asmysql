@@ -34,9 +34,9 @@ async def main():
     await engine.connect()
     
     # Execute query
-    result = await engine.execute("SELECT 1 as value")
-    data = await result.fetch_one()
-    print(data)  # (1,)
+    async with engine.execute("SELECT 1 as value") as result:
+        data = await result.fetch_one()
+        print(data)  # (1,)
     
     # Disconnect
     await engine.disconnect()
@@ -54,9 +54,9 @@ async def main():
     engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     
     async with engine:
-        result = await engine.execute("SELECT 1 as value")
-        data = await result.fetch_one()
-        print(data)
+        async with engine.execute("SELECT 1 as value") as result:
+            data = await result.fetch_one()
+            print(data)
 
 asyncio.run(main())
 ```
@@ -163,23 +163,23 @@ async def main():
     await engine.connect()
     
     # Using tuple type (default)
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT id, name, email FROM users WHERE id = %s",
         (1,)
-    )
-    user = await result.fetch_one()
-    if user:
-        print(f"ID: {user[0]}, Name: {user[1]}, Email: {user[2]}")
+    ) as result:
+        user = await result.fetch_one()
+        if user:
+            print(f"ID: {user[0]}, Name: {user[1]}, Email: {user[2]}")
     
     # Using dict type
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT id, name, email FROM users WHERE id = %s",
         (1,),
         result_class=dict
-    )
-    user = await result.fetch_one()
-    if user:
-        print(f"ID: {user['id']}, Name: {user['name']}, Email: {user['email']}")
+    ) as result:
+        user = await result.fetch_one()
+        if user:
+            print(f"ID: {user['id']}, Name: {user['name']}, Email: {user['email']}")
     
     await engine.disconnect()
 
@@ -197,14 +197,14 @@ async def main():
     await engine.connect()
     
     # Get all records
-    result = await engine.execute("SELECT * FROM users")
-    all_users = await result.fetch_all()
-    print(f"Total {len(all_users)} records")
+    async with engine.execute("SELECT * FROM users") as result:
+        all_users = await result.fetch_all()
+        print(f"Total {len(all_users)} records")
     
     # Get specified number of records
-    result = await engine.execute("SELECT * FROM users")
-    users = await result.fetch_many(10)  # Get 10 records
-    print(f"Retrieved {len(users)} records")
+    async with engine.execute("SELECT * FROM users") as result:
+        users = await result.fetch_many(10)  # Get 10 records
+        print(f"Retrieved {len(users)} records")
     
     await engine.disconnect()
 
@@ -222,11 +222,11 @@ async def main():
     await engine.connect()
     
     # Using dictionary parameters
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT * FROM users WHERE name = %(name)s AND age > %(age)s",
         {"name": "张三", "age": 18}
-    )
-    users = await result.fetch_all()
+    ) as result:
+        users = await result.fetch_all()
     
     await engine.disconnect()
 
@@ -244,14 +244,14 @@ async def main():
     await engine.connect()
     
     # Method 1: Using iterate() method
-    result = await engine.execute("SELECT * FROM users")
-    async for user in result.iterate():
-        print(user)
+    async with engine.execute("SELECT * FROM users") as result:
+        async for user in result.iterate():
+            print(user)
     
     # Method 2: Direct iteration of result
-    result = await engine.execute("SELECT * FROM users")
-    async for user in result:
-        print(user)
+    async with engine.execute("SELECT * FROM users") as result:
+        async for user in result:
+            print(user)
     
     # Method 3: Direct iteration of execute result
     async for user in engine.execute("SELECT * FROM users"):
@@ -275,16 +275,15 @@ async def main():
     await engine.connect()
     
     # Insert data
-    result = await engine.execute(
+    async with engine.execute(
         "INSERT INTO users (name, email) VALUES (%s, %s)",
         ("张三", "zhangsan@example.com")
-    )
-    
-    if result.error:
-        print(f"Insert failed: {result.error_msg}")
-    else:
-        print(f"Insert successful, affected rows: {result.row_count}")
-        print(f"Newly inserted ID: {result.last_rowid}")
+    ) as result:
+        if result.error:
+            print(f"Insert failed: {result.error_msg}")
+        else:
+            print(f"Insert successful, affected rows: {result.row_count}")
+            print(f"Newly inserted ID: {result.last_rowid}")
     
     await engine.disconnect()
 
@@ -301,14 +300,13 @@ async def main():
     engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    result = await engine.execute(
+    async with engine.execute(
         "INSERT INTO users (name, email) VALUES (%s, %s)",
         ("李四", "lisi@example.com")
-    )
-    
-    if not result.error:
-        new_id = result.last_rowid
-        print(f"New user ID: {new_id}")
+    ) as result:
+        if not result.error:
+            new_id = result.last_rowid
+            print(f"New user ID: {new_id}")
     
     await engine.disconnect()
 
@@ -327,15 +325,14 @@ async def main():
     engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    result = await engine.execute(
+    async with engine.execute(
         "UPDATE users SET email = %s WHERE id = %s",
         ("newemail@example.com", 1)
-    )
-    
-    if result.error:
-        print(f"Update failed: {result.error_msg}")
-    else:
-        print(f"Update successful, affected rows: {result.row_count}")
+    ) as result:
+        if result.error:
+            print(f"Update failed: {result.error_msg}")
+        else:
+            print(f"Update successful, affected rows: {result.row_count}")
     
     await engine.disconnect()
 
@@ -359,13 +356,12 @@ async def main():
         ("email3@example.com", 3)
     ]
     
-    result = await engine.execute_many(
+    async with engine.execute_many(
         "UPDATE users SET email = %s WHERE id = %s",
         updates
-    )
-    
-    if not result.error:
-        print(f"Batch update successful, affected rows: {result.row_count}")
+    ) as result:
+        if not result.error:
+            print(f"Batch update successful, affected rows: {result.row_count}")
     
     await engine.disconnect()
 
@@ -384,15 +380,14 @@ async def main():
     engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    result = await engine.execute(
+    async with engine.execute(
         "DELETE FROM users WHERE id = %s",
         (1,)
-    )
-    
-    if result.error:
-        print(f"Delete failed: {result.error_msg}")
-    else:
-        print(f"Delete successful, affected rows: {result.row_count}")
+    ) as result:
+        if result.error:
+            print(f"Delete failed: {result.error_msg}")
+        else:
+            print(f"Delete successful, affected rows: {result.row_count}")
     
     await engine.disconnect()
 
@@ -414,14 +409,14 @@ async def main():
     await engine.connect()
     
     # Write operations auto-commit, no manual control needed
-    result1 = await engine.execute(
+    async with engine.execute(
         "INSERT INTO users (name, email) VALUES (%s, %s)",
         ("张三", "zhangsan@example.com")
-    )
-    if result1.error:
-        print(f"Insert failed: {result1.error_msg}")
-    else:
-        print(f"Insert successful, ID: {result1.last_rowid}")
+    ) as result:
+        if result.error:
+            print(f"Insert failed: {result.error_msg}")
+        else:
+            print(f"Insert successful, ID: {result.last_rowid}")
     
     # Read operations do not trigger COMMIT
     async with engine.execute("SELECT * FROM users") as result:
@@ -446,12 +441,12 @@ async def main():
     await engine.connect()
     
     # Streaming queries do not auto-commit
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT * FROM large_table",
         stream=True
-    )
-    async for row in result:
-        process(row)
+    ) as result:
+        async for row in result:
+            process(row)
     
     await engine.disconnect()
 
@@ -471,21 +466,20 @@ async def main():
     await engine.connect()
     
     # Enable streaming query
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT * FROM large_table",
         stream=True
-    )
-    
-    count = 0
-    async for row in result:
-        count += 1
-        # Process each row of data without memory consumption
-        process_row(row)
+    ) as result:
+        count = 0
+        async for row in result:
+            count += 1
+            # Process each row of data without memory consumption
+            process_row(row)
+            
+            if count % 1000 == 0:
+                print(f"Processed {count} records")
         
-        if count % 1000 == 0:
-            print(f"Processed {count} records")
-    
-    print(f"Total processed {count} records")
+        print(f"Total processed {count} records")
     
     await engine.disconnect()
 
@@ -507,16 +501,16 @@ async def main():
     await engine.connect()
     
     # Regular query: All data loaded into memory
-    result1 = await engine.execute("SELECT * FROM large_table", stream=False)
-    all_data = await result1.fetch_all()  # May cause memory overflow
-    print(f"Regular query retrieved {len(all_data)} records")
+    async with engine.execute("SELECT * FROM large_table", stream=False) as result:
+        all_data = await result.fetch_all()  # May cause memory overflow
+        print(f"Regular query retrieved {len(all_data)} records")
     
     # Streaming query: Process row by row without memory consumption
-    result2 = await engine.execute("SELECT * FROM large_table", stream=True)
-    count = 0
-    async for row in result2:
-        count += 1
-    print(f"Streaming query processed {count} records")
+    async with engine.execute("SELECT * FROM large_table", stream=True) as result:
+        count = 0
+        async for row in result:
+            count += 1
+        print(f"Streaming query processed {count} records")
     
     await engine.disconnect()
 
@@ -544,15 +538,14 @@ async def main():
     ]
     
     # Batch insert
-    result = await engine.execute_many(
+    async with engine.execute_many(
         "INSERT INTO users (name, email) VALUES (%s, %s)",
         users
-    )
-    
-    if result.error:
-        print(f"Batch insert failed: {result.error_msg}")
-    else:
-        print(f"Batch insert successful, inserted {result.row_count} records")
+    ) as result:
+        if result.error:
+            print(f"Batch insert failed: {result.error_msg}")
+        else:
+            print(f"Batch insert successful, inserted {result.row_count} records")
     
     await engine.disconnect()
 
@@ -576,13 +569,12 @@ async def main():
         {"name": "王五", "email": "wangwu@example.com"}
     ]
     
-    result = await engine.execute_many(
+    async with engine.execute_many(
         "INSERT INTO users (name, email) VALUES (%(name)s, %(email)s)",
         users
-    )
-    
-    if not result.error:
-        print(f"Batch insert successful, inserted {result.row_count} records")
+    ) as result:
+        if not result.error:
+            print(f"Batch insert successful, inserted {result.row_count} records")
     
     await engine.disconnect()
 
@@ -610,28 +602,26 @@ async def main():
     await engine.connect()
     
     # Query and use custom model
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT id, name, email, age FROM users WHERE id = %s",
         (1,),
         result_class=User
-    )
-    
-    user = await result.fetch_one()
-    if user:
-        print(f"User: {user.name}, Email: {user.email}, Age: {user.age}")
-        # Can use all model features
-        print(user.model_dump())
+    ) as result:
+        user = await result.fetch_one()
+        if user:
+            print(f"User: {user.name}, Email: {user.email}, Age: {user.age}")
+            # Can use all model features
+            print(user.model_dump())
     
     # Batch query
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT id, name, email, age FROM users",
         result_class=User
-    )
-    
-    users = []
-    async for user in result.iterate():
-        users.append(user)
-        print(f"{user.name}: {user.email}")
+    ) as result:
+        users = []
+        async for user in result.iterate():
+            users.append(user)
+            print(f"{user.name}: {user.email}")
     
     await engine.disconnect()
 
@@ -658,13 +648,12 @@ async def main():
     engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT id, name, email FROM users",
         result_class=User
-    )
-    
-    async for user in result:
-        print(user)  # Automatically converted to User instance
+    ) as result:
+        async for user in result:
+            print(user)  # Automatically converted to User instance
     
     await engine.disconnect()
 
@@ -683,15 +672,14 @@ async def main():
     engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    result = await engine.execute("SELECT * FROM non_existent_table")
-    
-    if result.error:
-        print(f"Error code: {result.error_no}")
-        print(f"Error message: {result.error_msg}")
-        print(f"Error object: {result.error}")
-    else:
-        data = await result.fetch_all()
-        print(f"Query successful, retrieved {len(data)} records")
+    async with engine.execute("SELECT * FROM non_existent_table") as result:
+        if result.error:
+            print(f"Error code: {result.error_no}")
+            print(f"Error message: {result.error_msg}")
+            print(f"Error object: {result.error}")
+        else:
+            data = await result.fetch_all()
+            print(f"Query successful, retrieved {len(data)} records")
     
     await engine.disconnect()
 
@@ -718,14 +706,14 @@ def handle_db_errors(func):
 
 @handle_db_errors
 async def get_user(engine: Engine, user_id: int):
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT * FROM users WHERE id = %s",
         (user_id,),
         result_class=dict
-    )
-    if result.error:
-        raise Exception(f"Query failed: {result.error_msg}")
-    return await result.fetch_one()
+    ) as result:
+        if result.error:
+            raise Exception(f"Query failed: {result.error_msg}")
+        return await result.fetch_one()
 
 async def main():
     engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
@@ -761,46 +749,46 @@ class UserService(AsMysql):
     
     async def get_user_by_id(self, user_id: int) -> Optional[User]:
         """Get user by ID"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "SELECT id, name, email, age FROM users WHERE id = %s",
             (user_id,),
             result_class=User
-        )
-        if result.error:
-            return None
-        return await result.fetch_one()
+        ) as result:
+            if result.error:
+                return None
+            return await result.fetch_one()
     
     async def get_user_by_email(self, email: str) -> Optional[User]:
         """Get user by email"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "SELECT id, name, email, age FROM users WHERE email = %s",
             (email,),
             result_class=User
-        )
-        if result.error:
-            return None
-        return await result.fetch_one()
+        ) as result:
+            if result.error:
+                return None
+            return await result.fetch_one()
     
     async def list_users(self, limit: int = 100) -> List[User]:
         """Get user list"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "SELECT id, name, email, age FROM users LIMIT %s",
             (limit,),
             result_class=User
-        )
-        if result.error:
-            return []
-        return await result.fetch_all()
+        ) as result:
+            if result.error:
+                return []
+            return await result.fetch_all()
     
     async def create_user(self, name: str, email: str, age: int = 0) -> Optional[int]:
         """Create user"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "INSERT INTO users (name, email, age) VALUES (%s, %s, %s)",
             (name, email, age)
-        )
-        if result.error:
-            return None
-        return result.last_rowid
+        ) as result:
+            if result.error:
+                return None
+            return result.last_rowid
     
     async def update_user(self, user_id: int, name: str = None, email: str = None, age: int = None) -> bool:
         """Update user"""
@@ -823,16 +811,16 @@ class UserService(AsMysql):
         values.append(user_id)
         query = f"UPDATE users SET {', '.join(updates)} WHERE id = %s"
         
-        result = await self.client.execute(query, tuple(values))
-        return result.error is None
+        async with self.client.execute(query, tuple(values)) as result:
+            return result.error is None
     
     async def delete_user(self, user_id: int) -> bool:
         """Delete user"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "DELETE FROM users WHERE id = %s",
             (user_id,)
-        )
-        return result.error is None
+        ) as result:
+            return result.error is None
 
 async def main():
     engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
@@ -900,26 +888,26 @@ class UserResponse(BaseModel):
 # Service class
 class UserService(AsMysql):
     async def create_user(self, user_data: UserCreate) -> int:
-        result = await self.client.execute(
+        async with self.client.execute(
             "INSERT INTO users (name, email, age) VALUES (%s, %s, %s)",
             (user_data.name, user_data.email, user_data.age)
-        )
-        if result.error:
-            raise HTTPException(status_code=500, detail=result.error_msg)
-        return result.last_rowid
+        ) as result:
+            if result.error:
+                raise HTTPException(status_code=500, detail=result.error_msg)
+            return result.last_rowid
     
     async def get_user(self, user_id: int) -> UserResponse:
-        result = await self.client.execute(
+        async with self.client.execute(
             "SELECT id, name, email, age FROM users WHERE id = %s",
             (user_id,),
             result_class=UserResponse
-        )
-        if result.error:
-            raise HTTPException(status_code=500, detail=result.error_msg)
-        user = await result.fetch_one()
-        if not user:
-            raise HTTPException(status_code=404, detail="用户不存在")
-        return user
+        ) as result:
+            if result.error:
+                raise HTTPException(status_code=500, detail=result.error_msg)
+            user = await result.fetch_one()
+            if not user:
+                raise HTTPException(status_code=404, detail="用户不存在")
+            return user
 
 # API routes
 @app.post("/users", response_model=UserResponse)
@@ -944,29 +932,29 @@ from asmysql import Engine, AsMysql
 class UserCLI(AsMysql):
     async def list_users(self):
         """List all users"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "SELECT id, name, email FROM users",
             result_class=dict
-        )
-        if result.error:
-            print(f"Error: {result.error_msg}")
-            return
-        
-        users = await result.fetch_all()
-        print(f"Total {len(users)} users:")
-        for user in users:
-            print(f"  ID: {user['id']}, Name: {user['name']}, Email: {user['email']}")
+        ) as result:
+            if result.error:
+                print(f"Error: {result.error_msg}")
+                return
+            
+            users = await result.fetch_all()
+            print(f"Total {len(users)} users:")
+            for user in users:
+                print(f"  ID: {user['id']}, Name: {user['name']}, Email: {user['email']}")
     
     async def add_user(self, name: str, email: str):
         """Add user"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "INSERT INTO users (name, email) VALUES (%s, %s)",
             (name, email)
-        )
-        if result.error:
-            print(f"Add failed: {result.error_msg}")
-        else:
-            print(f"Add successful, ID: {result.last_rowid}")
+        ) as result:
+            if result.error:
+                print(f"Add failed: {result.error_msg}")
+            else:
+                print(f"Add successful, ID: {result.last_rowid}")
 
 async def main():
     parser = argparse.ArgumentParser(description="用户管理工具")
@@ -995,7 +983,8 @@ async def main():
     await engine.connect()
     
     # Select database
-    await engine.execute(f"USE {args.database}")
+    async with engine.execute(f"USE {args.database}"):
+        pass
     
     # Create CLI instance
     cli = UserCLI(engine)
@@ -1013,4 +1002,3 @@ if __name__ == "__main__":
 ```
 
 These examples cover the main usage scenarios of asmysql v2 version and can be modified and extended according to actual needs.
-

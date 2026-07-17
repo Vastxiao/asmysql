@@ -15,10 +15,10 @@ For the following write operation keywords, `COMMIT` is automatically executed a
 
 ```python
 # Write operations auto-commit, no manual control needed
-result = await engine.execute(
+async with engine.execute(
     "INSERT INTO users (name) VALUES (%s)", ("张三",)
-)
-# Automatically COMMIT after execution
+) as result:
+    pass  # Automatically COMMIT after execution
 ```
 
 ### Read Operations Do Not Commit
@@ -37,12 +37,12 @@ In `stream=True` mode, even write operations are not auto-committed. This is bec
 
 ```python
 # Streaming queries do not auto-commit
-result = await engine.execute(
+async with engine.execute(
     "SELECT * FROM large_table",
     stream=True
-)
-async for row in result:
-    process(row)
+) as result:
+    async for row in result:
+        process(row)
 ```
 
 ## Connection Pool Configuration

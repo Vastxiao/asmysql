@@ -5,35 +5,35 @@
 ### fetch_one() - Get Single Record
 
 ```python
-result = await engine.execute("SELECT * FROM users WHERE id = %s", (1,))
-user = await result.fetch_one()
-if user:
-    print(user)
+async with engine.execute("SELECT * FROM users WHERE id = %s", (1,)) as result:
+    user = await result.fetch_one()
+    if user:
+        print(user)
 ```
 
 ### fetch_many() - Get Multiple Records
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-users = await result.fetch_many(10)  # Get 10 records
-for user in users:
-    print(user)
+async with engine.execute("SELECT * FROM users") as result:
+    users = await result.fetch_many(10)  # Get 10 records
+    for user in users:
+        print(user)
 ```
 
 ### fetch_all() - Get All Records
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-all_users = await result.fetch_all()
-print(f"Total {len(all_users)} records")
+async with engine.execute("SELECT * FROM users") as result:
+    all_users = await result.fetch_all()
+    print(f"Total {len(all_users)} records")
 ```
 
 ### iterate() - Async Iterator
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-async for user in result.iterate():
-    print(user)
+async with engine.execute("SELECT * FROM users") as result:
+    async for user in result.iterate():
+        print(user)
 ```
 
 ### Direct Iteration of Result
@@ -43,10 +43,10 @@ async for user in result.iterate():
 async for user in engine.execute("SELECT * FROM users"):
     print(user)
 
-# Method 2: await then iterate
-result = await engine.execute("SELECT * FROM users")
-async for user in result:
-    print(user)
+# Method 2: Using async with then iterate
+async with engine.execute("SELECT * FROM users") as result:
+    async for user in result:
+        print(user)
 ```
 
 ## Result Types
@@ -54,20 +54,20 @@ async for user in result:
 ### Default tuple Type
 
 ```python
-result = await engine.execute("SELECT id, name, email FROM users")
-user = await result.fetch_one()
-# user is tuple: (1, "张三", "zhangsan@example.com")
+async with engine.execute("SELECT id, name, email FROM users") as result:
+    user = await result.fetch_one()
+    # user is tuple: (1, "张三", "zhangsan@example.com")
 ```
 
 ### dict Type
 
 ```python
-result = await engine.execute(
+async with engine.execute(
     "SELECT id, name, email FROM users",
     result_class=dict
-)
-user = await result.fetch_one()
-# user is dict: {"id": 1, "name": "张三", "email": "zhangsan@example.com"}
+) as result:
+    user = await result.fetch_one()
+    # user is dict: {"id": 1, "name": "张三", "email": "zhangsan@example.com"}
 ```
 
 ### Custom Model Type
@@ -84,13 +84,13 @@ class User(BaseModel):
 engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
 await engine.connect()
 
-result = await engine.execute(
+async with engine.execute(
     "SELECT id, name, email FROM users",
     result_class=User
-)
-user = await result.fetch_one()
-# user is User instance
-print(user.name)  # Use attribute access
+) as result:
+    user = await result.fetch_one()
+    # user is User instance
+    print(user.name)  # Use attribute access
 ```
 
 ## Error Handling
@@ -98,13 +98,13 @@ print(user.name)  # Use attribute access
 ### Check Error
 
 ```python
-result = await engine.execute("SELECT * FROM non_existent_table")
-if result.error:
-    print(f"Error code: {result.error_no}")
-    print(f"Error message: {result.error_msg}")
-    print(f"Error object: {result.error}")
-else:
-    data = await result.fetch_all()
+async with engine.execute("SELECT * FROM non_existent_table") as result:
+    if result.error:
+        print(f"Error code: {result.error_no}")
+        print(f"Error message: {result.error_msg}")
+        print(f"Error object: {result.error}")
+    else:
+        data = await result.fetch_all()
 ```
 
 ### Error Attributes
@@ -116,20 +116,15 @@ else:
 ## Execution Statistics
 
 ```python
-result = await engine.execute("INSERT INTO users (name) VALUES (%s)", ("张三",))
+async with engine.execute("INSERT INTO users (name) VALUES (%s)", ("张三",)) as result:
+    # Affected rows
+    print(f"Affected rows: {result.row_count}")
 
-# Affected rows
-print(f"Affected rows: {result.row_count}")
-
-# Last inserted ID (only for INSERT statements)
-print(f"Last inserted ID: {result.last_rowid}")
-
-# Current cursor position
-print(f"Cursor position: {result.row_number}")
+    # Last inserted ID (only for INSERT statements)
+    print(f"Last inserted ID: {result.last_rowid}")
 ```
 
 **Note**:
 - `row_count` returns `None` when using streaming query (`stream=True`)
 - `row_count` returns `None` when an error occurs
 - `last_rowid` is only valid for INSERT statements
-

@@ -20,21 +20,23 @@ A:
 A: Use the `result_class` parameter, supports `tuple`, `dict`, or custom model classes:
 
 ```python
-result = await engine.execute(
+async with engine.execute(
     "SELECT * FROM users",
     result_class=dict  # or custom model class
-)
+) as result:
+    users = await result.fetch_all()
 ```
 
 ## Q: How to handle transactions?
 
-A: Set `auto_commit=False` and manage manually:
+A: v2 uses an SQL statement type-based auto-commit mechanism:
 
 ```python
-engine = Engine(url="...", auto_commit=False)
+engine = Engine(url="...")
 await engine.connect()
 
-# Note: Transaction management in v2 requires manual connection control
+# Write operations (INSERT/UPDATE/DELETE etc.) are auto-committed
+# Read operations (SELECT) do not trigger commits
 ```
 
 ## Q: How to get error information?
@@ -42,10 +44,10 @@ await engine.connect()
 A: Through `result.error`, `result.error_no`, and `result.error_msg` attributes:
 
 ```python
-result = await engine.execute("SELECT * FROM invalid_table")
-if result.error:
-    print(f"Error code: {result.error_no}")
-    print(f"Error message: {result.error_msg}")
+async with engine.execute("SELECT * FROM invalid_table") as result:
+    if result.error:
+        print(f"Error code: {result.error_no}")
+        print(f"Error message: {result.error_msg}")
 ```
 
 ## Q: How to batch insert data?
@@ -54,10 +56,11 @@ A: Use the `execute_many()` method:
 
 ```python
 data = [("张三", "zhangsan@example.com"), ("李四", "lisi@example.com")]
-result = await engine.execute_many(
+async with engine.execute_many(
     "INSERT INTO users (name, email) VALUES (%s, %s)",
     data
-)
+) as result:
+    print(f"Inserted {result.row_count} records")
 ```
 
 ## Q: How to share Engine instance across different modules?
@@ -95,4 +98,3 @@ engine = Engine(
     connect_timeout=10  # 10 seconds timeout
 )
 ```
-

@@ -42,12 +42,12 @@ engine = Engine(url="mysql://root:pass@127.0.0.1:3306/?charset=utf8mb4")
 # 编写业务逻辑类
 class UserService(AsMysql):
     async def get_all_users(self):
-        result = await self.client.execute("SELECT user, host FROM mysql.user")
-        if result.error:
-            print(f"错误码: {result.error_no}, 错误信息: {result.error_msg}")
-        else:
-            async for item in result.iterate():
-                print(item)
+        async with self.client.execute("SELECT user, host FROM mysql.user") as result:
+            if result.error:
+                print(f"错误码: {result.error_no}, 错误信息: {result.error_msg}")
+            else:
+                async for item in result.iterate():
+                    print(item)
 
 async def main():
     # 连接 MySQL
@@ -70,4 +70,3 @@ asyncio.run(main())
 - 了解 [连接管理](connection.md) 的详细配置
 - 学习 [查询操作](query.md) 的各种用法
 - 查看 [使用示例](examples.md) 获取更多示例代码
-
