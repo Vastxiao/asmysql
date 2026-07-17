@@ -156,7 +156,7 @@ class TestResultProperties:
         async with engine.execute("SELECT * FROM test_result", stream=True) as r:
             # fetch 之前，stream 模式 row_count 为 0
             assert r.row_count == 0
-            data = await r.fetch_one()
+            await r.fetch_one()
             assert r.row_count == 1
 
     async def test_last_rowid_insert(self, engine, table):
