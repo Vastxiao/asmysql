@@ -63,8 +63,10 @@ class Result(Generic[T]):
         self.__cursor: Optional[Cursor] = None
         self.__executed: bool = False
         self.__error: Optional[MySQLError] = None
-        # 缓存 rowcount / lastrowid，仅在无结果集语句（DDL/INSERT/UPDATE）时使用
-        self.__rowcount: Optional[int] = None
+        # 缓存 rowcount / lastrowid：
+        # - 非 stream 模式：DDL/DML 语句执行后缓存游标的 rowcount
+        # - stream 模式：在 fetch 过程中累加已获取的行数
+        self.__rowcount: int = 0
         self.__lastrowid: Optional[int] = None
 
     # @property
@@ -111,6 +113,10 @@ class Result(Generic[T]):
         conn = cursor.connection
         try:
             await cursor.close()
+            # 非流式游标 close() 仅清理本地 buffer，不释放 MySQL 元数据锁。
+            # 通过 ping 触发 MySQL 释放 SHARED 锁，避免后续 DDL 死等。
+            if not self.stream and conn and not conn.closed:
+                await conn.ping()
         except Exception:
             pass
         finally:
@@ -184,7 +190,8 @@ class Result(Generic[T]):
                 conn_id = id(conn)
                 if conn_id not in initialized:
                     await self.__cursor.execute(self.__init_sql)
-                    await self.__cursor.connection.commit()  # type: ignore
+                    # USE SET 语句不需要commit操作
+                    # await self.__cursor.connection.commit()  # type: ignore
                     initialized.add(conn_id)
             if self.__execute_many:
                 await self.__cursor.executemany(self.query, self.values)
@@ -203,6 +210,12 @@ class Result(Generic[T]):
                 conn_to_release = conn
                 await self.__cursor.close()
                 self.__cursor = None
+                # 非流式下 ping 释放元数据锁
+                if not self.stream and conn_to_release and not conn_to_release.closed:
+                    try:
+                        await conn_to_release.ping()
+                    except Exception:
+                        pass
                 self.pool.release(conn_to_release)
                 conn = None  # 防止 except 块重复释放
         except Exception as err:
@@ -246,12 +259,13 @@ class Result(Generic[T]):
 
         这个属性实际就是sql结果的总条数
         如果mysql报错，则返回None
-        如果使用stream执行sql语句，则返回None
+        如果使用stream执行sql语句，则返回已获取的行数（fetch 过程中持续累加）
         """
         if self.error:
             return None
+        # stream 模式：返回 fetch 过程中累加的计数
         if self.stream:
-            return None
+            return self.__rowcount
         # 游标已关闭时使用缓存值（DDL/DML 语句执行后会自动释放连接）
         if self.__cursor is None:
             return self.__rowcount
@@ -295,6 +309,8 @@ class Result(Generic[T]):
         data = await self.__cursor.fetchone()
         if data is None:
             return None
+        if self.stream:
+            self.__rowcount += 1
         if self._result_class is not tuple and self._result_class is not dict:
             _data: T = self._result_class(**data)
         else:
@@ -314,6 +330,8 @@ class Result(Generic[T]):
         data: list = await self.__cursor.fetchmany(size)
         if not data:
             return _data
+        if self.stream:
+            self.__rowcount += len(data)
         if self._result_class is not tuple and self._result_class is not dict:
             _data = [self._result_class(**item) for item in data]
         else:
@@ -327,6 +345,8 @@ class Result(Generic[T]):
             return _data
         # noinspection PyUnresolvedReferences
         data: list = await self.__cursor.fetchall()
+        if self.stream:
+            self.__rowcount += len(data)
         if self._result_class is not tuple and self._result_class is not dict:
             _data: list[T] = [self._result_class(**item) for item in data]
         else:
@@ -343,6 +363,8 @@ class Result(Generic[T]):
                 # noinspection PyUnresolvedReferences
                 data = await self.__cursor.fetchone()
                 if data is not None:
+                    if self.stream:
+                        self.__rowcount += 1
                     if self._result_class is not tuple and self._result_class is not dict:
                         _data: T = self._result_class(**data)
                     else:

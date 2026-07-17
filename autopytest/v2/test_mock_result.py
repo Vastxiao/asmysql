@@ -70,14 +70,21 @@ class TestResultProperties:
         async with result as r:
             assert r.row_count == 42
 
-    async def test_row_count_stream_returns_none(self):
-        """stream 模式 row_count 返回 None"""
+    async def test_row_count_stream_returns_count(self):
+        """stream 模式 row_count 返回已获取的行数（fetch 过程中累加）"""
         conn, cursor = make_mock_conn()
         cursor.description = (("col",),)
         pool = make_mock_pool(conn)
         result = make_result(pool=pool, stream=True)
         async with result as r:
-            assert r.row_count is None
+            # fetch 之前，stream 模式 row_count 为 0
+            assert r.row_count == 0
+            # fetch_one 后累加
+            cursor.fetchone = AsyncMock(side_effect=[("row1",), ("row2",), None])
+            await r.fetch_one()
+            assert r.row_count == 1
+            await r.fetch_one()
+            assert r.row_count == 2
 
     async def test_row_count_after_close_cached(self):
         """DDL/DML close 后 row_count 使用缓存值"""

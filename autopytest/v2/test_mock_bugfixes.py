@@ -429,11 +429,11 @@ class TestP2Medium:
         leaked = sum(1 for r in refs if r() is not None)
         assert leaked == 0, f"{leaked} Result instances leaked (held by lru_cache?)"
 
-    async def test_row_count_after_close_returns_none(self):
-        """Test 15a: close() 后 row_count 应返回 None，非 AttributeError
+    async def test_row_count_after_close_returns_zero(self):
+        """Test 15a: close() 后 row_count 应返回 0，非 AttributeError
 
         Bug: close() 将 __cursor 置 None 后，self.__cursor.rowcount 抛 AttributeError。
-        Fix: 属性方法中先检查 self.__cursor is None，返回 None。
+        Fix: 属性方法中先检查 self.__cursor is None，返回 __rowcount（未 fetch 时为 0）。
         """
         conn, cursor = _make_mock_conn()
         cursor.rowcount = 42
@@ -444,8 +444,8 @@ class TestP2Medium:
         async with result as r:
             assert r.row_count == 42
 
-        # 核心断言：close 后不报错
-        assert r.row_count is None
+        # 核心断言：close 后不报错，返回 __rowcount（未 fetch 时为 0）
+        assert r.row_count == 0
 
     async def test_last_rowid_after_close_returns_none(self):
         """Test 15b: close() 后 last_rowid 应返回 None"""

@@ -146,15 +146,18 @@ class TestResultProperties:
             # fetch_all 后游标已关闭，row_count 使用缓存值
             # SELECT 的 row_count 在 aiomysql 中为 -1 或实际行数
 
-    async def test_row_count_stream_returns_none(self, engine, table):
-        """stream 模式 row_count is None"""
+    async def test_row_count_stream_returns_count(self, engine, table):
+        """stream 模式 row_count 返回已获取的行数"""
         async with engine.execute(
             "INSERT INTO test_result (name, email) VALUES (%s, %s)",
             ("Alice", "alice@example.com"),
         ):
             pass
         async with engine.execute("SELECT * FROM test_result", stream=True) as r:
-            assert r.row_count is None
+            # fetch 之前，stream 模式 row_count 为 0
+            assert r.row_count == 0
+            data = await r.fetch_one()
+            assert r.row_count == 1
 
     async def test_last_rowid_insert(self, engine, table):
         """INSERT 后 last_rowid"""
