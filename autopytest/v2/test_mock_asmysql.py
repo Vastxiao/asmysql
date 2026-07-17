@@ -1,7 +1,11 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""使用 mock 测试 AsMysql 类，避免需要实际数据库连接"""
+"""
+AsMysql 薄封装层 Mock 测试
+
+仅测试 AsMysql 类本身的实例化与 client 属性，
+不重复 Engine/Result 的功能测试（分别在 test_mock_engine.py / test_mock_result.py 中）。
+"""
 
 from unittest.mock import AsyncMock, Mock
 
@@ -14,12 +18,6 @@ class User(BaseModel):
     id: int
     name: str
     email: str
-
-
-class Product(BaseModel):
-    id: int
-    name: str
-    price: float
 
 
 # ── 同步测试 ─────────────────────────────────────────────────────────
@@ -85,7 +83,7 @@ def test_asmysql_execute_with_different_result_types(asmysql, mock_result):
 
 def test_asmysql_execute_streaming(asmysql, mock_result):
     """测试 AsMysql 流式执行查询"""
-    mock_result.row_count = None  # 流式查询返回 None
+    mock_result.row_count = None
     asmysql.client.execute = Mock(return_value=mock_result)
 
     query = "SELECT * FROM test_users"

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -119,7 +118,7 @@ async def test_connect_without_init_sql_does_not_affect_execute(mock_pool):
         engine = Engine(host="127.0.0.1", port=3306)
         await engine.connect()
 
-    async with engine.execute("SELECT 1") as result:
+    async with engine.execute("SELECT 1"):
         pass
     # cursor.execute 只被调用了一次（业务 SQL），没有额外的 init_sql
     assert cursor.execute.await_count == 1
@@ -137,7 +136,7 @@ async def test_new_connection_gets_init_sql_on_first_execute(mock_pool):
         await engine.connect()
 
     # 第一次 execute：应先执行 init_sql，再执行业务 SQL
-    async with engine.execute("SELECT 1") as result:
+    async with engine.execute("SELECT 1"):
         pass
 
     # cursor.execute 被调用了 2 次：init_sql + 业务 SQL

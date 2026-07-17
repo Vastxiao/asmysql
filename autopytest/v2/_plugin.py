@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """V2 测试 pytest 插件 — 通过 pyproject.toml addopts 中的 -p 早期加载
