@@ -1,5 +1,6 @@
 *.swp
 *.idea/
+.qoder/plans/
 # Python-generated files
 __pycache__/
 *.py[oc]
@@ -9,6 +10,7 @@ wheels/
 *.egg-info
 *.ropeproject/
 *.spec
+.pytest_cache/
 # 包工具
 Pipfile.lock
 poetry.lock

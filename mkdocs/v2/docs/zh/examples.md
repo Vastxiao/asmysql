@@ -28,15 +28,15 @@ from asmysql import Engine
 
 async def main():
     # 创建引擎
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     
     # 连接
     await engine.connect()
     
     # 执行查询
-    result = await engine.execute("SELECT 1 as value")
-    data = await result.fetch_one()
-    print(data)  # (1,)
+    async with engine.execute("SELECT 1 as value") as result:
+        data = await result.fetch_one()
+        print(data)  # (1,)
     
     # 断开连接
     await engine.disconnect()
@@ -51,12 +51,12 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     
     async with engine:
-        result = await engine.execute("SELECT 1 as value")
-        data = await result.fetch_one()
-        print(data)
+        async with engine.execute("SELECT 1 as value") as result:
+            data = await result.fetch_one()
+            print(data)
 
 asyncio.run(main())
 ```
@@ -70,7 +70,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     
     print(f"连接前: {engine.is_connected}")  # False
     
@@ -96,12 +96,58 @@ from asmysql import Engine
 
 # 配置连接池
 engine = Engine(
-    url="mysql://root:pass@127.0.0.1:3306/test_db",
+    url="mysql://root:pass@127.0.0.1:3306/",
     min_pool_size=5,      # 最小连接数
     max_pool_size=50,     # 最大连接数
     pool_recycle=3600,    # 1 小时回收空闲连接
     connect_timeout=10    # 连接超时 10 秒
 )
+```
+
+### 连接初始化 SQL（init_sql）
+
+适用于 ClickHouse 等需要在每条 TCP 连接上预设 session 变量的场景。`init_sql` 仅在连接首次使用时执行一次，后续复用连接时自动跳过。
+
+```python
+import asyncio
+from asmysql import Engine
+
+async def main():
+    # ClickHouse 异步插入配置
+    engine = Engine(
+        host="192.168.62.195",
+        port=9004,
+        user="default",
+        password="",
+        init_sql=(
+            "SET async_insert = 1, wait_for_async_insert = 0, "
+            "async_insert_busy_timeout_ms = 1000, "
+            "max_execution_time = 30"
+        ),
+    )
+    await engine.connect()
+    
+    # 后续所有 execute 自动对新连接执行 SET
+    async with engine.execute("INSERT INTO audit_log (ts, msg) VALUES (%s, %s)", ("2025-01-01", "hello")) as result:
+        if result.error:
+            print(f"插入失败: {result.error_msg}")
+    
+    await engine.disconnect()
+
+asyncio.run(main())
+```
+
+### MySQL Session 变量配置
+
+```python
+from asmysql import Engine
+
+# 通过关键字参数设置 init_sql
+engine = Engine(
+    url="mysql://root:pass@127.0.0.1:3306/",
+    init_sql="SET SESSION wait_timeout = 600, SESSION interactive_timeout = 600",
+)
+await engine.connect()
 ```
 
 ## 查询操作 {#query-operations}
@@ -113,27 +159,27 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 使用 tuple 类型（默认）
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT id, name, email FROM users WHERE id = %s",
         (1,)
-    )
-    user = await result.fetch_one()
-    if user:
-        print(f"ID: {user[0]}, 姓名: {user[1]}, 邮箱: {user[2]}")
+    ) as result:
+        user = await result.fetch_one()
+        if user:
+            print(f"ID: {user[0]}, 姓名: {user[1]}, 邮箱: {user[2]}")
     
     # 使用 dict 类型
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT id, name, email FROM users WHERE id = %s",
         (1,),
         result_class=dict
-    )
-    user = await result.fetch_one()
-    if user:
-        print(f"ID: {user['id']}, 姓名: {user['name']}, 邮箱: {user['email']}")
+    ) as result:
+        user = await result.fetch_one()
+        if user:
+            print(f"ID: {user['id']}, 姓名: {user['name']}, 邮箱: {user['email']}")
     
     await engine.disconnect()
 
@@ -147,18 +193,18 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 获取所有记录
-    result = await engine.execute("SELECT * FROM users")
-    all_users = await result.fetch_all()
-    print(f"共 {len(all_users)} 条记录")
+    async with engine.execute("SELECT * FROM users") as result:
+        all_users = await result.fetch_all()
+        print(f"共 {len(all_users)} 条记录")
     
     # 获取指定数量的记录
-    result = await engine.execute("SELECT * FROM users")
-    users = await result.fetch_many(10)  # 获取 10 条
-    print(f"获取了 {len(users)} 条记录")
+    async with engine.execute("SELECT * FROM users") as result:
+        users = await result.fetch_many(10)  # 获取 10 条
+        print(f"获取了 {len(users)} 条记录")
     
     await engine.disconnect()
 
@@ -172,15 +218,15 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 使用字典参数
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT * FROM users WHERE name = %(name)s AND age > %(age)s",
         {"name": "张三", "age": 18}
-    )
-    users = await result.fetch_all()
+    ) as result:
+        users = await result.fetch_all()
     
     await engine.disconnect()
 
@@ -194,18 +240,18 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 方式一：使用 iterate() 方法
-    result = await engine.execute("SELECT * FROM users")
-    async for user in result.iterate():
-        print(user)
+    async with engine.execute("SELECT * FROM users") as result:
+        async for user in result.iterate():
+            print(user)
     
     # 方式二：直接迭代 result
-    result = await engine.execute("SELECT * FROM users")
-    async for user in result:
-        print(user)
+    async with engine.execute("SELECT * FROM users") as result:
+        async for user in result:
+            print(user)
     
     # 方式三：直接迭代 execute 返回的结果
     async for user in engine.execute("SELECT * FROM users"):
@@ -225,20 +271,19 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 插入数据
-    result = await engine.execute(
+    async with engine.execute(
         "INSERT INTO users (name, email) VALUES (%s, %s)",
         ("张三", "zhangsan@example.com")
-    )
-    
-    if result.error:
-        print(f"插入失败: {result.error_msg}")
-    else:
-        print(f"插入成功，受影响行数: {result.row_count}")
-        print(f"新插入的 ID: {result.last_rowid}")
+    ) as result:
+        if result.error:
+            print(f"插入失败: {result.error_msg}")
+        else:
+            print(f"插入成功，受影响行数: {result.row_count}")
+            print(f"新插入的 ID: {result.last_rowid}")
     
     await engine.disconnect()
 
@@ -252,17 +297,16 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    result = await engine.execute(
+    async with engine.execute(
         "INSERT INTO users (name, email) VALUES (%s, %s)",
         ("李四", "lisi@example.com")
-    )
-    
-    if not result.error:
-        new_id = result.last_rowid
-        print(f"新用户的 ID: {new_id}")
+    ) as result:
+        if not result.error:
+            new_id = result.last_rowid
+            print(f"新用户的 ID: {new_id}")
     
     await engine.disconnect()
 
@@ -278,18 +322,17 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    result = await engine.execute(
+    async with engine.execute(
         "UPDATE users SET email = %s WHERE id = %s",
         ("newemail@example.com", 1)
-    )
-    
-    if result.error:
-        print(f"更新失败: {result.error_msg}")
-    else:
-        print(f"更新成功，受影响行数: {result.row_count}")
+    ) as result:
+        if result.error:
+            print(f"更新失败: {result.error_msg}")
+        else:
+            print(f"更新成功，受影响行数: {result.row_count}")
     
     await engine.disconnect()
 
@@ -303,7 +346,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 使用 execute_many 批量更新
@@ -313,13 +356,12 @@ async def main():
         ("email3@example.com", 3)
     ]
     
-    result = await engine.execute_many(
+    async with engine.execute_many(
         "UPDATE users SET email = %s WHERE id = %s",
         updates
-    )
-    
-    if not result.error:
-        print(f"批量更新成功，受影响行数: {result.row_count}")
+    ) as result:
+        if not result.error:
+            print(f"批量更新成功，受影响行数: {result.row_count}")
     
     await engine.disconnect()
 
@@ -335,18 +377,17 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    result = await engine.execute(
+    async with engine.execute(
         "DELETE FROM users WHERE id = %s",
         (1,)
-    )
-    
-    if result.error:
-        print(f"删除失败: {result.error_msg}")
-    else:
-        print(f"删除成功，受影响行数: {result.row_count}")
+    ) as result:
+        if result.error:
+            print(f"删除失败: {result.error_msg}")
+        else:
+            print(f"删除成功，受影响行数: {result.row_count}")
     
     await engine.disconnect()
 
@@ -355,48 +396,57 @@ asyncio.run(main())
 
 ## 事务处理 {#transaction-processing}
 
-### 基本事务
+### 自动提交机制
+
+v2 版本采用基于 SQL 语句类型的自动提交机制。写操作（INSERT、UPDATE、DELETE 等）执行后会自动提交，读操作（SELECT）不会触发提交。
 
 ```python
 import asyncio
 from asmysql import Engine
 
 async def main():
-    # 关闭自动提交
-    engine = Engine(
-        url="mysql://root:pass@127.0.0.1:3306/test_db",
-        auto_commit=False
-    )
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    try:
-        # 插入用户
-        result1 = await engine.execute(
-            "INSERT INTO users (name, email) VALUES (%s, %s)",
-            ("张三", "zhangsan@example.com"),
-            commit=False
-        )
-        if result1.error:
-            raise Exception(result1.error_msg)
-        
-        user_id = result1.last_rowid
-        
-        # 插入用户详情
-        result2 = await engine.execute(
-            "INSERT INTO user_profiles (user_id, bio) VALUES (%s, %s)",
-            (user_id, "这是张三的个人简介"),
-            commit=False
-        )
-        if result2.error:
-            raise Exception(result2.error_msg)
-        
-        # 手动提交（需要访问连接对象）
-        # 注意：v2 版本的事务管理需要手动控制
-        # 这里简化示例，实际使用时需要更精细的控制
-        
-    except Exception as e:
-        print(f"事务失败: {e}")
-        # 回滚操作需要手动处理
+    # 写操作自动提交，无需手动控制
+    async with engine.execute(
+        "INSERT INTO users (name, email) VALUES (%s, %s)",
+        ("张三", "zhangsan@example.com")
+    ) as result:
+        if result.error:
+            print(f"插入失败: {result.error_msg}")
+        else:
+            print(f"插入成功，ID: {result.last_rowid}")
+    
+    # 读操作不会触发 COMMIT
+    async with engine.execute("SELECT * FROM users") as result:
+        data = await result.fetch_all()
+        print(f"查询到 {len(data)} 条记录")
+    
+    await engine.disconnect()
+
+asyncio.run(main())
+```
+
+### 流式模式不自动提交
+
+在 `stream=True` 模式下，即使是写操作也不会自动提交，因为 COMMIT 会导致流中断。
+
+```python
+import asyncio
+from asmysql import Engine
+
+async def main():
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
+    await engine.connect()
+    
+    # 流式查询不会自动提交
+    async with engine.execute(
+        "SELECT * FROM large_table",
+        stream=True
+    ) as result:
+        async for row in result:
+            process(row)
     
     await engine.disconnect()
 
@@ -412,25 +462,24 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 启用流式查询
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT * FROM large_table",
         stream=True
-    )
-    
-    count = 0
-    async for row in result:
-        count += 1
-        # 处理每一行数据，不占用内存
-        process_row(row)
+    ) as result:
+        count = 0
+        async for row in result:
+            count += 1
+            # 处理每一行数据，不占用内存
+            process_row(row)
+            
+            if count % 1000 == 0:
+                print(f"已处理 {count} 条记录")
         
-        if count % 1000 == 0:
-            print(f"已处理 {count} 条记录")
-    
-    print(f"总共处理了 {count} 条记录")
+        print(f"总共处理了 {count} 条记录")
     
     await engine.disconnect()
 
@@ -448,20 +497,20 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 普通查询：所有数据加载到内存
-    result1 = await engine.execute("SELECT * FROM large_table", stream=False)
-    all_data = await result1.fetch_all()  # 可能内存溢出
-    print(f"普通查询获取 {len(all_data)} 条记录")
+    async with engine.execute("SELECT * FROM large_table", stream=False) as result:
+        all_data = await result.fetch_all()  # 可能内存溢出
+        print(f"普通查询获取 {len(all_data)} 条记录")
     
     # 流式查询：逐行处理，不占用内存
-    result2 = await engine.execute("SELECT * FROM large_table", stream=True)
-    count = 0
-    async for row in result2:
-        count += 1
-    print(f"流式查询处理 {count} 条记录")
+    async with engine.execute("SELECT * FROM large_table", stream=True) as result:
+        count = 0
+        async for row in result:
+            count += 1
+        print(f"流式查询处理 {count} 条记录")
     
     await engine.disconnect()
 
@@ -477,7 +526,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 准备批量数据
@@ -489,15 +538,14 @@ async def main():
     ]
     
     # 批量插入
-    result = await engine.execute_many(
+    async with engine.execute_many(
         "INSERT INTO users (name, email) VALUES (%s, %s)",
         users
-    )
-    
-    if result.error:
-        print(f"批量插入失败: {result.error_msg}")
-    else:
-        print(f"批量插入成功，插入了 {result.row_count} 条记录")
+    ) as result:
+        if result.error:
+            print(f"批量插入失败: {result.error_msg}")
+        else:
+            print(f"批量插入成功，插入了 {result.row_count} 条记录")
     
     await engine.disconnect()
 
@@ -511,7 +559,7 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 使用字典格式的批量数据
@@ -521,13 +569,12 @@ async def main():
         {"name": "王五", "email": "wangwu@example.com"}
     ]
     
-    result = await engine.execute_many(
+    async with engine.execute_many(
         "INSERT INTO users (name, email) VALUES (%(name)s, %(email)s)",
         users
-    )
-    
-    if not result.error:
-        print(f"批量插入成功，插入了 {result.row_count} 条记录")
+    ) as result:
+        if not result.error:
+            print(f"批量插入成功，插入了 {result.row_count} 条记录")
     
     await engine.disconnect()
 
@@ -551,32 +598,30 @@ class User(BaseModel):
     age: int = 0
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     # 查询并使用自定义模型
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT id, name, email, age FROM users WHERE id = %s",
         (1,),
         result_class=User
-    )
-    
-    user = await result.fetch_one()
-    if user:
-        print(f"用户: {user.name}, 邮箱: {user.email}, 年龄: {user.age}")
-        # 可以使用模型的所有功能
-        print(user.model_dump())
+    ) as result:
+        user = await result.fetch_one()
+        if user:
+            print(f"用户: {user.name}, 邮箱: {user.email}, 年龄: {user.age}")
+            # 可以使用模型的所有功能
+            print(user.model_dump())
     
     # 批量查询
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT id, name, email, age FROM users",
         result_class=User
-    )
-    
-    users = []
-    async for user in result.iterate():
-        users.append(user)
-        print(f"{user.name}: {user.email}")
+    ) as result:
+        users = []
+        async for user in result.iterate():
+            users.append(user)
+            print(f"{user.name}: {user.email}")
     
     await engine.disconnect()
 
@@ -600,16 +645,15 @@ class User:
         return f"User(id={self.id}, name={self.name}, email={self.email})"
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT id, name, email FROM users",
         result_class=User
-    )
-    
-    async for user in result:
-        print(user)  # 自动转换为 User 实例
+    ) as result:
+        async for user in result:
+            print(user)  # 自动转换为 User 实例
     
     await engine.disconnect()
 
@@ -625,18 +669,17 @@ import asyncio
 from asmysql import Engine
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
-    result = await engine.execute("SELECT * FROM non_existent_table")
-    
-    if result.error:
-        print(f"错误码: {result.error_no}")
-        print(f"错误信息: {result.error_msg}")
-        print(f"错误对象: {result.error}")
-    else:
-        data = await result.fetch_all()
-        print(f"查询成功，获取 {len(data)} 条记录")
+    async with engine.execute("SELECT * FROM non_existent_table") as result:
+        if result.error:
+            print(f"错误码: {result.error_no}")
+            print(f"错误信息: {result.error_msg}")
+            print(f"错误对象: {result.error}")
+        else:
+            data = await result.fetch_all()
+            print(f"查询成功，获取 {len(data)} 条记录")
     
     await engine.disconnect()
 
@@ -663,17 +706,17 @@ def handle_db_errors(func):
 
 @handle_db_errors
 async def get_user(engine: Engine, user_id: int):
-    result = await engine.execute(
+    async with engine.execute(
         "SELECT * FROM users WHERE id = %s",
         (user_id,),
         result_class=dict
-    )
-    if result.error:
-        raise Exception(f"查询失败: {result.error_msg}")
-    return await result.fetch_one()
+    ) as result:
+        if result.error:
+            raise Exception(f"查询失败: {result.error_msg}")
+        return await result.fetch_one()
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     user = await get_user(engine, 1)
@@ -706,46 +749,46 @@ class UserService(AsMysql):
     
     async def get_user_by_id(self, user_id: int) -> Optional[User]:
         """根据 ID 获取用户"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "SELECT id, name, email, age FROM users WHERE id = %s",
             (user_id,),
             result_class=User
-        )
-        if result.error:
-            return None
-        return await result.fetch_one()
+        ) as result:
+            if result.error:
+                return None
+            return await result.fetch_one()
     
     async def get_user_by_email(self, email: str) -> Optional[User]:
         """根据邮箱获取用户"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "SELECT id, name, email, age FROM users WHERE email = %s",
             (email,),
             result_class=User
-        )
-        if result.error:
-            return None
-        return await result.fetch_one()
+        ) as result:
+            if result.error:
+                return None
+            return await result.fetch_one()
     
     async def list_users(self, limit: int = 100) -> List[User]:
         """获取用户列表"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "SELECT id, name, email, age FROM users LIMIT %s",
             (limit,),
             result_class=User
-        )
-        if result.error:
-            return []
-        return await result.fetch_all()
+        ) as result:
+            if result.error:
+                return []
+            return await result.fetch_all()
     
     async def create_user(self, name: str, email: str, age: int = 0) -> Optional[int]:
         """创建用户"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "INSERT INTO users (name, email, age) VALUES (%s, %s, %s)",
             (name, email, age)
-        )
-        if result.error:
-            return None
-        return result.last_rowid
+        ) as result:
+            if result.error:
+                return None
+            return result.last_rowid
     
     async def update_user(self, user_id: int, name: str = None, email: str = None, age: int = None) -> bool:
         """更新用户"""
@@ -768,19 +811,19 @@ class UserService(AsMysql):
         values.append(user_id)
         query = f"UPDATE users SET {', '.join(updates)} WHERE id = %s"
         
-        result = await self.client.execute(query, tuple(values))
-        return result.error is None
+        async with self.client.execute(query, tuple(values)) as result:
+            return result.error is None
     
     async def delete_user(self, user_id: int) -> bool:
         """删除用户"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "DELETE FROM users WHERE id = %s",
             (user_id,)
-        )
-        return result.error is None
+        ) as result:
+            return result.error is None
 
 async def main():
-    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+    engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
     await engine.connect()
     
     user_service = UserService(engine)
@@ -818,7 +861,7 @@ from asmysql import Engine, AsMysql
 from contextlib import asynccontextmanager
 
 # 全局引擎
-engine = Engine(url="mysql://root:pass@127.0.0.1:3306/test_db")
+engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -845,26 +888,26 @@ class UserResponse(BaseModel):
 # 服务类
 class UserService(AsMysql):
     async def create_user(self, user_data: UserCreate) -> int:
-        result = await self.client.execute(
+        async with self.client.execute(
             "INSERT INTO users (name, email, age) VALUES (%s, %s, %s)",
             (user_data.name, user_data.email, user_data.age)
-        )
-        if result.error:
-            raise HTTPException(status_code=500, detail=result.error_msg)
-        return result.last_rowid
+        ) as result:
+            if result.error:
+                raise HTTPException(status_code=500, detail=result.error_msg)
+            return result.last_rowid
     
     async def get_user(self, user_id: int) -> UserResponse:
-        result = await self.client.execute(
+        async with self.client.execute(
             "SELECT id, name, email, age FROM users WHERE id = %s",
             (user_id,),
             result_class=UserResponse
-        )
-        if result.error:
-            raise HTTPException(status_code=500, detail=result.error_msg)
-        user = await result.fetch_one()
-        if not user:
-            raise HTTPException(status_code=404, detail="用户不存在")
-        return user
+        ) as result:
+            if result.error:
+                raise HTTPException(status_code=500, detail=result.error_msg)
+            user = await result.fetch_one()
+            if not user:
+                raise HTTPException(status_code=404, detail="用户不存在")
+            return user
 
 # API 路由
 @app.post("/users", response_model=UserResponse)
@@ -889,29 +932,29 @@ from asmysql import Engine, AsMysql
 class UserCLI(AsMysql):
     async def list_users(self):
         """列出所有用户"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "SELECT id, name, email FROM users",
             result_class=dict
-        )
-        if result.error:
-            print(f"错误: {result.error_msg}")
-            return
-        
-        users = await result.fetch_all()
-        print(f"共 {len(users)} 个用户:")
-        for user in users:
-            print(f"  ID: {user['id']}, 姓名: {user['name']}, 邮箱: {user['email']}")
+        ) as result:
+            if result.error:
+                print(f"错误: {result.error_msg}")
+                return
+            
+            users = await result.fetch_all()
+            print(f"共 {len(users)} 个用户:")
+            for user in users:
+                print(f"  ID: {user['id']}, 姓名: {user['name']}, 邮箱: {user['email']}")
     
     async def add_user(self, name: str, email: str):
         """添加用户"""
-        result = await self.client.execute(
+        async with self.client.execute(
             "INSERT INTO users (name, email) VALUES (%s, %s)",
             (name, email)
-        )
-        if result.error:
-            print(f"添加失败: {result.error_msg}")
-        else:
-            print(f"添加成功，ID: {result.last_rowid}")
+        ) as result:
+            if result.error:
+                print(f"添加失败: {result.error_msg}")
+            else:
+                print(f"添加成功，ID: {result.last_rowid}")
 
 async def main():
     parser = argparse.ArgumentParser(description="用户管理工具")
@@ -940,7 +983,8 @@ async def main():
     await engine.connect()
     
     # 选择数据库
-    await engine.execute(f"USE {args.database}")
+    async with engine.execute(f"USE {args.database}"):
+        pass
     
     # 创建 CLI 实例
     cli = UserCLI(engine)
@@ -958,4 +1002,3 @@ if __name__ == "__main__":
 ```
 
 这些示例涵盖了 asmysql v2 版本的主要使用场景，可以根据实际需求进行修改和扩展。
-

@@ -2,7 +2,7 @@
 
 ## 基本查询
 
-### 方式一：使用 await
+### 方式一：使用 async with
 
 ```python
 from asmysql import Engine
@@ -10,8 +10,8 @@ from asmysql import Engine
 engine = Engine(url="mysql://root:pass@127.0.0.1:3306/")
 await engine.connect()
 
-result = await engine.execute("SELECT * FROM users WHERE id = %s", (1,))
-data = await result.fetch_one()
+async with engine.execute("SELECT * FROM users WHERE id = %s", (1,)) as result:
+    data = await result.fetch_one()
 ```
 
 ### 方式二：使用上下文管理器
@@ -43,19 +43,21 @@ async for row in engine.execute("SELECT * FROM users"):
 ### 使用元组参数
 
 ```python
-result = await engine.execute(
+async with engine.execute(
     "SELECT * FROM users WHERE name = %s AND age > %s",
     ("张三", 18)
-)
+) as result:
+    users = await result.fetch_all()
 ```
 
 ### 使用字典参数
 
 ```python
-result = await engine.execute(
+async with engine.execute(
     "SELECT * FROM users WHERE name = %(name)s AND age > %(age)s",
     {"name": "张三", "age": 18}
-)
+) as result:
+    users = await result.fetch_all()
 ```
 
 ## 批量执行
@@ -67,11 +69,11 @@ users = [
     ("李四", "lisi@example.com"),
     ("王五", "wangwu@example.com")
 ]
-result = await engine.execute_many(
+async with engine.execute_many(
     "INSERT INTO users (name, email) VALUES (%s, %s)",
     users
-)
-print(f"插入了 {result.row_count} 条记录")
+) as result:
+    print(f"插入了 {result.row_count} 条记录")
 ```
 
 ## 流式查询
@@ -80,18 +82,16 @@ print(f"插入了 {result.row_count} 条记录")
 
 ```python
 # 启用流式查询
-result = await engine.execute(
+async with engine.execute(
     "SELECT * FROM large_table",
     stream=True
-)
-
-# 流式迭代
-async for row in result:
-    process(row)  # 逐行处理，不占用内存
+) as result:
+    # 流式迭代
+    async for row in result:
+        process(row)  # 逐行处理，不占用内存
 ```
 
 ## 相关文档
 
 - [结果处理](result.md) - 了解如何获取和处理查询结果
 - [事务控制](transaction.md) - 了解事务管理
-

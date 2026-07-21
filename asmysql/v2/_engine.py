@@ -1,8 +1,7 @@
-from functools import lru_cache
+import asyncio
 from typing import (
     AsyncContextManager,
     AsyncGenerator,
-    Awaitable,
     Final,
     Optional,
     Sequence,
@@ -47,29 +46,25 @@ class Engine:
     max_pool_size: int = 10
     pool_recycle: float = -1  # 空闲TCP连接回收等待时间（秒）
     connect_timeout: int = 5  # 连接超时时间（秒）
-    auto_commit: bool = True
     echo_sql_log: bool = False  # 是否打印sql语句日志
-    stream: bool = False  # 是否使用流式返回结果
-    result_class: type = tuple  # 返回结果类型
+    init_sql: Optional[str] = None  # 连接初始化时自动执行的 SQL（如 SET）
 
     @final
     def __init__(
         self,
-        url: str = None,
+        url: Optional[str] = None,
         *,
-        host: str = None,
-        port: int = None,
-        user: str = None,
-        password: str = None,
-        charset: str = None,
-        min_pool_size: int = None,
-        max_pool_size: int = None,
-        pool_recycle: float = None,
-        connect_timeout: int = None,
-        auto_commit: bool = None,
-        echo_sql_log: bool = None,
-        stream: bool = None,
-        result_class: type = None,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+        charset: Optional[str] = None,
+        min_pool_size: Optional[int] = None,
+        max_pool_size: Optional[int] = None,
+        pool_recycle: Optional[float] = None,
+        connect_timeout: Optional[int] = None,
+        echo_sql_log: Optional[bool] = None,
+        init_sql: Optional[str] = None,
     ):
         """
         url: mysql://user:password@host:port/?charset=utf8mb4
@@ -81,8 +76,8 @@ class Engine:
             query_params = parse.parse_qs(parsed.query)
             host = parsed.hostname or host
             port = parsed.port or port
-            user = parsed.username or user
-            password = parsed.password or password
+            user = parse.unquote(parsed.username) if parsed.username else user
+            password = parse.unquote(parsed.password) if parsed.password else password
             charset = query_params.get("charset", [charset])[0]
             # 修复参数解析逻辑，避免None值传递给int()函数
             min_pool_size_val = query_params.get("min_pool_size", [min_pool_size])[0]
@@ -93,31 +88,37 @@ class Engine:
             pool_recycle = float(pool_recycle_val) if pool_recycle_val is not None else pool_recycle
             connect_timeout_val = query_params.get("connect_timeout", [connect_timeout])[0]
             connect_timeout = int(connect_timeout_val) if connect_timeout_val is not None else connect_timeout
-            auto_commit = True if query_params.get("auto_commit", [None])[0] else auto_commit
-            echo_sql_log = True if query_params.get("echo_sql_log", [None])[0] else echo_sql_log
+            echo_sql_log_val = query_params.get("echo_sql_log", [None])[0]
+            if echo_sql_log_val is not None:
+                echo_sql_log = echo_sql_log_val.lower() in ("true", "1", "yes")
+            init_sql = query_params.get("init_sql", [init_sql])[0]
 
-        self.host: Final[str] = host or self.host
-        self.port: Final[int] = port or self.port
-        self.user: Final[str] = user or self.user
-        self.password: Final[str] = password or self.password
-        self.charset: Final[str] = charset or self.charset
-        self.min_pool_size: Final[int] = min_pool_size or self.min_pool_size
+        self.host: Final[str] = host if host is not None else self.host
+        self.port: Final[int] = port if port is not None else self.port
+        self.user: Final[str] = user if user is not None else self.user
+        self.password: Final[str] = password if password is not None else self.password
+        self.charset: Final[str] = charset if charset is not None else self.charset
+        self.min_pool_size: Final[int] = min_pool_size if min_pool_size is not None else self.min_pool_size
         self.max_pool_size: Final[int] = max_pool_size if max_pool_size is not None else self.max_pool_size
-        self.pool_recycle: Final[float] = pool_recycle or self.pool_recycle
-        self.connect_timeout: Final[int] = connect_timeout or self.connect_timeout
-        self.auto_commit: Final[bool] = auto_commit if auto_commit is not None else self.auto_commit
+        self.pool_recycle: Final[float] = pool_recycle if pool_recycle is not None else self.pool_recycle
+        self.connect_timeout: Final[int] = connect_timeout if connect_timeout is not None else self.connect_timeout
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
-        self.stream: Final[bool] = stream if stream is not None else self.stream
-        self.result_class: Final[type] = result_class if result_class is not None else self.result_class
+        self.init_sql: Final[Optional[str]] = init_sql if init_sql is not None else self.init_sql
 
-        self.url: Final[str] = f"mysql://{self.host}:{self.port}/"
+        self.url: Final[str] = f"mysql://{self.user}@{self.host}:{self.port}/"
         self.__pool: Optional[Pool] = None
+        # 延迟创建 asyncio.Lock，避免跨事件循环使用问题
+        self._connect_lock: Optional[asyncio.Lock] = None
 
-    @lru_cache
+    def _get_connect_lock(self) -> asyncio.Lock:
+        """获取连接锁，延迟创建以绑定当前事件循环。"""
+        if self._connect_lock is None:
+            self._connect_lock = asyncio.Lock()
+        return self._connect_lock
+
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.url}>"
 
-    @lru_cache
     def __str__(self):
         return f"{self.__class__.__name__}={self.url}"
 
@@ -130,24 +131,25 @@ class Engine:
     @final
     async def connect(self):
         """连接到mysql,建立TCP链接，初始化连接池。"""
-        if not self.__pool:
-            try:
-                # noinspection PyUnresolvedReferences
-                self.__pool = await create_pool(
-                    host=self.host,
-                    port=self.port,
-                    user=self.user,
-                    password=self.password,
-                    charset=self.charset,
-                    minsize=self.min_pool_size,
-                    maxsize=self.max_pool_size,
-                    pool_recycle=self.pool_recycle,
-                    connect_timeout=self.connect_timeout,
-                    autocommit=self.auto_commit,
-                    echo=self.echo_sql_log,
-                )
-            except MySQLError as err:
-                raise ConnectionError(err_msg(err)) from None
+        async with self._get_connect_lock():
+            if not self.__pool:
+                try:
+                    # noinspection PyUnresolvedReferences
+                    self.__pool = await create_pool(
+                        host=self.host,
+                        port=self.port,
+                        user=self.user,
+                        password=self.password,
+                        charset=self.charset,
+                        minsize=self.min_pool_size,
+                        maxsize=self.max_pool_size,
+                        pool_recycle=self.pool_recycle,  # type: ignore
+                        connect_timeout=self.connect_timeout,
+                        autocommit=False,
+                        echo=self.echo_sql_log,
+                    )
+                except MySQLError as err:
+                    raise ConnectionError(err_msg(err)) from None
         return self
 
     @final
@@ -156,7 +158,7 @@ class Engine:
         """返回数据库连接池状态"""
         _status: EngineStatus = {
             "address": self.url,
-            "connected": True if self.is_connected else False,
+            "connected": self.is_connected,
             "pool_minsize": self.__pool.minsize if self.__pool else None,
             "pool_maxsize": self.__pool.maxsize if self.__pool else None,
             "pool_size": self.__pool.size if self.__pool else None,
@@ -176,21 +178,23 @@ class Engine:
     @final
     async def disconnect(self):
         """等待所有连接释放，并正常关闭mysql连接"""
-        if self.__pool and not self.__pool.closed:
-            self.__pool.close()
-            await self.__pool.wait_closed()
-            self.__pool = None
+        async with self._get_connect_lock():
+            pool, self.__pool = self.__pool, None
+            if pool and not pool.closed:
+                pool.close()
+                await pool.wait_closed()
 
     @final
     async def release_connections(self):
         """释放连接池中所有空闲的连接"""
-        await self.__pool.clear()
+        if self.__pool:
+            await self.__pool.clear()
 
     @final
     @property
     def is_connected(self):
         """数据库是否已连接"""
-        return True if self.__pool else False
+        return self.__pool is not None
 
     @final
     @property
@@ -205,57 +209,52 @@ class Engine:
     def execute(
         self,
         query: str,
-        values: Union[Sequence, dict] = None,
+        values: Optional[Union[Sequence, dict]] = None,
         *,
-        stream: bool = None,
+        stream: Optional[bool] = None,
         result_class: type[tuple] = tuple,
-        commit: bool = None,
-    ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
+    ) -> Union[AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
 
     @overload
     def execute(
         self,
         query: str,
-        values: Union[Sequence, dict] = None,
+        values: Union[Sequence, dict] | None = None,
         *,
-        stream: bool = None,
+        stream: Optional[bool] = None,
         result_class: type[T],
-        commit: bool = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
+    ) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
 
     @final
     def execute(
         self,
         query: str,
-        values: Union[Sequence, dict] = None,
+        values: Optional[Union[Sequence, dict]] = None,
         *,
-        stream: bool = None,
-        result_class: type[T] = None,
-        commit: bool = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
+        stream: Optional[bool] = None,
+        result_class: Optional[type[T]] = None,
+    ) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
-        1. result = await execute(...)
-        2. async with execute(...) as result:
+        1. async with execute(...) as result:
+        2. async for item in execute(...):
 
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
         :param stream: whether to stream the result
-        :param result_class: the class to use for the result
-        :param commit: whether to commit the transaction, default is auto
+        :param result_class: the class to use for the result, defaults to tuple
         """
-        _stream = stream if stream is not None else self.stream
-        result_class = result_class if result_class is not None else self.result_class
+        _result_class: type = result_class if result_class is not None else tuple
 
-        return Result[type[T]](
-            pool=self.__pool,
+        return Result[T](
+            pool=self.pool,
             query=query,
             values=values,
             execute_many=False,
-            stream=_stream,
-            commit=commit,
-            result_class=result_class,
+            stream=stream,
+            result_class=_result_class,
+            init_sql=self.init_sql,
         )
 
     @overload
@@ -264,10 +263,9 @@ class Engine:
         query: str,
         values: Sequence[Union[Sequence, dict]],
         *,
-        stream: bool = None,
+        stream: Optional[bool] = None,
         result_class: type[tuple] = tuple,
-        commit: bool = None,
-    ) -> Union[Awaitable[Result[tuple]], AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
+    ) -> Union[AsyncContextManager[Result[tuple]], AsyncGenerator[tuple, None]]: ...
 
     @overload
     def execute_many(
@@ -275,10 +273,9 @@ class Engine:
         query: str,
         values: Sequence[Union[Sequence, dict]],
         *,
-        stream: bool = None,
+        stream: Optional[bool] = None,
         result_class: type[T],
-        commit: bool = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
+    ) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]: ...
 
     @final
     def execute_many(
@@ -286,31 +283,28 @@ class Engine:
         query: str,
         values: Sequence[Union[Sequence, dict]],
         *,
-        stream: bool = None,
-        result_class: type[T] = None,
-        commit: bool = None,
-    ) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
+        stream: Optional[bool] = None,
+        result_class: Optional[type[T]] = None,
+    ) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]:
         """
         Execute a SQL statement and return a Result object
         支持两种用法:
-        1. result = await execute_many(...)
-        2. async with execute_many(...) as result:
+        1. async with execute_many(...) as result:
+        2. async for item in execute_many(...):
 
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
         :param stream: whether to stream the result
-        :param result_class: the class to use for the result
-        :param commit: whether to commit the transaction, default is auto
+        :param result_class: the class to use for the result, defaults to tuple
         """
-        _stream = stream if stream is not None else self.stream
-        result_class = result_class if result_class is not None else self.result_class
+        result_class = result_class if result_class is not None else tuple
 
-        return Result[type[T]](
-            pool=self.__pool,
+        return Result[T](
+            pool=self.pool,
             query=query,
             values=values,
             execute_many=True,
-            stream=_stream,
-            commit=commit,
+            stream=stream,
             result_class=result_class,
+            init_sql=self.init_sql,
         )

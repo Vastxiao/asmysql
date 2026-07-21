@@ -14,11 +14,6 @@ cd asmysql
 pip install .
 ```
 
-## 依赖要求
-
-- Python >= 3.9
-- aiomysql[rsa] >= 0.3.2
-
 ## 验证安装
 
 安装完成后，可以通尝试导入主要类验证安装成功：

@@ -81,19 +81,18 @@ async def main():
         port=3306,
         user='root',
         password='password',
-        db='test'
     )
 
     # Connect to database
     await engine.connect()
 
     # Execute query
-    result = await engine.query("SELECT * FROM users WHERE id = %s", (1,))
-    user = await result.fetch_one(as_dict=True)
-    print(user)
+    async with engine.execute("SELECT user, host FROM mysql.user") as result:
+        async for item in result.iterate():
+            print(item)
 
     # Close connection
-    await engine.close()
+    await engine.disconnect()
 
 asyncio.run(main())
 ```
@@ -112,6 +111,7 @@ asyncio.run(main())
 - Support for connection pool configuration (min/max connections)
 - Automatic reconnection mechanism
 - Connection status monitoring
+- **Connection init SET SQL (`init_sql`)**: Automatically execute preset SQL on each new TCP connection's first use (ideal for ClickHouse SET scenarios)
 
 #### 3. Flexible Query Methods
 - Support for regular queries and streaming queries

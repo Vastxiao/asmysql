@@ -18,7 +18,6 @@ engine = Engine(
     "&max_pool_size=20"
     "&pool_recycle=3600"
     "&connect_timeout=10"
-    "&auto_commit=true"
     "&echo_sql_log=false"
 )
 ```
@@ -38,10 +37,8 @@ engine = Engine(
     max_pool_size=10,
     pool_recycle=-1,
     connect_timeout=5,
-    auto_commit=True,
     echo_sql_log=False,
-    stream=False,
-    result_class=tuple
+    init_sql=None,  # 可选：连接初始化时自动执行的 SET SQL
 )
 ```
 
@@ -58,10 +55,8 @@ engine = Engine(
 | `max_pool_size` | int | `10` | 连接池最大连接数 |
 | `pool_recycle` | float | `-1` | 空闲连接回收时间（秒），-1 表示不回收 |
 | `connect_timeout` | int | `5` | 连接超时时间（秒） |
-| `auto_commit` | bool | `True` | 是否自动提交事务 |
 | `echo_sql_log` | bool | `False` | 是否打印 SQL 日志 |
-| `stream` | bool | `False` | 是否使用流式返回结果 |
-| `result_class` | type | `tuple` | 返回结果类型 |
+| `init_sql` | str | `None` | 连接初始化时自动执行的 SET SQL（每条新 TCP 连接首次使用时执行一次） |
 
 ## 连接和断开
 
@@ -126,5 +121,51 @@ print(f"使用中连接: {status['pool_used']}")
 ```python
 # 释放连接池中所有空闲连接
 await engine.release_connections()
+```
+
+## 连接初始化 SQL（init_sql）
+
+`init_sql` 参数用于在每条新 TCP 连接首次被使用时自动执行预设 SQL。适用于需要在连接级别设置 session 变量的场景，例如 ClickHouse 异步插入配置、MySQL session 变量等。
+
+### 工作原理
+
+- `init_sql` 的执行在 `Result.__call__()` 中实现，而非 `connect()` 阶段
+- 使用 `weakref.WeakKeyDictionary` 以 Pool 为 key 追踪已初始化的连接 ID
+- 新连接首次执行 SQL 时自动执行 `init_sql`，后续复用同一连接时跳过
+- 连接被 `pool_recycle` 回收重建后，新连接会重新执行 `init_sql`
+
+### ClickHouse 异步插入配置
+
+```python
+from asmysql import Engine
+
+engine = Engine(
+    host="192.168.62.195",
+    port=9004,
+    user="default",
+    password="",
+    init_sql=(
+        "SET async_insert = 1, wait_for_async_insert = 0, "
+        "async_insert_busy_timeout_ms = 1000, "
+        "max_execution_time = 30, max_memory_usage_for_user = 5368709120"
+    ),
+)
+await engine.connect()
+
+# 后续所有 execute 自动对新连接执行 SET，无需手动设置
+async with engine.execute("INSERT INTO audit_log ...") as result:
+    pass
+```
+
+### MySQL Session 变量
+
+```python
+from asmysql import Engine
+
+engine = Engine(
+    url="mysql://root:pass@127.0.0.1:3306/",
+    init_sql="SET SESSION wait_timeout = 600, SESSION interactive_timeout = 600",
+)
+await engine.connect()
 ```
 

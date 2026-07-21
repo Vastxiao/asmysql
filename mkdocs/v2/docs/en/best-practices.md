@@ -18,21 +18,22 @@ async with engine:
 
 ```python
 await engine.connect()
-result = await engine.execute("SELECT * FROM users")
+async with engine.execute("SELECT * FROM users") as result:
+    pass
 # Forgot await engine.disconnect()
 ```
 
-## 2. About `close` Parameter
+## 2. About Connection Resource Management
 
-The `fetch_one()` and `fetch_many()` methods provide a `close` parameter to control whether to automatically close the cursor connection:
+`Result` objects returned by `execute()` / `execute_many()` must be used via `async with` or `async for` to ensure proper connection release:
 
 ### ✅ Recommended: Use Context Manager (Automatic Connection Management)
 
-When using `async with`, the connection will be automatically closed when exiting the context, no manual management needed:
+When using `async with`, the connection will be automatically closed when exiting the context:
 
 ```python
 async with engine.execute("SELECT * FROM users") as result:
-    data = await result.fetch_one()  # close parameter will be ignored, connection managed by context manager
+    data = await result.fetch_one()
     # Automatically close connection on exit
 ```
 
@@ -46,44 +47,45 @@ async for item in engine.execute("SELECT * FROM users"):
     # Automatically close connection after iteration completes
 ```
 
-### ⚠️ Note: Manual Control of `close` Parameter
+### ⚠️ Note: Must Use async with or async for
 
-If you need to manually control connection closing in `fetch_one()` or `fetch_many()`, note:
+`execute()` returns a `Result` object (not a coroutine) and cannot be `await`ed. It must be used via `async with` or `async for`:
 
 ```python
-# Default behavior: automatically close connection (recommended)
-result = await engine.execute("SELECT * FROM users")
-data = await result.fetch_one()  # Default close=True, automatically close connection
+# ✅ Correct: Use async with
+async with engine.execute("SELECT * FROM users") as result:
+    data = await result.fetch_one()
 
-# Manual control: do not auto-close (need manual release)
-result = await engine.execute("SELECT * FROM users")
-data1 = await result.fetch_one(close=False)  # Do not close connection
-data2 = await result.fetch_one(close=False)  # Continue using same connection
-await result.close()  # ⚠️ Must manually close, otherwise connection pool may have issues
+# ✅ Correct: Use async for
+async for item in engine.execute("SELECT * FROM users"):
+    print(item)
+
+# ❌ Wrong: Cannot await (execute is not a coroutine)
+# result = await engine.execute("SELECT * FROM users")
 ```
 
 **Important Notes**:
-- If setting `close=False`, **must** call `result.close()` to release connection after completion
-- Otherwise the connection will not be returned to the pool, which may cause connection pool exhaustion
-- When using context manager or `async for`, the `close` parameter will be ignored, connection is automatically managed by the framework
+- `Result` objects must be used via `async with` or `async for`, otherwise the connection will not be returned to the pool
+- Failing to properly close `Result` will cause `ResourceWarning` and connection leaks
+- When using context manager or `async for`, connections are automatically managed by the framework
 
 ## 3. Error Handling
 
 ### ✅ Recommended: Check Errors
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-if result.error:
-    logger.error(f"Query failed: {result.error_msg}")
-    return []
-return await result.fetch_all()
+async with engine.execute("SELECT * FROM users") as result:
+    if result.error:
+        logger.error(f"Query failed: {result.error_msg}")
+        return []
+    return await result.fetch_all()
 ```
 
 ### ❌ Not Recommended: Ignore Errors
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-data = await result.fetch_all()  # If error occurs, data may be empty list
+async with engine.execute("SELECT * FROM users") as result:
+    data = await result.fetch_all()  # If error occurs, data may be empty list
 ```
 
 ## 4. Large Dataset Processing
@@ -98,8 +100,8 @@ async for row in engine.execute("SELECT * FROM large_table", stream=True):
 ### ❌ Not Recommended: Load All Data at Once
 
 ```python
-data = await engine.execute("SELECT * FROM large_table")
-all_data = await data.fetch_all()  # May cause memory overflow
+async with engine.execute("SELECT * FROM large_table") as result:
+    all_data = await result.fetch_all()  # May cause memory overflow
 ```
 
 ## 5. Parameterized Queries
@@ -107,18 +109,20 @@ all_data = await data.fetch_all()  # May cause memory overflow
 ### ✅ Recommended: Use Parameterized Queries to Prevent SQL Injection
 
 ```python
-result = await engine.execute(
+async with engine.execute(
     "SELECT * FROM users WHERE name = %s",
     (user_name,)
-)
+) as result:
+    users = await result.fetch_all()
 ```
 
 ### ❌ Not Recommended: String Concatenation
 
 ```python
-result = await engine.execute(
+async with engine.execute(
     f"SELECT * FROM users WHERE name = '{user_name}'"
-)
+) as result:
+    users = await result.fetch_all()
 ```
 
 ## 6. Connection Pool Configuration

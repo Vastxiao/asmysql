@@ -176,5 +176,6 @@ nav:
       - FAQ: faq.md
       - Changelog: changelog.md
       - Release Notes:
+          - v2.1.0: changelog/v2.1.0.md
           - v2.0.0: changelog/v2.0.0.md
   - Forum: forum.md

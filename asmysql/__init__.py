@@ -3,12 +3,14 @@ from .v2 import (
     AsyncEngine,
     AsyncResult,
     Engine,
+    EngineStatus,
     Result,
 )
 
 __all__ = [
     "AsMysql",
     "Engine",
+    "EngineStatus",
     "Result",
     "AsyncEngine",
     "AsyncResult",

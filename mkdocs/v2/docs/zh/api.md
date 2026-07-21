@@ -33,10 +33,8 @@ class Engine:
 | `max_pool_size` | `int` | `10` | 连接池最大连接数 |
 | `pool_recycle` | `float` | `-1` | 空闲连接回收时间（秒），-1 表示不回收 |
 | `connect_timeout` | `int` | `5` | 连接超时时间（秒） |
-| `auto_commit` | `bool` | `True` | 是否自动提交事务 |
 | `echo_sql_log` | `bool` | `False` | 是否打印 SQL 日志 |
-| `stream` | `bool` | `False` | 是否使用流式返回结果 |
-| `result_class` | `type` | `tuple` | 返回结果类型 |
+| `init_sql` | `Optional[str]` | `None` | 连接初始化时自动执行的 SET SQL（如 ClickHouse SET） |
 
 ### 构造函数
 
@@ -54,10 +52,8 @@ def __init__(
     max_pool_size: int = None,
     pool_recycle: float = None,
     connect_timeout: int = None,
-    auto_commit: bool = None,
     echo_sql_log: bool = None,
-    stream: bool = None,
-    result_class: type = None,
+    init_sql: str = None,
 ) -> None
 ```
 
@@ -73,10 +69,8 @@ def __init__(
 - `max_pool_size` (int, optional): 连接池最大连接数
 - `pool_recycle` (float, optional): 空闲连接回收时间（秒）
 - `connect_timeout` (int, optional): 连接超时时间（秒）
-- `auto_commit` (bool, optional): 是否自动提交事务
 - `echo_sql_log` (bool, optional): 是否打印 SQL 日志
-- `stream` (bool, optional): 是否使用流式返回结果
-- `result_class` (type, optional): 返回结果类型
+- `init_sql` (str, optional): 连接初始化时自动执行的 SET SQL，每条新 TCP 连接首次使用时执行一次
 
 **示例**：
 
@@ -98,7 +92,7 @@ engine = Engine(
 
 #### connect()
 
-连接到 MySQL，建立 TCP 连接，初始化连接池。
+连接到 MySQL，建立 TCP 连接，初始化连接池。如果配置了 `init_sql`，每条新 TCP 连接首次执行 SQL 时会自动执行初始化 SET SQL。
 
 ```python
 async def connect(self) -> Engine
@@ -152,8 +146,7 @@ def execute(
     *,
     stream: bool = None,
     result_class: type[T] = None,
-    commit: bool = None,
-) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]
+) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]
 ```
 
 **参数说明**：
@@ -161,23 +154,21 @@ def execute(
 - `query` (str): SQL 语句
 - `values` (Union[Sequence, dict], optional): 参数，可以是元组或字典
 - `stream` (bool, optional): 是否流式返回结果，默认使用 `self.stream`
-- `result_class` (type, optional): 结果类型，默认使用 `self.result_class`
-- `commit` (bool, optional): 是否提交事务，默认使用 `self.auto_commit`
+- `result_class` (type, optional): 结果类型，默认 `tuple`
 
 **返回值**：返回 `Result` 对象，支持以下用法：
 
-1. `result = await engine.execute(...)`
-2. `async with engine.execute(...) as result:`
-3. `async for item in engine.execute(...):`
+1. `async with engine.execute(...) as result:`
+2. `async for item in engine.execute(...):`
 
 **示例**：
 
 ```python
-# 方式一：await
-result = await engine.execute("SELECT * FROM users WHERE id = %s", (1,))
-data = await result.fetch_one()
+# 方式一：上下文管理器
+async with engine.execute("SELECT * FROM users WHERE id = %s", (1,)) as result:
+    data = await result.fetch_one()
 
-# 方式二：上下文管理器
+# 方式二：上下文管理器 + fetch_all
 async with engine.execute("SELECT * FROM users") as result:
     data = await result.fetch_all()
 
@@ -198,8 +189,7 @@ def execute_many(
     *,
     stream: bool = None,
     result_class: type[T] = None,
-    commit: bool = None,
-) -> Union[Awaitable[Result[T]], AsyncContextManager[Result[T]], AsyncGenerator[T, None]]
+) -> Union[AsyncContextManager[Result[T]], AsyncGenerator[T, None]]
 ```
 
 **参数说明**：
@@ -208,7 +198,6 @@ def execute_many(
 - `values` (Sequence[Union[Sequence, dict]]): 参数列表，每个元素可以是元组或字典
 - `stream` (bool, optional): 是否流式返回结果
 - `result_class` (type, optional): 结果类型
-- `commit` (bool, optional): 是否提交事务
 
 **返回值**：返回 `Result` 对象
 
@@ -219,10 +208,11 @@ data = [
     ("张三", "zhangsan@example.com"),
     ("李四", "lisi@example.com")
 ]
-result = await engine.execute_many(
+async with engine.execute_many(
     "INSERT INTO users (name, email) VALUES (%s, %s)",
     data
-)
+) as result:
+    print(f"插入了 {result.row_count} 条记录")
 ```
 
 ### 属性
@@ -314,8 +304,8 @@ async def __aexit__(self, exc_type, exc_value, exc_tb) -> None
 
 ```python
 async with engine:
-    result = await engine.execute("SELECT * FROM users")
-    data = await result.fetch_all()
+    async with engine.execute("SELECT * FROM users") as result:
+        data = await result.fetch_all()
 ```
 
 #### __await__()
@@ -397,8 +387,8 @@ def client(self) -> Engine
 ```python
 class UserService(AsMysql):
     async def get_users(self):
-        result = await self.client.execute("SELECT * FROM users")
-        return await result.fetch_all()
+        async with self.client.execute("SELECT * FROM users") as result:
+            return await result.fetch_all()
 ```
 
 ## Result 类
@@ -423,8 +413,8 @@ def __init__(
     values: Union[Sequence, dict] = None,
     execute_many: bool = False,
     stream: bool = False,
-    commit: bool = True,
     result_class: T = tuple,
+    init_sql: str = None,
 ) -> None
 ```
 
@@ -435,8 +425,8 @@ def __init__(
 - `values` (Union[Sequence, dict], optional): 参数
 - `execute_many` (bool): 是否批量执行
 - `stream` (bool): 是否流式返回
-- `commit` (bool): 是否提交事务
 - `result_class` (type): 结果类型
+- `init_sql` (str, optional): 连接初始化时自动执行的 SET SQL
 
 ### 方法
 
@@ -445,22 +435,18 @@ def __init__(
 获取一条记录。
 
 ```python
-async def fetch_one(self, close: bool = None) -> Optional[T]
+async def fetch_one(self) -> Optional[T]
 ```
-
-**参数说明**：
-
-- `close` (bool, optional): 是否自动关闭游标连接。如果设置为 `False`，必须手动调用 `Result.close()` 释放连接
 
 **返回值**：返回一条记录，如果没有数据则返回 `None`
 
 **示例**：
 
 ```python
-result = await engine.execute("SELECT * FROM users WHERE id = %s", (1,))
-user = await result.fetch_one()
-if user:
-    print(user)
+async with engine.execute("SELECT * FROM users WHERE id = %s", (1,)) as result:
+    user = await result.fetch_one()
+    if user:
+        print(user)
 ```
 
 #### fetch_many()
@@ -468,21 +454,20 @@ if user:
 获取多条记录。
 
 ```python
-async def fetch_many(self, size: int = None, close: bool = None) -> list[T]
+async def fetch_many(self, size: int = None) -> list[T]
 ```
 
 **参数说明**：
 
 - `size` (int, optional): 获取记录的数量，默认获取所有可用记录
-- `close` (bool, optional): 是否自动关闭游标连接
 
 **返回值**：返回记录列表
 
 **示例**：
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-users = await result.fetch_many(10)  # 获取 10 条记录
+async with engine.execute("SELECT * FROM users") as result:
+    users = await result.fetch_many(10)  # 获取 10 条记录
 ```
 
 #### fetch_all()
@@ -500,8 +485,8 @@ async def fetch_all(self) -> list[T]
 **示例**：
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-all_users = await result.fetch_all()
+async with engine.execute("SELECT * FROM users") as result:
+    all_users = await result.fetch_all()
 ```
 
 #### iterate()
@@ -519,9 +504,9 @@ async def iterate(self) -> AsyncGenerator[T, None]
 **示例**：
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-async for user in result.iterate():
-    print(user)
+async with engine.execute("SELECT * FROM users") as result:
+    async for user in result.iterate():
+        print(user)
 ```
 
 #### close()
@@ -535,10 +520,10 @@ async def close(self) -> None
 **示例**：
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-data = await result.fetch_one(close=False)
-# ... 其他操作
-await result.close()  # 手动关闭
+async with engine.execute("SELECT * FROM users") as result:
+    data = await result.fetch_one()
+    # ... 其他操作
+# 退出 async with 时自动关闭
 ```
 
 ### 属性
@@ -557,9 +542,9 @@ def error(self) -> Optional[MySQLError]
 **示例**：
 
 ```python
-result = await engine.execute("SELECT * FROM invalid_table")
-if result.error:
-    print(f"错误: {result.error}")
+async with engine.execute("SELECT * FROM invalid_table") as result:
+    if result.error:
+        print(f"错误: {result.error}")
 ```
 
 #### error_no
@@ -615,8 +600,8 @@ def row_count(self) -> Optional[int]
 **示例**：
 
 ```python
-result = await engine.execute("INSERT INTO users (name) VALUES (%s)", ("张三",))
-print(f"插入了 {result.row_count} 条记录")
+async with engine.execute("INSERT INTO users (name) VALUES (%s)", ("张三",)) as result:
+    print(f"插入了 {result.row_count} 条记录")
 ```
 
 #### last_rowid
@@ -635,8 +620,8 @@ def last_rowid(self) -> Optional[int]
 **示例**：
 
 ```python
-result = await engine.execute("INSERT INTO users (name) VALUES (%s)", ("张三",))
-print(f"新插入的 ID: {result.last_rowid}")
+async with engine.execute("INSERT INTO users (name) VALUES (%s)", ("张三",)) as result:
+    print(f"新插入的 ID: {result.last_rowid}")
 ```
 
 #### row_number
@@ -655,12 +640,11 @@ def row_number(self) -> Optional[int]
 **示例**：
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-while True:
-    row = await result.fetch_one(close=False)
-    if not row:
-        break
-    print(f"当前位置: {result.row_number}")
+async with engine.execute("SELECT * FROM users") as result:
+    row = await result.fetch_one()
+    while row:
+        print(f"当前位置: {result.row_number}")
+        row = await result.fetch_one()
 ```
 
 ### 特殊方法
@@ -693,9 +677,9 @@ async def __anext__(self) -> T
 **示例**：
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-async for user in result:
-    print(user)
+async with engine.execute("SELECT * FROM users") as result:
+    async for user in result:
+        print(user)
 ```
 
 #### __await__()
@@ -709,8 +693,8 @@ def __await__(self) -> Generator[Any, None, Result[T]]
 **示例**：
 
 ```python
-result = await engine.execute("SELECT * FROM users")
-# 等同于执行了 SQL 查询
+async with engine.execute("SELECT * FROM users") as result:
+    pass  # SQL 查询已执行
 ```
 
 #### __call__()
@@ -725,8 +709,8 @@ async def __call__(self) -> Result[T]
 
 ```python
 result = engine.execute("SELECT * FROM users")
-await result()  # 执行查询
-data = await result.fetch_all()
+async with result:
+    data = await result.fetch_all()
 ```
 
 ## 类型定义 {#type-definitions}

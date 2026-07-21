@@ -53,6 +53,7 @@
        process(row)
    
    # v2 新增：自定义结果类型
-   result = await engine.execute("SELECT * FROM users", result_class=dict)
+   async with engine.execute("SELECT * FROM users", result_class=dict) as result:
+       users = await result.fetch_all()
    ```
 

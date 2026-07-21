@@ -3,5 +3,10 @@
         "ms-python.python", // Python 核心支持
         "ms-python.vscode-pylance", // Pylance 智能提示
         "ms-python.debugpy", // Debugpy 调试
+        "tamasfe.even-better-toml", // Even Better TOML
+        "charliermarsh.ruff",
+        "oderwat.indent-rainbow",
+        "SirTori.indenticator",
+        "shardulm94.trailing-spaces",
     ]
 }
