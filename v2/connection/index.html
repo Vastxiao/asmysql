@@ -29,7 +29,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -37,7 +37,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -934,6 +934,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#connection-init-sql-init_sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connection Init SQL (init_sql)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Connection Init SQL (init_sql)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clickhouse-async-insert-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ClickHouse Async Insert Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mysql-session-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MySQL Session Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1368,6 +1418,8 @@
       
         
       
+        
+      
     
     
     
@@ -1414,6 +1466,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/v2.1.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v2.1.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1633,6 +1713,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#connection-init-sql-init_sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connection Init SQL (init_sql)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Connection Init SQL (init_sql)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clickhouse-async-insert-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ClickHouse Async Insert Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mysql-session-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MySQL Session Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1717,9 +1847,8 @@
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="s2">&quot;&amp;max_pool_size=20&quot;</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="s2">&quot;&amp;pool_recycle=3600&quot;</span>
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="s2">&quot;&amp;connect_timeout=10&quot;</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="s2">&quot;&amp;auto_commit=true&quot;</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="s2">&quot;&amp;echo_sql_log=false&quot;</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="p">)</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="s2">&quot;&amp;echo_sql_log=false&quot;</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">)</span>
 </span></code></pre></div>
 <h3 id="using-keyword-arguments">Using Keyword Arguments<a class="headerlink" href="#using-keyword-arguments" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">asmysql</span><span class="w"> </span><span class="kn">import</span> <span class="n">Engine</span>
@@ -1734,11 +1863,9 @@
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">max_pool_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
 </span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">pool_recycle</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
 </span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    <span class="n">connect_timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="n">auto_commit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="n">echo_sql_log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    <span class="n">stream</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="n">result_class</span><span class="o">=</span><span class="nb">tuple</span>
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="p">)</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="n">echo_sql_log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="n">init_sql</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Optional: SET SQL to auto-execute on connection init</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="p">)</span>
 </span></code></pre></div>
 <h3 id="connection-parameters">Connection Parameters<a class="headerlink" href="#connection-parameters" title="Permanent link">&para;</a></h3>
 <table>
@@ -1806,28 +1933,16 @@
 <td>Connection timeout (seconds)</td>
 </tr>
 <tr>
-<td><code>auto_commit</code></td>
-<td>bool</td>
-<td><code>True</code></td>
-<td>Whether to auto-commit transactions</td>
-</tr>
-<tr>
 <td><code>echo_sql_log</code></td>
 <td>bool</td>
 <td><code>False</code></td>
 <td>Whether to print SQL logs</td>
 </tr>
 <tr>
-<td><code>stream</code></td>
-<td>bool</td>
-<td><code>False</code></td>
-<td>Whether to use streaming result</td>
-</tr>
-<tr>
-<td><code>result_class</code></td>
-<td>type</td>
-<td><code>tuple</code></td>
-<td>Result type</td>
+<td><code>init_sql</code></td>
+<td>str</td>
+<td><code>None</code></td>
+<td>SET SQL to auto-execute on each new TCP connection's first use</td>
 </tr>
 </tbody>
 </table>
@@ -1879,6 +1994,44 @@
 <h2 id="release-connections">Release Connections<a class="headerlink" href="#release-connections" title="Permanent link">&para;</a></h2>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Release all idle connections in the pool</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">release_connections</span><span class="p">()</span>
+</span></code></pre></div>
+<h2 id="connection-init-sql-init_sql">Connection Init SQL (init_sql)<a class="headerlink" href="#connection-init-sql-init_sql" title="Permanent link">&para;</a></h2>
+<p>The <code>init_sql</code> parameter automatically executes preset SQL on each new TCP connection's first use. Ideal for setting session-level variables, such as ClickHouse async insert settings or MySQL session variables.</p>
+<h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>init_sql</code> execution is implemented in <code>Result.__call__()</code>, not at <code>connect()</code> stage</li>
+<li>Uses <code>weakref.WeakKeyDictionary</code> with Pool as key to track initialized connection IDs</li>
+<li>Executes <code>init_sql</code> on first SQL execution of a new connection; skips on subsequent reuses</li>
+<li>When a connection is recycled via <code>pool_recycle</code>, the new connection re-executes <code>init_sql</code></li>
+</ul>
+<h3 id="clickhouse-async-insert-configuration">ClickHouse Async Insert Configuration<a class="headerlink" href="#clickhouse-async-insert-configuration" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">asmysql</span><span class="w"> </span><span class="kn">import</span> <span class="n">Engine</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">engine</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="n">host</span><span class="o">=</span><span class="s2">&quot;192.168.62.195&quot;</span><span class="p">,</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="n">port</span><span class="o">=</span><span class="mi">9004</span><span class="p">,</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="n">user</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="n">password</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="n">init_sql</span><span class="o">=</span><span class="p">(</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>        <span class="s2">&quot;SET async_insert = 1, wait_for_async_insert = 0, &quot;</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>        <span class="s2">&quot;async_insert_busy_timeout_ms = 1000, &quot;</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>        <span class="s2">&quot;max_execution_time = 30, max_memory_usage_for_user = 5368709120&quot;</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="p">),</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="p">)</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="c1"># All subsequent execute() calls automatically run SET on new connections</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO audit_log ...&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>    <span class="k">pass</span>
+</span></code></pre></div>
+<h3 id="mysql-session-variables">MySQL Session Variables<a class="headerlink" href="#mysql-session-variables" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">asmysql</span><span class="w"> </span><span class="kn">import</span> <span class="n">Engine</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">engine</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="n">url</span><span class="o">=</span><span class="s2">&quot;mysql://root:pass@127.0.0.1:3306/&quot;</span><span class="p">,</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="n">init_sql</span><span class="o">=</span><span class="s2">&quot;SET SESSION wait_timeout = 600, SESSION interactive_timeout = 600&quot;</span><span class="p">,</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="p">)</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
 </span></code></pre></div>
 
 
@@ -2017,7 +2170,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.indexes", "toc.follow", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

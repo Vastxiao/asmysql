@@ -29,7 +29,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -37,7 +37,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1113,15 +1113,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-about-close-parameter" class="md-nav__link">
+  <a href="#2-about-connection-resource-management" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. About close Parameter
+        2. About Connection Resource Management
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. About close Parameter">
+    <nav class="md-nav" aria-label="2. About Connection Resource Management">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1147,10 +1147,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#note-manual-control-of-close-parameter" class="md-nav__link">
+  <a href="#note-must-use-async-with-or-async-for" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ⚠️ Note: Manual Control of close Parameter
+        ⚠️ Note: Must Use async with or async for
       
     </span>
   </a>
@@ -1491,6 +1491,8 @@
       
         
       
+        
+      
     
     
     
@@ -1537,6 +1539,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/v2.1.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v2.1.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1674,15 +1704,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-about-close-parameter" class="md-nav__link">
+  <a href="#2-about-connection-resource-management" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. About close Parameter
+        2. About Connection Resource Management
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. About close Parameter">
+    <nav class="md-nav" aria-label="2. About Connection Resource Management">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1708,10 +1738,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#note-manual-control-of-close-parameter" class="md-nav__link">
+  <a href="#note-must-use-async-with-or-async-for" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ⚠️ Note: Manual Control of close Parameter
+        ⚠️ Note: Must Use async with or async for
       
     </span>
   </a>
@@ -1960,15 +1990,16 @@
 </span></code></pre></div>
 <h3 id="not-recommended-forget-to-disconnect">❌ Not Recommended: Forget to Disconnect<a class="headerlink" href="#not-recommended-forget-to-disconnect" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">)</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Forgot await engine.disconnect()</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="k">pass</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Forgot await engine.disconnect()</span>
 </span></code></pre></div>
-<h2 id="2-about-close-parameter">2. About <code>close</code> Parameter<a class="headerlink" href="#2-about-close-parameter" title="Permanent link">&para;</a></h2>
-<p>The <code>fetch_one()</code> and <code>fetch_many()</code> methods provide a <code>close</code> parameter to control whether to automatically close the cursor connection:</p>
+<h2 id="2-about-connection-resource-management">2. About Connection Resource Management<a class="headerlink" href="#2-about-connection-resource-management" title="Permanent link">&para;</a></h2>
+<p><code>Result</code> objects returned by <code>execute()</code> / <code>execute_many()</code> must be used via <code>async with</code> or <code>async for</code> to ensure proper connection release:</p>
 <h3 id="recommended-use-context-manager-automatic-connection-management">✅ Recommended: Use Context Manager (Automatic Connection Management)<a class="headerlink" href="#recommended-use-context-manager-automatic-connection-management" title="Permanent link">&para;</a></h3>
-<p>When using <code>async with</code>, the connection will be automatically closed when exiting the context, no manual management needed:</p>
+<p>When using <code>async with</code>, the connection will be automatically closed when exiting the context:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_one</span><span class="p">()</span>  <span class="c1"># close parameter will be ignored, connection managed by context manager</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_one</span><span class="p">()</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="c1"># Automatically close connection on exit</span>
 </span></code></pre></div>
 <h3 id="recommended-use-async-for-automatic-connection-management">✅ Recommended: Use <code>async for</code> (Automatic Connection Management)<a class="headerlink" href="#recommended-use-async-for-automatic-connection-management" title="Permanent link">&para;</a></h3>
@@ -1977,33 +2008,34 @@
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="c1"># Automatically close connection after iteration completes</span>
 </span></code></pre></div>
-<h3 id="note-manual-control-of-close-parameter">⚠️ Note: Manual Control of <code>close</code> Parameter<a class="headerlink" href="#note-manual-control-of-close-parameter" title="Permanent link">&para;</a></h3>
-<p>If you need to manually control connection closing in <code>fetch_one()</code> or <code>fetch_many()</code>, note:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Default behavior: automatically close connection (recommended)</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">)</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_one</span><span class="p">()</span>  <span class="c1"># Default close=True, automatically close connection</span>
+<h3 id="note-must-use-async-with-or-async-for">⚠️ Note: Must Use async with or async for<a class="headerlink" href="#note-must-use-async-with-or-async-for" title="Permanent link">&para;</a></h3>
+<p><code>execute()</code> returns a <code>Result</code> object (not a coroutine) and cannot be <code>await</code>ed. It must be used via <code>async with</code> or <code>async for</code>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># ✅ Correct: Use async with</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_one</span><span class="p">()</span>
 </span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># Manual control: do not auto-close (need manual release)</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">)</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="n">data1</span> <span class="o">=</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_one</span><span class="p">(</span><span class="n">close</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># Do not close connection</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">data2</span> <span class="o">=</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_one</span><span class="p">(</span><span class="n">close</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># Continue using same connection</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  <span class="c1"># ⚠️ Must manually close, otherwise connection pool may have issues</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># ✅ Correct: Use async for</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="k">async</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">):</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="c1"># ❌ Wrong: Cannot await (execute is not a coroutine)</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># result = await engine.execute(&quot;SELECT * FROM users&quot;)</span>
 </span></code></pre></div>
 <p><strong>Important Notes</strong>:
-- If setting <code>close=False</code>, <strong>must</strong> call <code>result.close()</code> to release connection after completion
-- Otherwise the connection will not be returned to the pool, which may cause connection pool exhaustion
-- When using context manager or <code>async for</code>, the <code>close</code> parameter will be ignored, connection is automatically managed by the framework</p>
+- <code>Result</code> objects must be used via <code>async with</code> or <code>async for</code>, otherwise the connection will not be returned to the pool
+- Failing to properly close <code>Result</code> will cause <code>ResourceWarning</code> and connection leaks
+- When using context manager or <code>async for</code>, connections are automatically managed by the framework</p>
 <h2 id="3-error-handling">3. Error Handling<a class="headerlink" href="#3-error-handling" title="Permanent link">&para;</a></h2>
 <h3 id="recommended-check-errors">✅ Recommended: Check Errors<a class="headerlink" href="#recommended-check-errors" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">)</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query failed: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="k">return</span> <span class="p">[]</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">return</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_all</span><span class="p">()</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query failed: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>        <span class="k">return</span> <span class="p">[]</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_all</span><span class="p">()</span>
 </span></code></pre></div>
 <h3 id="not-recommended-ignore-errors">❌ Not Recommended: Ignore Errors<a class="headerlink" href="#not-recommended-ignore-errors" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">)</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_all</span><span class="p">()</span>  <span class="c1"># If error occurs, data may be empty list</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_all</span><span class="p">()</span>  <span class="c1"># If error occurs, data may be empty list</span>
 </span></code></pre></div>
 <h2 id="4-large-dataset-processing">4. Large Dataset Processing<a class="headerlink" href="#4-large-dataset-processing" title="Permanent link">&para;</a></h2>
 <h3 id="recommended-use-streaming-query">✅ Recommended: Use Streaming Query<a class="headerlink" href="#recommended-use-streaming-query" title="Permanent link">&para;</a></h3>
@@ -2011,20 +2043,22 @@
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    <span class="n">process</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
 </span></code></pre></div>
 <h3 id="not-recommended-load-all-data-at-once">❌ Not Recommended: Load All Data at Once<a class="headerlink" href="#not-recommended-load-all-data-at-once" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM large_table&quot;</span><span class="p">)</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">all_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">data</span><span class="o">.</span><span class="n">fetch_all</span><span class="p">()</span>  <span class="c1"># May cause memory overflow</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM large_table&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="n">all_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_all</span><span class="p">()</span>  <span class="c1"># May cause memory overflow</span>
 </span></code></pre></div>
 <h2 id="5-parameterized-queries">5. Parameterized Queries<a class="headerlink" href="#5-parameterized-queries" title="Permanent link">&para;</a></h2>
 <h3 id="recommended-use-parameterized-queries-to-prevent-sql-injection">✅ Recommended: Use Parameterized Queries to Prevent SQL Injection<a class="headerlink" href="#recommended-use-parameterized-queries-to-prevent-sql-injection" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="s2">&quot;SELECT * FROM users WHERE name = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    <span class="p">(</span><span class="n">user_name</span><span class="p">,)</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="p">)</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="n">users</span> <span class="o">=</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_all</span><span class="p">()</span>
 </span></code></pre></div>
 <h3 id="not-recommended-string-concatenation">❌ Not Recommended: String Concatenation<a class="headerlink" href="#not-recommended-string-concatenation" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    <span class="sa">f</span><span class="s2">&quot;SELECT * FROM users WHERE name = &#39;</span><span class="si">{</span><span class="n">user_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="p">)</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">users</span> <span class="o">=</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_all</span><span class="p">()</span>
 </span></code></pre></div>
 <h2 id="6-connection-pool-configuration">6. Connection Pool Configuration<a class="headerlink" href="#6-connection-pool-configuration" title="Permanent link">&para;</a></h2>
 <h3 id="recommended-configure-connection-pool-based-on-application-load">✅ Recommended: Configure Connection Pool Based on Application Load<a class="headerlink" href="#recommended-configure-connection-pool-based-on-application-load" title="Permanent link">&para;</a></h3>
@@ -2175,7 +2209,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.indexes", "toc.follow", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
