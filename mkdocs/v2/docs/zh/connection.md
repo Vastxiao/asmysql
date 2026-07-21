@@ -38,7 +38,6 @@ engine = Engine(
     pool_recycle=-1,
     connect_timeout=5,
     echo_sql_log=False,
-    result_class=tuple,
     init_sql=None,  # 可选：连接初始化时自动执行的 SET SQL
 )
 ```
@@ -57,7 +56,6 @@ engine = Engine(
 | `pool_recycle` | float | `-1` | 空闲连接回收时间（秒），-1 表示不回收 |
 | `connect_timeout` | int | `5` | 连接超时时间（秒） |
 | `echo_sql_log` | bool | `False` | 是否打印 SQL 日志 |
-| `result_class` | type | `tuple` | 返回结果类型 |
 | `init_sql` | str | `None` | 连接初始化时自动执行的 SET SQL（每条新 TCP 连接首次使用时执行一次） |
 
 ## 连接和断开

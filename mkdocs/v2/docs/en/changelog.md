@@ -12,6 +12,7 @@ This document records all changes in asmysql v2 version.
 
 - **Auto-Commit Mechanism Refactored**: Removed `auto_commit` Engine parameter and `commit` execute/Result parameter, replaced with SQL first-keyword-based auto-commit mechanism (`_should_commit()`). Write operations auto-COMMIT, read operations do not commit, stream mode does not commit
 - **Removed Engine `stream` Parameter**: `stream` is no longer an Engine class attribute, only available at `execute()` method level
+- **Removed Engine `result_class` Parameter**: `result_class` is no longer an Engine class attribute or constructor parameter, only available at the `execute()` / `execute_many()` method level, defaulting to `tuple`
 
 ### Bug Fixes
 
@@ -30,6 +31,7 @@ This document records all changes in asmysql v2 version.
 
 - Added `test_engine_init_sql.py` covering `init_sql` core functionality and edge cases
 - Rewrote integration test `engine` fixture to auto-select test database via `init_sql=USE <test_db>`
+- Removed Engine `result_class` related test cases from `test_mock_engine.py`
 
 ## [v2.0.0](changelog/v2.0.0.md)
 

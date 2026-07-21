@@ -12,6 +12,7 @@
 
 - **自动提交机制重构**：移除 `auto_commit` Engine 参数和 `commit` execute/Result 参数，改为基于 SQL 语句首关键词的自动提交机制（`_should_commit()`）。写操作自动 COMMIT，读操作不提交，stream 模式不提交
 - **移除 Engine `stream` 参数**：`stream` 不再是 Engine 类属性，仅在 `execute()` 方法级别使用
+- **移除 Engine `result_class` 参数**：`result_class` 不再是 Engine 类属性或构造参数，仅在 `execute()` / `execute_many()` 方法级别使用，默认值为 `tuple`
 
 ### 缺陷修复 (Bug Fixes)
 
@@ -30,6 +31,7 @@
 
 - 新增 `test_engine_init_sql.py`，覆盖 `init_sql` 核心功能与边界场景
 - 重写集成测试 `engine` fixture，通过 `init_sql=USE <test_db>` 自动选择测试数据库
+- 移除 `test_mock_engine.py` 中与 Engine `result_class` 相关的测试用例
 
 ## [v2.0.0](changelog/v2.0.0.md)
 

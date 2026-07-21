@@ -343,16 +343,18 @@ class Result(Generic[T]):
         _data: list[T] = []
         if self.error or self.__cursor is None:
             return _data
-        # noinspection PyUnresolvedReferences
-        data: list = await self.__cursor.fetchall()
-        if self.stream:
-            self.__rowcount += len(data)
-        if self._result_class is not tuple and self._result_class is not dict:
-            _data: list[T] = [self._result_class(**item) for item in data]
-        else:
-            _data: list[T] = data
-        await self.close()
-        return _data
+        try:
+            # noinspection PyUnresolvedReferences
+            data: list = await self.__cursor.fetchall()
+            if self.stream:
+                self.__rowcount += len(data)
+            if self._result_class is not tuple and self._result_class is not dict:
+                _data: list[T] = [self._result_class(**item) for item in data]
+            else:
+                _data: list[T] = data
+            return _data
+        finally:
+            await self.close()
 
     async def iterate(self):
         """异步生成器遍历所有记录"""

@@ -47,7 +47,6 @@ class Engine:
     pool_recycle: float = -1  # 空闲TCP连接回收等待时间（秒）
     connect_timeout: int = 5  # 连接超时时间（秒）
     echo_sql_log: bool = False  # 是否打印sql语句日志
-    result_class: type = tuple  # 返回结果类型
     init_sql: Optional[str] = None  # 连接初始化时自动执行的 SQL（如 SET）
 
     @final
@@ -65,7 +64,6 @@ class Engine:
         pool_recycle: Optional[float] = None,
         connect_timeout: Optional[int] = None,
         echo_sql_log: Optional[bool] = None,
-        result_class: Optional[type] = None,
         init_sql: Optional[str] = None,
     ):
         """
@@ -105,7 +103,6 @@ class Engine:
         self.pool_recycle: Final[float] = pool_recycle if pool_recycle is not None else self.pool_recycle
         self.connect_timeout: Final[int] = connect_timeout if connect_timeout is not None else self.connect_timeout
         self.echo_sql_log: Final[bool] = echo_sql_log if echo_sql_log is not None else self.echo_sql_log
-        self.result_class: Final[type] = result_class if result_class is not None else self.result_class
         self.init_sql: Final[Optional[str]] = init_sql if init_sql is not None else self.init_sql
 
         self.url: Final[str] = f"mysql://{self.user}@{self.host}:{self.port}/"
@@ -246,11 +243,9 @@ class Engine:
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
         :param stream: whether to stream the result
-        :param result_class: the class to use for the result
+        :param result_class: the class to use for the result, defaults to tuple
         """
-        _result_class: type = self.result_class
-        if result_class is not None:
-            _result_class = result_class
+        _result_class: type = result_class if result_class is not None else tuple
 
         return Result[T](
             pool=self.pool,
@@ -300,9 +295,9 @@ class Engine:
         :param query: SQL statement
         :param values: parameters, can be a tuple or dictionary
         :param stream: whether to stream the result
-        :param result_class: the class to use for the result
+        :param result_class: the class to use for the result, defaults to tuple
         """
-        result_class = result_class if result_class is not None else self.result_class
+        result_class = result_class if result_class is not None else tuple
 
         return Result[T](
             pool=self.pool,

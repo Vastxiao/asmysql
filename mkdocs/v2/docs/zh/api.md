@@ -34,7 +34,6 @@ class Engine:
 | `pool_recycle` | `float` | `-1` | 空闲连接回收时间（秒），-1 表示不回收 |
 | `connect_timeout` | `int` | `5` | 连接超时时间（秒） |
 | `echo_sql_log` | `bool` | `False` | 是否打印 SQL 日志 |
-| `result_class` | `type` | `tuple` | 返回结果类型 |
 | `init_sql` | `Optional[str]` | `None` | 连接初始化时自动执行的 SET SQL（如 ClickHouse SET） |
 
 ### 构造函数
@@ -54,7 +53,6 @@ def __init__(
     pool_recycle: float = None,
     connect_timeout: int = None,
     echo_sql_log: bool = None,
-    result_class: type = None,
     init_sql: str = None,
 ) -> None
 ```
@@ -72,7 +70,6 @@ def __init__(
 - `pool_recycle` (float, optional): 空闲连接回收时间（秒）
 - `connect_timeout` (int, optional): 连接超时时间（秒）
 - `echo_sql_log` (bool, optional): 是否打印 SQL 日志
-- `result_class` (type, optional): 返回结果类型
 - `init_sql` (str, optional): 连接初始化时自动执行的 SET SQL，每条新 TCP 连接首次使用时执行一次
 
 **示例**：
@@ -157,7 +154,7 @@ def execute(
 - `query` (str): SQL 语句
 - `values` (Union[Sequence, dict], optional): 参数，可以是元组或字典
 - `stream` (bool, optional): 是否流式返回结果，默认使用 `self.stream`
-- `result_class` (type, optional): 结果类型，默认使用 `self.result_class`
+- `result_class` (type, optional): 结果类型，默认 `tuple`
 
 **返回值**：返回 `Result` 对象，支持以下用法：
 

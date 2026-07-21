@@ -34,7 +34,6 @@ class Engine:
 | `pool_recycle` | `float` | `-1` | Idle connection recycle time (seconds), -1 means no recycle |
 | `connect_timeout` | `int` | `5` | Connection timeout (seconds) |
 | `echo_sql_log` | `bool` | `False` | Whether to print SQL logs |
-| `result_class` | `type` | `tuple` | Result type |
 | `init_sql` | `Optional[str]` | `None` | SET SQL to auto-execute on each new TCP connection's first use (e.g. ClickHouse SET) |
 
 ### Constructor
@@ -54,7 +53,6 @@ def __init__(
     pool_recycle: float = None,
     connect_timeout: int = None,
     echo_sql_log: bool = None,
-    result_class: type = None,
     init_sql: str = None,
 ) -> None
 ```
@@ -72,7 +70,6 @@ def __init__(
 - `pool_recycle` (float, optional): Idle connection recycle time (seconds)
 - `connect_timeout` (int, optional): Connection timeout (seconds)
 - `echo_sql_log` (bool, optional): Whether to print SQL logs
-- `result_class` (type, optional): Result type
 - `init_sql` (str, optional): SET SQL to auto-execute on connection init, executed once per new TCP connection on first use
 
 **Examples**:
@@ -157,7 +154,7 @@ def execute(
 - `query` (str): SQL statement
 - `values` (Union[Sequence, dict], optional): Parameters, can be tuple or dict
 - `stream` (bool, optional): Whether to stream results, defaults to `self.stream`
-- `result_class` (type, optional): Result type, defaults to `self.result_class`
+- `result_class` (type, optional): Result type, defaults to `tuple`
 
 **Return Value**: Returns `Result` object, supports the following usages:
 

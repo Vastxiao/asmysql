@@ -33,7 +33,6 @@ class TestEngineInit:
         assert engine.pool_recycle == -1
         assert engine.connect_timeout == 5
         assert engine.echo_sql_log is False
-        assert engine.result_class is tuple
         assert engine.init_sql is None
 
     def test_kwargs_override(self):
@@ -49,7 +48,6 @@ class TestEngineInit:
             pool_recycle=300.0,
             connect_timeout=10,
             echo_sql_log=True,
-            result_class=dict,
             init_sql="SET time_zone = '+00:00'",
         )
         assert engine.host == "db.example.com"
@@ -62,7 +60,6 @@ class TestEngineInit:
         assert engine.pool_recycle == 300.0
         assert engine.connect_timeout == 10
         assert engine.echo_sql_log is True
-        assert engine.result_class is dict
         assert engine.init_sql == "SET time_zone = '+00:00'"
 
     def test_url_parsing_basic(self):
@@ -117,16 +114,6 @@ class TestEngineInit:
         assert engine.echo_sql_log is False
         engine2 = Engine(url="mysql://u:p@host:3306/?echo_sql_log=0")
         assert engine2.echo_sql_log is False
-
-    def test_result_class_default(self):
-        """result_class 默认 tuple"""
-        engine = Engine()
-        assert engine.result_class is tuple
-
-    def test_result_class_override(self):
-        """result_class 自定义"""
-        engine = Engine(result_class=dict)
-        assert engine.result_class is dict
 
 
 # ── TestEngineConnection：连接管理 ────────────────────────────────────

@@ -38,7 +38,6 @@ engine = Engine(
     pool_recycle=-1,
     connect_timeout=5,
     echo_sql_log=False,
-    result_class=tuple,
     init_sql=None,  # Optional: SET SQL to auto-execute on connection init
 )
 ```
@@ -57,7 +56,6 @@ engine = Engine(
 | `pool_recycle` | float | `-1` | Idle connection recycle time (seconds), -1 means no recycle |
 | `connect_timeout` | int | `5` | Connection timeout (seconds) |
 | `echo_sql_log` | bool | `False` | Whether to print SQL logs |
-| `result_class` | type | `tuple` | Result type |
 | `init_sql` | str | `None` | SET SQL to auto-execute on each new TCP connection's first use |
 
 ## Connect and Disconnect
