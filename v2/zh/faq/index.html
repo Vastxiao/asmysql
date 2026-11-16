@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://vastxiao.github.io/asmysql/v2/zh/faq/">
       
       
-        <link rel="prev" href="../migration/">
+        <link rel="prev" href="../ai/">
       
       
         <link rel="next" href="../changelog/">
@@ -29,7 +29,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
@@ -37,7 +37,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -441,7 +441,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../ai/" class="md-tabs__link">
           
   
   
@@ -1082,6 +1082,8 @@
       
         
       
+        
+      
     
     
     
@@ -1129,6 +1131,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI 辅助开发
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1241,7 +1271,62 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#q-streamtrue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: stream=True 的写语句会提交吗？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#q_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: 支持跨语句事务吗？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q-wait_for-taskgroup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: 任务被取消（wait_for 超时/TaskGroup）时语句会回滚吗？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q-disconnect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: disconnect() 一直等待不返回怎么办？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q-shutdown-atexit-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: 同步 shutdown 场景（atexit / 无事件循环）如何清理 Engine？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         Q: 错误信息如何获取？
@@ -1252,7 +1337,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#q_5" class="md-nav__link">
+  <a href="#q-resulterror-traceback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: 为什么 result.error 没有 traceback？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         Q: 如何批量插入数据？
@@ -1274,10 +1370,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#q_6" class="md-nav__link">
+  <a href="#q-engine-asynciorun" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Q: 连接池大小如何设置？
+        Q: Engine 可以跨多个 asyncio.run() / 事件循环复用吗？
       
     </span>
   </a>
@@ -1288,7 +1384,29 @@
   <a href="#q_7" class="md-nav__link">
     <span class="md-ellipsis">
       
+        Q: 连接池大小如何设置？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         Q: 如何处理连接超时？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q-asmysql-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: AsMysql 实例会被自动回收吗？需要手动 release 吗？
       
     </span>
   </a>
@@ -1345,6 +1463,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1363,10 +1485,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7_3" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7_4" >
         
           
-          <label class="md-nav__link" for="__nav_7_3" id="__nav_7_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7_4" id="__nav_7_4_label" tabindex="">
             
   
   
@@ -1384,8 +1506,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1394,6 +1516,62 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/v2.3.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v2.3.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/v2.2.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v2.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1564,7 +1742,62 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#q-streamtrue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: stream=True 的写语句会提交吗？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#q_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: 支持跨语句事务吗？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q-wait_for-taskgroup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: 任务被取消（wait_for 超时/TaskGroup）时语句会回滚吗？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q-disconnect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: disconnect() 一直等待不返回怎么办？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q-shutdown-atexit-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: 同步 shutdown 场景（atexit / 无事件循环）如何清理 Engine？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         Q: 错误信息如何获取？
@@ -1575,7 +1808,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#q_5" class="md-nav__link">
+  <a href="#q-resulterror-traceback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: 为什么 result.error 没有 traceback？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         Q: 如何批量插入数据？
@@ -1597,10 +1841,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#q_6" class="md-nav__link">
+  <a href="#q-engine-asynciorun" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Q: 连接池大小如何设置？
+        Q: Engine 可以跨多个 asyncio.run() / 事件循环复用吗？
       
     </span>
   </a>
@@ -1611,7 +1855,29 @@
   <a href="#q_7" class="md-nav__link">
     <span class="md-ellipsis">
       
+        Q: 连接池大小如何设置？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         Q: 如何处理连接超时？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q-asmysql-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q: AsMysql 实例会被自动回收吗？需要手动 release 吗？
       
     </span>
   </a>
@@ -1661,7 +1927,7 @@
     
     
       <li class="md-path__item">
-        <a href="./" class="md-path__link">
+        <a href="../ai/" class="md-path__link">
           
   <span class="md-ellipsis">
     资源
@@ -1700,33 +1966,42 @@
 <p>A: 使用 <code>result_class</code> 参数，支持 <code>tuple</code>、<code>dict</code> 或自定义模型类：</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">,</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">result_class</span><span class="o">=</span><span class="nb">dict</span>  <span class="c1"># 或自定义模型类</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">result_class</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>  <span class="c1"># 或自定义模型类</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">users</span> <span class="o">=</span> <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">fetch_all</span><span class="p">()</span>
 </span></code></pre></div>
 <h2 id="q_3">Q: 如何处理事务？<a class="headerlink" href="#q_3" title="Permanent link">&para;</a></h2>
-<p>A: v2 版本采用基于 SQL 语句类型的自动提交机制：</p>
+<p>A: v2.3.0 起采用「服务端自动提交 + 事务状态兜底」机制：连接池固定 <code>autocommit=True</code>，成功语句有未结束事务即提交，失败语句自动回滚：</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">engine</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 写操作（INSERT/UPDATE/DELETE 等）会自动提交</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># 读操作（SELECT）不会触发提交</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 写操作由服务端自动提交，成功即落库</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># 失败语句自动 ROLLBACK，错误写入 result.error</span>
 </span></code></pre></div>
-<h2 id="q_4">Q: 错误信息如何获取？<a class="headerlink" href="#q_4" title="Permanent link">&para;</a></h2>
+<h2 id="q-streamtrue">Q: stream=True 的写语句会提交吗？<a class="headerlink" href="#q-streamtrue" title="Permanent link">&para;</a></h2>
+<p>A: 会。v2.3.0 修复了旧版流式写语句不提交导致数据静默丢失的问题：<code>stream=True</code> + 无结果集的写语句执行后立即按事务状态提交；有结果集的流式语句（如返回结果集的 CALL）延迟到游标关闭时提交。</p>
+<h2 id="q_4">Q: 支持跨语句事务吗？<a class="headerlink" href="#q_4" title="Permanent link">&para;</a></h2>
+<p>A: 不支持。v2 每次 <code>execute()</code> 独立提交，手动 <code>BEGIN</code> / <code>START TRANSACTION</code> 会在执行后立即被提交。需要事务边界请合并为单条语句或存储过程。</p>
+<h2 id="q-wait_for-taskgroup">Q: 任务被取消（wait_for 超时/TaskGroup）时语句会回滚吗？<a class="headerlink" href="#q-wait_for-taskgroup" title="Permanent link">&para;</a></h2>
+<p>A: 不一定。取消只打断客户端等待，打不断已发送的 SQL：<code>autocommit=1</code> 下服务端已执行完的写入是独立事务，已提交落库——取消 ≠ 回滚。取消时连接被同步丢弃、槽位回收，<code>CancelledError</code> 继续上抛（不进入 <code>result.error</code>）；被取消的 <code>Result</code> 整体废弃，不读属性、不重试。acquire 排队阶段被取消则确定未执行，可安全重试。</p>
+<h2 id="q-disconnect">Q: disconnect() 一直等待不返回怎么办？<a class="headerlink" href="#q-disconnect" title="Permanent link">&para;</a></h2>
+<p>A: 默认 <code>disconnect_timeout=None</code> 无限等待所有连接归还。自 v2.6.0 起，被遗弃（垃圾回收）的未关闭 <code>Result</code> 不再导致死等——其连接被同步丢弃并完成池记账（发 <code>ResourceWarning</code>）；只有<strong>仍被引用且未 close</strong> 的 <code>Result</code> 才会持续等待。请确保所有 <code>Result</code> 均经 <code>async with</code> / <code>async for</code> / <code>close()</code> 关闭；需要收敛保证时显式配置有限超时（如 <code>disconnect_timeout=30</code>），超时后自动 terminate 全部在用连接并发出 <code>ResourceWarning</code>，在途查询收到 <code>error_no=2013</code>。外部取消 disconnect 也会 terminate 收敛。</p>
+<h2 id="q-shutdown-atexit-engine">Q: 同步 shutdown 场景（atexit / 无事件循环）如何清理 Engine？<a class="headerlink" href="#q-shutdown-atexit-engine" title="Permanent link">&para;</a></h2>
+<p>A: 用 <code>engine.terminate()</code>（自 v2.5.0）：同步强制清理，不等待连接归还，立即关闭全部在用连接并掐断在途查询，best-effort 清理空闲连接；幂等，可安全注册到 <code>atexit.register(engine.terminate)</code>。清理后可重新 <code>connect()</code> 复用。另外 Engine 自带 <code>__del__</code> 安全网：未被 disconnect 即被 GC 时发 <code>ResourceWarning</code> 并自动 terminate，但生产仍应显式清理（事件循环内用 <code>await engine.disconnect()</code>，同步钩子用 <code>terminate()</code>）。详见 <a href="../connection/">连接管理</a>。</p>
+<h2 id="q_5">Q: 错误信息如何获取？<a class="headerlink" href="#q_5" title="Permanent link">&para;</a></h2>
 <p>A: 通过 <code>result.error</code>、<code>result.error_no</code> 和 <code>result.error_msg</code> 属性：</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM invalid_table&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;错误码: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">error_no</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;错误信息: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
-<h2 id="q_5">Q: 如何批量插入数据？<a class="headerlink" href="#q_5" title="Permanent link">&para;</a></h2>
+<h2 id="q-resulterror-traceback">Q: 为什么 result.error 没有 traceback？<a class="headerlink" href="#q-resulterror-traceback" title="Permanent link">&para;</a></h2>
+<p>A: 自 v2.4.0 起，错误存储时主动断开 <code>__traceback__</code> 帧链（置为 <code>None</code>），消除「Result → 异常 → 栈帧 → Result」引用环——否则长期持有 <code>result.error</code>（如错误审计列表）会连带驻留整个 Result 与栈帧局部变量。排查使用 <code>error_no</code> / <code>error_msg</code> 与 <code>result.query</code> 中的 SQL；重新抛出该异常会在抛出点生成新栈。</p>
+<h2 id="q_6">Q: 如何批量插入数据？<a class="headerlink" href="#q_6" title="Permanent link">&para;</a></h2>
 <p>A: 使用 <code>execute_many()</code> 方法：</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">data</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;张三&quot;</span><span class="p">,</span> <span class="s2">&quot;zhangsan@example.com&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;李四&quot;</span><span class="p">,</span> <span class="s2">&quot;lisi@example.com&quot;</span><span class="p">)]</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute_many</span><span class="p">(</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="s2">&quot;INSERT INTO users (name, email) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">data</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;插入了 </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">row_count</span><span class="si">}</span><span class="s2"> 条记录&quot;</span><span class="p">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute_many</span><span class="p">(</span><span class="s2">&quot;INSERT INTO users (name, email) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;插入了 </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">row_count</span><span class="si">}</span><span class="s2"> 条记录&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 <h2 id="q-engine">Q: 如何在不同模块间共享 Engine 实例？<a class="headerlink" href="#q-engine" title="Permanent link">&para;</a></h2>
 <p>A: 可以在应用启动时创建 Engine 实例，然后通过依赖注入或全局变量共享：</p>
@@ -1737,24 +2012,34 @@
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># service.py</span>
 </span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">app</span><span class="w"> </span><span class="kn">import</span> <span class="n">engine</span>
 </span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="k">class</span><span class="w"> </span><span class="nc">UserService</span><span class="p">(</span><span class="n">AsMysql</span><span class="p">):</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="k">class</span><span class="w"> </span><span class="nc">UserService</span><span class="p">(</span><span class="n">AsMysql</span><span class="p">):</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
 </span></code></pre></div>
-<h2 id="q_6">Q: 连接池大小如何设置？<a class="headerlink" href="#q_6" title="Permanent link">&para;</a></h2>
+<h2 id="q-engine-asynciorun">Q: Engine 可以跨多个 asyncio.run() / 事件循环复用吗？<a class="headerlink" href="#q-engine-asynciorun" title="Permanent link">&para;</a></h2>
+<p>A: 可以，但必须「原循环 disconnect → 新循环 connect」（v2.4.0 起内部锁随循环重建）。aiomysql 连接池创建即绑定循环，活池不能跨循环共享：未断开就在新循环 connect/execute 会抛带明确提示的 <code>ConnectionError</code>。详见<a href="../connection/">连接管理</a>的「跨事件循环复用」一节。</p>
+<h2 id="q_7">Q: 连接池大小如何设置？<a class="headerlink" href="#q_7" title="Permanent link">&para;</a></h2>
 <p>A: 根据应用的并发量和数据库服务器的性能来设置：</p>
 <ul>
 <li>低并发应用：<code>min_pool_size=2, max_pool_size=10</code></li>
 <li>中等并发：<code>min_pool_size=5, max_pool_size=50</code></li>
 <li>高并发应用：<code>min_pool_size=10, max_pool_size=100+</code></li>
 </ul>
-<h2 id="q_7">Q: 如何处理连接超时？<a class="headerlink" href="#q_7" title="Permanent link">&para;</a></h2>
+<h2 id="q_8">Q: 如何处理连接超时？<a class="headerlink" href="#q_8" title="Permanent link">&para;</a></h2>
 <p>A: 可以通过 <code>connect_timeout</code> 参数设置连接超时时间：</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">engine</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    <span class="n">url</span><span class="o">=</span><span class="s2">&quot;mysql://...&quot;</span><span class="p">,</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="n">connect_timeout</span><span class="o">=</span><span class="mi">10</span>  <span class="c1"># 10 秒超时</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="n">connect_timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>  <span class="c1"># 10 秒超时</span>
 </span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="p">)</span>
 </span></code></pre></div>
+<h2 id="q-asmysql-release">Q: <code>AsMysql</code> 实例会被自动回收吗？需要手动 release 吗？<a class="headerlink" href="#q-asmysql-release" title="Permanent link">&para;</a></h2>
+<p>A: 不会自动注销。实例表以 <code>(子类, 引擎对象)</code> 为键强引用实例，<code>__del__</code> 不会触发，垃圾回收不会清理条目。</p>
+<ul>
+<li>Web 服务在 lifespan shutdown、CLI 在每轮结束时调用 <code>UserService.release(engine)</code>（或 <code>release()</code> 清空全表）</li>
+<li>已断开引擎（<code>is_connected</code> 为 <code>False</code>）的旧条目，会在下一次未命中构造时被自动剔除</li>
+<li><code>release()</code> 只解除实例表的强引用，不关闭连接池；连接仍由 <code>engine.disconnect()</code> 负责</li>
+</ul>
 
 
 
@@ -1892,7 +2177,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.indexes", "toc.follow", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
