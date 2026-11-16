@@ -1,0 +1,4 @@
+# asmysql
+
+> 本文件为根路径指针。AI 入口与全文文档（永远最新）：
+> https://vastxiao.github.io/asmysql/ai/llms.txt

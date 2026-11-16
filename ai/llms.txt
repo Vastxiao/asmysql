@@ -1,0 +1,50 @@
+# asmysql
+
+> Python asyncio 异步 MySQL 客户端/连接池库（基于 aiomysql）。当前生产 API 为 v2：
+> Engine（连接池+执行）、Result（懒执行结果对象）、AsMysql（业务基类）。Python >= 3.12。
+
+AI 开发指引：
+- 开发 skill（推荐先读）: https://vastxiao.github.io/asmysql/ai/skill/SKILL.md
+- skill 一键安装: python -m asmysql skill install --target claude（在项目根运行；用户级用 --target user:claude）
+- 全文文档（中文）: https://vastxiao.github.io/asmysql/ai/llms-full.txt
+
+
+## Docs（中文站，/v2/zh/ 前缀）
+- [首页](https://vastxiao.github.io/asmysql/v2/zh/): 库简介与文档导航
+- [安装](https://vastxiao.github.io/asmysql/v2/zh/installation/): pip/uv 安装与依赖要求
+- [快速开始](https://vastxiao.github.io/asmysql/v2/zh/quickstart/): Engine 与 AsMysql 两种上手方式
+- [连接管理](https://vastxiao.github.io/asmysql/v2/zh/connection/): URL 配置、连接池生命周期与事件循环语义
+- [查询操作](https://vastxiao.github.io/asmysql/v2/zh/query/): execute/execute_many、参数化与流式读取
+- [结果处理](https://vastxiao.github.io/asmysql/v2/zh/result/): Result 标准用法、取数 API 与错误检查
+- [事务](https://vastxiao.github.io/asmysql/v2/zh/transaction/): 每语句独立提交语义与兜底提交/回滚
+- [业务逻辑](https://vastxiao.github.io/asmysql/v2/zh/business-logic/): AsMysql 继承模式与构造式单例
+- [示例](https://vastxiao.github.io/asmysql/v2/zh/examples/): 常见场景完整代码示例
+- [API 参考](https://vastxiao.github.io/asmysql/v2/zh/api/): Engine/Result/AsMysql 完整 API
+- [最佳实践](https://vastxiao.github.io/asmysql/v2/zh/best-practices/): 生产环境用法建议与反例
+- [迁移指南](https://vastxiao.github.io/asmysql/v2/zh/migration/): v1 到 v2 迁移对照
+- [常见问题](https://vastxiao.github.io/asmysql/v2/zh/faq/): 高频问题解答
+- [更新日志](https://vastxiao.github.io/asmysql/v2/zh/changelog/): 版本变更索引（详情见各版本页）
+- [论坛](https://vastxiao.github.io/asmysql/v2/zh/forum/): 社区交流入口
+- [AI 辅助开发](https://vastxiao.github.io/asmysql/v2/zh/ai/): 开发 skill 安装与 llms.txt 文档入口
+
+## Docs（English，/v2/ 前缀）
+- [Home](https://vastxiao.github.io/asmysql/v2/): Library overview and docs navigation
+- [Installation](https://vastxiao.github.io/asmysql/v2/installation/): Install via pip/uv and requirements
+- [Quick Start](https://vastxiao.github.io/asmysql/v2/quickstart/): Get started with Engine or AsMysql
+- [Connection Management](https://vastxiao.github.io/asmysql/v2/connection/): URL config, pool lifecycle and event-loop semantics
+- [Query Operations](https://vastxiao.github.io/asmysql/v2/query/): execute/execute_many, parameterization and streaming
+- [Result Handling](https://vastxiao.github.io/asmysql/v2/result/): Result usage patterns, fetch APIs and error checking
+- [Transactions](https://vastxiao.github.io/asmysql/v2/transaction/): Per-statement commit semantics and fallback commit/rollback
+- [Business Logic](https://vastxiao.github.io/asmysql/v2/business-logic/): AsMysql inheritance pattern and constructor singleton
+- [Examples](https://vastxiao.github.io/asmysql/v2/examples/): Complete code examples for common scenarios
+- [API Reference](https://vastxiao.github.io/asmysql/v2/api/): Full Engine/Result/AsMysql API reference
+- [Best Practices](https://vastxiao.github.io/asmysql/v2/best-practices/): Production usage recommendations and anti-patterns
+- [Migration Guide](https://vastxiao.github.io/asmysql/v2/migration/): Migration guide from v1 to v2
+- [FAQ](https://vastxiao.github.io/asmysql/v2/faq/): Frequently asked questions
+- [Changelog](https://vastxiao.github.io/asmysql/v2/changelog/): Version changelog index (details per version page)
+- [Forum](https://vastxiao.github.io/asmysql/v2/forum/): Community forum entry
+- [AI Development](https://vastxiao.github.io/asmysql/v2/ai/): Dev skill install and llms.txt docs entry
+
+## Optional
+- [GitHub 仓库](https://github.com/Vastxiao/asmysql)
+- [PyPI](https://pypi.org/project/asmysql/)
